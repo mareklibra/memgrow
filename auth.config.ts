@@ -5,17 +5,21 @@ export const authConfig: NextAuthConfig = {
     signIn: "/login",
   },
   callbacks: {
-    authorized({ auth, request: { nextUrl } }) {
-      console.log("auth.config.ts authorized() called: ", auth);
+    authorized({ auth, request }) {
+      const { nextUrl } = request;
       const isLoggedIn = !!auth?.user;
 
-      const isOnHomePage = nextUrl.pathname.startsWith("/");
+      const isOnHomePage = nextUrl.pathname === "/";
+
       if (isOnHomePage) {
         return true;
       }
 
-      // Response.redirect(new URL("/dashboard", nextUrl));
-      return isLoggedIn;
+      if (!isLoggedIn) {
+        return false;
+      }
+
+      return true;
     },
   },
   providers: [], // Add providers with an empty array for now
