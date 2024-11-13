@@ -1,5 +1,4 @@
-import { useState } from "react";
-import clsx from "clsx";
+import { useMemo, useState } from "react";
 
 import { Word } from "@/app/lib/definitions";
 import { TypeTranslation } from "./TypeTranslation";
@@ -7,6 +6,7 @@ import { ShowWord } from "./ShowWord";
 import { Button } from "./button";
 import { FieldStatus } from "./types";
 import { WordProgress } from "./WordProgress";
+import { ChooseTranslation } from "./ChooseTranslation";
 
 const DELAY_MISTAKE_MS = 3 * 1000;
 const DELAY_CORRECT_MS = 1 * 1000;
@@ -25,6 +25,13 @@ const delay = async (ms: number) =>
 export function TeachWord({ word, correct, mistake }: TeachWordProps) {
   const [status, setStatus] = useState<FieldStatus>("normal");
   const [isAnyText, setAnyText] = useState<boolean>(false);
+  const otherOptions = useMemo(
+    // TODO: read dynamically based on similarity
+    () => ["foo", "bar", "buz", "aaaa", "bbb", "ccccc", "dddd", "eeee", "ffff"],
+    []
+  );
+  const threeOptions = useMemo(() => otherOptions.slice(0, 3), [otherOptions]);
+  const sevenOptions = useMemo(() => otherOptions.slice(0, 7), [otherOptions]);
 
   const onValue = async (value: string, oneChanceOnly: boolean) => {
     setAnyText(!!value);
@@ -60,7 +67,27 @@ export function TeachWord({ word, correct, mistake }: TeachWordProps) {
       component = <ShowWord word={word} />;
       break;
     case "choose_4":
+      component = (
+        <ChooseTranslation
+          key={word.id}
+          word={word}
+          onValue={onValue}
+          status={status}
+          otherOptions={threeOptions}
+        />
+      );
+      break;
     case "choose_8":
+      component = (
+        <ChooseTranslation
+          key={word.id}
+          word={word}
+          onValue={onValue}
+          status={status}
+          otherOptions={sevenOptions}
+        />
+      );
+      break;
     case "write":
     default:
       component = (
@@ -82,10 +109,9 @@ export function TeachWord({ word, correct, mistake }: TeachWordProps) {
     <div className="flex flex-col">
       <form>
         <div>{component}</div>
-        <div className="py-[20px] pl-10">
-          <WordProgress word={word} className="float-left" />
+        <div className="py-[20px] pl-10 pr-10 flex justify-between">
+          <WordProgress word={word} />
           <Button
-            className="justify-self-end mr-4"
             onClick={forceCheck}
             disabled={isCheckButtonDisabled}
             type="submit"

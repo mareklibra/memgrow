@@ -1,4 +1,5 @@
-import { TeachingFormCount, Word } from "../lib/definitions";
+import { TeachingFormCount, Word } from "@/app/lib/definitions";
+import { getNumericForm } from "@/app/lib/word-transitions";
 
 interface WordProgressProps {
   word: Word;
@@ -6,11 +7,7 @@ interface WordProgressProps {
 }
 
 export function WordProgress({ word, className }: WordProgressProps) {
-  let value = 0;
-  if (word.form === "show") value = 0.1;
-  if (word.form === "choose_4") value = 1;
-  if (word.form === "choose_8") value = 2;
-  if (word.form === "write") value = 3;
+  const value = getNumericForm(word.form);
 
   return (
     <progress value={value} max={TeachingFormCount} className={className} />

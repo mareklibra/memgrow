@@ -1,5 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+
+import { getNextForm } from "@/app/lib/word-transitions";
 import { TeachingForm, Word } from "@/app/lib/definitions";
 import { TeachWord } from "./TeachWord";
 
@@ -29,10 +31,7 @@ export function IterateWords({ words }: IterateWordsProps) {
 
   const correct = (word: Word) => {
     // Move learning forward
-    let newForm: TeachingForm = "show";
-    if (word.form === "show") newForm = "choose_4";
-    if (word.form === "choose_4") newForm = "choose_8";
-    if (word.form === "choose_8") newForm = "write";
+    const newForm = getNextForm(word.form);
 
     if (newForm !== "show") {
       const newWord = {
