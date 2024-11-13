@@ -6,6 +6,7 @@ import { TypeTranslation } from "./TypeTranslation";
 import { ShowWord } from "./ShowWord";
 import { Button } from "./button";
 import { FieldStatus } from "./types";
+import { WordProgress } from "./WordProgress";
 
 const DELAY_MISTAKE_MS = 3 * 1000;
 const DELAY_CORRECT_MS = 1 * 1000;
@@ -82,6 +83,7 @@ export function TeachWord({ word, correct, mistake }: TeachWordProps) {
       <form>
         <div>{component}</div>
         <div className="py-[20px] pl-10">
+          <WordProgress word={word} className="float-left" />
           <Button
             className="justify-self-end mr-4"
             onClick={forceCheck}
