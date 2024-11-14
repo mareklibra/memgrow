@@ -7,6 +7,7 @@ import {
   increaseMemLevel,
 } from "@/app/lib/word-transitions";
 import { TeachingForm, Word, WordWithMeta } from "@/app/lib/definitions";
+import { updateWordProgress } from "@/app/lib/actions";
 import { TeachWord } from "./TeachWord";
 import { DoneState } from "./DoneState";
 
@@ -50,7 +51,7 @@ export function IterateWords({
   }, [repetitionLimit, wordIdx, wordQueue, wordQueue.length]);
 
   const storeProgress = (word: Word) => {
-    console.info("TODO: storeProgress: ", word);
+    updateWordProgress(word);
   };
 
   const correct = (word: WordWithMeta) => {

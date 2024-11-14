@@ -1,13 +1,28 @@
 "use server";
 
-import { z } from "zod";
 import { sql } from "@vercel/postgres";
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+// import { revalidatePath } from "next/cache";
+// import { redirect } from "next/navigation";
 
 import { signIn } from "@/auth";
 import { AuthError } from "next-auth";
+import { Word } from "./definitions";
 
+export async function updateWordProgress(word: Word) {
+  try {
+    await sql`
+      UPDATE words
+      SET memlevel = ${word.memLevel}, form = ${word.form}
+      WHERE id = ${word.id}
+    `;
+  } catch {
+    return { message: "Database Error: Failed to update word progress." };
+  }
+  // revalidatePath("/dashboard/invoices");
+  // redirect("/dashboard/invoices");
+}
+
+/*
 export type State = {
   errors?: {
     customerId?: string[];
@@ -16,6 +31,7 @@ export type State = {
   };
   message?: string | null;
 };
+
 
 const FormSchema = z.object({
   id: z.string(),
@@ -101,6 +117,7 @@ export async function deleteInvoice(id: string) {
     return { message: "Database Error: Failed to Delete Invoice." };
   }
 }
+*/
 
 export async function authenticate(
   prevState: string | undefined,
