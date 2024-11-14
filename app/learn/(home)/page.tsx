@@ -21,8 +21,8 @@ import { IterateWords } from "@/app/ui/IterateWords";
 
 export default async function Page() {
   // TODO: let the user configure that
-  const learnLimit = 5;
-  const words = await fetchWordsToLearn(learnLimit);
+  const learnWordsCountLimit = 5;
+  const words = await fetchWordsToLearn(learnWordsCountLimit);
 
   return (
     <main>

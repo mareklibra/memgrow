@@ -10,6 +10,7 @@ import { TeachingForm, Word, WordWithMeta } from "@/app/lib/definitions";
 import { updateWordProgress } from "@/app/lib/actions";
 import { TeachWord } from "./TeachWord";
 import { DoneState } from "./DoneState";
+import Link from "next/link";
 
 interface IterateWordsProps {
   words: Word[];
@@ -28,8 +29,13 @@ export function IterateWords({
 
   useEffect(() => {
     // Initialize
+    if (words.length === 0) {
+      return;
+    }
+
     if (wordQueue.length === 0) {
       setWordQueue(words.map((w) => ({ ...w, repeated: 0 })));
+
       if (words?.length > 0) {
         setWordIdx(0);
       } else {
@@ -99,6 +105,14 @@ export function IterateWords({
     setWordIdx(wordIdx + 1);
   };
 
+  if (!words.length) {
+    return (
+      <div>
+        Nothing more to learn. Try <Link href="/test">Test</Link>
+      </div>
+    );
+  }
+
   if (isDone) {
     return (
       <DoneState
@@ -114,7 +128,6 @@ export function IterateWords({
   }
 
   const word = wordQueue[wordIdx];
-  console.log({ wordIdx, word, wordQueue });
 
   return (
     <TeachWord

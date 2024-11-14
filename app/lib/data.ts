@@ -7,7 +7,7 @@ export async function fetchWordsToLearn(limit: number): Promise<Word[]> {
   try {
     console.log("Fetching words to learn...");
 
-    // TODO: tak following query
+    // TODO: tweak following query
     const result =
       await sql<DbWord>`SELECT id, word, definition, memlevel, form FROM words WHERE memlevel = 0 LIMIT ${limit}`;
 
@@ -20,7 +20,6 @@ export async function fetchWordsToLearn(limit: number): Promise<Word[]> {
         memLevel: Number(r.memlevel ?? "0"),
       })
     );
-    console.log({ data, result });
     return data;
   } catch (error) {
     console.error("Database Error:", error);
@@ -29,11 +28,10 @@ export async function fetchWordsToLearn(limit: number): Promise<Word[]> {
 }
 
 export async function fetchWordsToTest(limit: number): Promise<Word[]> {
-  // TODO: tak following query
-
   try {
     console.log("Fetching words to learn...");
 
+    // TODO: tweak
     const result =
       await sql<DbWord>`SELECT id, word, definition, memlevel, form FROM words LIMIT ${limit}`;
 
@@ -46,7 +44,6 @@ export async function fetchWordsToTest(limit: number): Promise<Word[]> {
         memLevel: Number(r.memlevel ?? "0"),
       })
     );
-    console.log({ data, result });
     return data;
   } catch (error) {
     console.error("Database Error:", error);
