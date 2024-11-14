@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Word } from "@/app/lib/definitions";
 import { WordTeachingStatus } from "./WordTeachingStatus";
 
@@ -18,7 +18,7 @@ type ProgressType = {
 
 export function DoneState({ words, wordQueue, storeProgress }: DoneStateProps) {
   const [progress, setProgress] = useState<ProgressType[]>([]);
-  console.log({ words, wordQueue, progress });
+
   useEffect(
     () => {
       const progress: ProgressType[] = [];
@@ -42,20 +42,24 @@ export function DoneState({ words, wordQueue, storeProgress }: DoneStateProps) {
     ]
   );
   return (
-    <p>
-      <div className="grid grid-cols-3">
-        {progress.map((p) => {
-          return (
-            <>
-              <div>{p.start.word}</div>
-              <div>{p.start.definition}</div>
-              <div>
-                <WordTeachingStatus word={p.end} />
-              </div>
-            </>
-          );
-        })}
-      </div>
-    </p>
+    <div className="grid grid-cols-4">
+      <div>Word</div>
+      <div>Definition</div>
+      <div>Status</div>
+      <div>Level</div>
+
+      {progress.map((p) => {
+        return (
+          <Fragment key={p.start.id}>
+            <div>{p.start.word}</div>
+            <div>{p.start.definition}</div>
+            <div>
+              <WordTeachingStatus word={p.end} />
+            </div>
+            <div>{p.end.memLevel}</div>
+          </Fragment>
+        );
+      })}
+    </div>
   );
 }

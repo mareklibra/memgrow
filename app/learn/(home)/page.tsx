@@ -22,7 +22,6 @@ import { IterateWords } from "@/app/ui/IterateWords";
 export default async function Page() {
   // TODO: let the user configure that
   const learnLimit = 5;
-
   const words = await fetchWordsToLearn(learnLimit);
 
   return (
@@ -30,7 +29,7 @@ export default async function Page() {
       <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
         Learn new words ({words.length})
       </h1>
-      <IterateWords words={words} repetitionLimit={2} skipLevel />
+      <IterateWords words={words} repetitionLimit={2} isLearning />
     </main>
   );
 }

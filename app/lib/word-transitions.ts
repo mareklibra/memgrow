@@ -1,10 +1,15 @@
 import { TeachingForm } from "./definitions";
 
+// TODO: introduce "write_reverse"
 export function getNextForm(form: TeachingForm): TeachingForm {
   let newForm: TeachingForm = "show";
   if (form === "show") newForm = "choose_4";
   if (form === "choose_4") newForm = "choose_8";
   if (form === "choose_8") newForm = "write";
+
+  // Following is not used during learning
+  if (form === "write") newForm = "choose_4";
+
   return newForm;
 }
 

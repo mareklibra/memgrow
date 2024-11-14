@@ -1,27 +1,11 @@
-import { Word } from "@/app/lib/definitions";
 import { lusitana } from "@/app/ui/fonts";
 import { IterateWords } from "@/app/ui/IterateWords";
-
-const mockWords: Word[] = [
-  {
-    id: "0",
-    word: "el sol",
-    definition: "slunce",
-    form: "show",
-    memLevel: 0,
-  },
-  {
-    id: "1",
-    word: "el perro",
-    definition: "pes",
-    form: "show",
-    memLevel: 0,
-  },
-];
+import { fetchWordsToTest } from "@/app/lib/data";
 
 export default async function Page() {
-  // TODO: read from the DB
-  const words: Word[] = mockWords;
+  // TODO: let the user configure that
+  const testWordsCountLimit = 3;
+  const words = await fetchWordsToTest(testWordsCountLimit);
 
   return (
     <main>
