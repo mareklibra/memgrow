@@ -34,22 +34,25 @@ export function ChooseTranslation({
   return (
     <>
       <WordStatic word={word.word} />
-      <div className="flex flex-col space-y-2">
+      <div className="grid grid-cols-2 gap-6 w-3/4 justify-self-center">
         {options.map((item) => {
           return (
-            <Button
-              key={item}
-              className={clsx("justify-center w-96", {
-                "bg-green-600": status !== "normal" && item === word.definition,
-                "bg-red-500": status === "mistake" && item === value,
-              })}
-              onClick={(e) => {
-                e.preventDefault();
-                handleClick(item);
-              }}
-            >
-              {item}
-            </Button>
+            <div key={item} className="">
+              <Button
+                key={item}
+                className={clsx("justify-center w-full", {
+                  "bg-green-600":
+                    status !== "normal" && item === word.definition,
+                  "bg-red-500": status === "mistake" && item === value,
+                })}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleClick(item);
+                }}
+              >
+                {item}
+              </Button>
+            </div>
           );
         })}
       </div>
