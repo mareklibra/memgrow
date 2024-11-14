@@ -1,11 +1,12 @@
 import { db } from "@vercel/postgres";
 import bcrypt from "bcrypt";
-import { users } from "../lib/placeholder-data";
+import { users, words } from "../lib/placeholder-data";
 
 const client = await db.connect();
 
 async function seedUsers() {
-  console.log('--- Seeding users');
+  console.info("Seeding users");
+
   await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
   await client.sql`
     CREATE TABLE IF NOT EXISTS users (
@@ -20,8 +21,36 @@ async function seedUsers() {
     users.map(async (user) => {
       const hashedPassword = await bcrypt.hash(user.password, 10);
       return client.sql`
-        INSERT INTO users (name, email, password)
-        VALUES (${user.name}, ${user.email}, ${hashedPassword})
+        INSERT INTO users (id, name, email, password)
+        VALUES (${user.id}, ${user.name}, ${user.email}, ${hashedPassword})
+        ON CONFLICT (id) DO NOTHING;
+      `;
+    })
+  );
+
+  return insertedUsers;
+}
+
+async function seedWords() {
+  console.info("Seeding words");
+
+  // TODO: add relation to "users"
+  await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await client.sql`
+    CREATE TABLE IF NOT EXISTS words (
+      id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+      word VARCHAR(255) NOT NULL,
+      definition TEXT NOT NULL,
+      memlevel INT NOT NULL,
+      form VARCHAR(16) NOT NULL
+    );
+  `;
+
+  const insertedUsers = await Promise.all(
+    words.map(async (word) => {
+      return client.sql`
+        INSERT INTO words (id, word, definition, memlevel, form)
+        VALUES (${word.id}, ${word.word}, ${word.definition}, ${word.memLevel}, ${word.form})
         ON CONFLICT (id) DO NOTHING;
       `;
     })
@@ -111,9 +140,7 @@ export async function GET() {
   try {
     await client.sql`BEGIN`;
     await seedUsers();
-    // await seedCustomers();
-    // await seedInvoices();
-    // await seedRevenue();
+    await seedWords();
     await client.sql`COMMIT`;
 
     return Response.json({ message: "Database seeded successfully" });

@@ -1,11 +1,45 @@
+import { Word } from "./definitions";
+
 const users = [
   {
-    id: '410544b2-4001-4271-9855-fec4b6a6442a',
+    id: "410544b2-4001-4271-9855-fec4b6a6442a",
     name: "Marek",
     email: "marek.libra@gmail.com",
     password: "foobar",
   },
 ];
+
+const words: Word[] = [
+  {
+    id: 'd0e15727-9fe1-4961-8c5b-ea44a9bd81aa',
+    word: "el sol",
+    definition: "slunce",
+    form: "show",
+    memLevel: 0,
+  },
+  {
+    id: 'd1e15727-9fe1-4961-8c5b-ea44a9bd81aa',
+    word: "el perro",
+    definition: "pes",
+    form: "show",
+    memLevel: 0,
+  },
+  {
+    id: 'd2e15727-9fe1-4961-8c5b-ea44a9bd81aa',
+    word: "el gato",
+    definition: "kočka",
+    form: "show",
+    memLevel: 0,
+  },
+  {
+    id: 'd3e15727-9fe1-4961-8c5b-ea44a9bd81aa',
+    word: "mañana",
+    definition: "zítra",
+    form: "show",
+    memLevel: 0,
+  },
+];
+
 /*
 const customers = [
   {
@@ -144,4 +178,4 @@ const revenue = [
 
 export { users, customers, invoices, revenue };
 */
-export { users };
+export { users, words };
