@@ -24,5 +24,5 @@ export function increaseMemLevel(level: number): number {
 }
 
 export function decreaseMemLevel(level: number): number {
-  return level / 2;
+  return Math.round(level / 2);
 }

@@ -13,9 +13,14 @@ import { DoneState } from "./DoneState";
 interface IterateWordsProps {
   words: Word[];
   repetitionLimit: number;
+  skipLevel?: boolean;
 }
 
-export function IterateWords({ words, repetitionLimit }: IterateWordsProps) {
+export function IterateWords({
+  words,
+  repetitionLimit,
+  skipLevel,
+}: IterateWordsProps) {
   const [wordQueue, setWordQueue] = useState<WordWithMeta[]>([]);
   const [wordIdx, setWordIdx] = useState<number>(-1);
   const [isDone, setDone] = useState<boolean>(false);
@@ -52,7 +57,7 @@ export function IterateWords({ words, repetitionLimit }: IterateWordsProps) {
         ...word,
         repeated: word.repeated + 1,
         form: newForm,
-        memLevel: increaseMemLevel(word.memLevel),
+        memLevel: skipLevel ? word.memLevel : increaseMemLevel(word.memLevel),
       };
       setWordQueue([...wordQueue, newWord]);
     }
@@ -67,7 +72,7 @@ export function IterateWords({ words, repetitionLimit }: IterateWordsProps) {
     const newWord: WordWithMeta = {
       ...word,
       form: newForm,
-      memLevel: decreaseMemLevel(word.memLevel),
+      memLevel: skipLevel ? word.memLevel : decreaseMemLevel(word.memLevel),
       // keep the "repeated" property untouched
     };
 
