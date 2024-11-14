@@ -1,17 +1,28 @@
 "use client";
 
-import { lusitana } from "@/app/ui/fonts";
+import { useActionState, useEffect } from "react";
 import {
   AtSymbolIcon,
   KeyIcon,
   ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
 import { ArrowRightIcon } from "@heroicons/react/20/solid";
-import { Button } from "./button";
-import { useActionState } from "react";
-import { authenticate } from "@/app/lib/actions";
 
-export default function LoginForm() {
+import { authenticate } from "@/app/lib/actions";
+import { lusitana } from "@/app/ui/fonts";
+import { Button } from "./button";
+import { Session } from "next-auth";
+import { useRouter } from "next/navigation";
+
+export default function LoginForm({ auth }: { auth: Session | null }) {
+  const router = useRouter();
+
+  useEffect(() => {
+    if (auth?.user) {
+      router.push("/");
+    }
+  }, [auth, router]);
+
   const [errorMessage, formAction /* isPending */] = useActionState(
     authenticate,
     undefined

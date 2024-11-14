@@ -14,7 +14,6 @@ interface TeachWordProps {
   word: Word;
   stepsDone: number;
   stepsTotal: number;
-  storeProgress: () => void;
   correct: (word: Word) => void;
   mistake: (word: Word) => void;
 }
