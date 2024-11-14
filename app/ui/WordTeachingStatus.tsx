@@ -7,6 +7,6 @@ interface WordTeachingStatusProps {
 
 export function WordTeachingStatus({ word }: WordTeachingStatusProps) {
   const numeric = Math.floor(getNumericForm(word.form));
-  const percentage = (numeric / (TeachingFormCount - 1)) * 100;
+  const percentage = Math.round((numeric / (TeachingFormCount - 1)) * 100);
   return `${percentage}%`;
 }

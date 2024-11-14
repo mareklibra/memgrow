@@ -1,26 +1,29 @@
 "use client";
 import { useEffect, useState } from "react";
 
-import { getNextForm } from "@/app/lib/word-transitions";
-import { TeachingForm, Word } from "@/app/lib/definitions";
+import {
+  decreaseMemLevel,
+  getNextForm,
+  increaseMemLevel,
+} from "@/app/lib/word-transitions";
+import { TeachingForm, Word, WordWithMeta } from "@/app/lib/definitions";
 import { TeachWord } from "./TeachWord";
 import { DoneState } from "./DoneState";
 
 interface IterateWordsProps {
   words: Word[];
+  repetitionLimit: number;
 }
 
-let counter = 0;
-export function IterateWords({ words }: IterateWordsProps) {
-  const [wordQueue, setWordQueue] = useState<Word[]>([]);
+export function IterateWords({ words, repetitionLimit }: IterateWordsProps) {
+  const [wordQueue, setWordQueue] = useState<WordWithMeta[]>([]);
   const [wordIdx, setWordIdx] = useState<number>(-1);
   const [isDone, setDone] = useState<boolean>(false);
 
   useEffect(() => {
     // Initialize
     if (wordQueue.length === 0) {
-      console.log("Words have changed to: ", words, counter++);
-      setWordQueue([...words]);
+      setWordQueue(words.map((w) => ({ ...w, repeated: 0 })));
       if (words?.length > 0) {
         setWordIdx(0);
       } else {
@@ -33,53 +36,47 @@ export function IterateWords({ words }: IterateWordsProps) {
     console.info("TODO: storeProgress: ", word);
   };
 
-  const correct = (word: Word) => {
+  useEffect(() => {
+    if (wordIdx >= wordQueue.length) {
+      setDone(true);
+      return;
+    }
+  }, [wordIdx, wordQueue.length]);
+
+  const correct = (word: WordWithMeta) => {
     // Move learning forward
     const newForm = getNextForm(word.form);
 
-    if (newForm !== "show") {
-      const newWord = {
+    if (newForm !== "show" && word.repeated < repetitionLimit) {
+      const newWord: WordWithMeta = {
         ...word,
+        repeated: word.repeated + 1,
         form: newForm,
+        memLevel: increaseMemLevel(word.memLevel),
       };
       setWordQueue([...wordQueue, newWord]);
-    }
-
-    if (wordIdx >= wordQueue.length - 1) {
-      setDone(true);
-      return;
     }
 
     setWordIdx(wordIdx + 1);
   };
 
-  const mistake = (word: Word) => {
+  const mistake = (word: WordWithMeta) => {
     // Move learning backward
     const newForm: TeachingForm = "show";
 
-    const newWord = {
+    const newWord: WordWithMeta = {
       ...word,
       form: newForm,
+      memLevel: decreaseMemLevel(word.memLevel),
+      // keep the "repeated" property untouched
     };
 
     const idx = wordQueue.findLastIndex((item) => item.id === word.id);
     const newQueue = [...wordQueue];
     newQueue.splice(idx + 1, 0, newWord);
     setWordQueue(newQueue);
-
-    // console.group("-- mistake");
-    // console.log("wordIdx", wordIdx);
-    // console.log("idx", idx);
-    // console.log("wordQueue", wordQueue);
-    // console.log("newQueue", newQueue);
-    // console.groupEnd();
-
     setWordIdx(wordIdx + 1);
   };
-
-  if (wordIdx < 0) {
-    return undefined;
-  }
 
   if (isDone) {
     return (
@@ -91,7 +88,12 @@ export function IterateWords({ words }: IterateWordsProps) {
     );
   }
 
+  if (wordIdx < 0 || wordIdx >= wordQueue.length) {
+    return undefined;
+  }
+
   const word = wordQueue[wordIdx];
+  console.log({ wordIdx, word, wordQueue });
 
   return (
     <TeachWord

@@ -18,7 +18,7 @@ type ProgressType = {
 
 export function DoneState({ words, wordQueue, storeProgress }: DoneStateProps) {
   const [progress, setProgress] = useState<ProgressType[]>([]);
-
+  console.log({ words, wordQueue, progress });
   useEffect(
     () => {
       const progress: ProgressType[] = [];

@@ -16,3 +16,13 @@ export function getNumericForm(form: TeachingForm): number {
   if (form === "write") value = 3;
   return value;
 }
+
+// TODO: tune following
+// TODO: mind using days instead of a level
+export function increaseMemLevel(level: number): number {
+  return level + 10;
+}
+
+export function decreaseMemLevel(level: number): number {
+  return level / 2;
+}

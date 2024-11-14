@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 
-import { Word } from "@/app/lib/definitions";
+import { WordWithMeta } from "@/app/lib/definitions";
 import { TypeTranslation } from "./TypeTranslation";
 import { ShowWord } from "./ShowWord";
 import { Button } from "./button";
@@ -11,11 +11,11 @@ import { ChooseTranslation } from "./ChooseTranslation";
 const DELAY_MISTAKE_MS = 3 * 1000;
 const DELAY_CORRECT_MS = 1 * 1000;
 interface TeachWordProps {
-  word: Word;
+  word: WordWithMeta;
   stepsDone: number;
   stepsTotal: number;
-  correct: (word: Word) => void;
-  mistake: (word: Word) => void;
+  correct: (word: WordWithMeta) => void;
+  mistake: (word: WordWithMeta) => void;
 }
 
 const delay = async (ms: number) =>

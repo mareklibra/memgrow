@@ -28,7 +28,7 @@ export default async function Page() {
       <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
         Strengthen memory ({words.length})
       </h1>
-      <IterateWords words={words} />
+      <IterateWords words={words} repetitionLimit={1} />
     </main>
   );
 }
