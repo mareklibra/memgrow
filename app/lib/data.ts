@@ -1,3 +1,4 @@
+import { stringSimilarity } from "string-similarity-js";
 import { sql } from "@vercel/postgres";
 import { Word } from "@/app/lib/definitions";
 
@@ -10,6 +11,31 @@ const fromDbWord = (dbWord: DbWord): Word => ({
   form: dbWord.form,
   memLevel: Number(dbWord.memlevel ?? "0"),
 });
+
+export async function fetchSimilarWords(
+  words: Word[],
+  limit: number
+): Promise<Word[]> {
+  const allWords = await fetchAllWords();
+
+  words.forEach((word) => {
+    const candidates = allWords
+      .map((candidate) => ({
+        candidate,
+        similarity:
+          candidate.word === word.word
+            ? -1
+            : // TODO: Tweak following
+              stringSimilarity(word.word, candidate.word, 2 /* 1 */),
+      }))
+      .sort((a, b) => b.similarity - a.similarity);
+
+    console.log(`-- candidates for ${word.word}: `, candidates);
+    word.similarWords = candidates.slice(0, limit).map((c) => c.candidate);
+  });
+
+  return words;
+}
 
 export async function fetchWordsToLearn(limit: number): Promise<Word[]> {
   try {

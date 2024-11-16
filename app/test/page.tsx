@@ -1,11 +1,13 @@
 import { lusitana } from "@/app/ui/fonts";
 import { IterateWords } from "@/app/ui/IterateWords";
-import { fetchWordsToTest } from "@/app/lib/data";
+import { fetchSimilarWords, fetchWordsToTest } from "@/app/lib/data";
+import { maxSimilarWords, testWordsCountLimit } from "../constants";
 
 export default async function Page() {
-  // TODO: let the user configure that
-  const testWordsCountLimit = 3;
-  const words = await fetchWordsToTest(testWordsCountLimit);
+  const words = await fetchSimilarWords(
+    await fetchWordsToTest(testWordsCountLimit),
+    maxSimilarWords
+  );
 
   return (
     <main>

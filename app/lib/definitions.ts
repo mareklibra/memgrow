@@ -15,6 +15,8 @@ export type Word = {
 
   memLevel: number;
   form: TeachingForm;
+
+  similarWords?: Word[];
 };
 
 export type WordWithMeta = Word & {

@@ -1,4 +1,5 @@
-import { fetchWordsToLearn } from "@/app/lib/data";
+import { learnWordsCountLimit, maxSimilarWords } from "@/app/constants";
+import { fetchSimilarWords, fetchWordsToLearn } from "@/app/lib/data";
 import { lusitana } from "@/app/ui/fonts";
 import { IterateWords } from "@/app/ui/IterateWords";
 
@@ -20,9 +21,10 @@ import { IterateWords } from "@/app/ui/IterateWords";
 // ];
 
 export default async function Page() {
-  // TODO: let the user configure that
-  const learnWordsCountLimit = 5;
-  const words = await fetchWordsToLearn(learnWordsCountLimit);
+  const words = await fetchSimilarWords(
+    await fetchWordsToLearn(learnWordsCountLimit),
+    maxSimilarWords
+  );
 
   return (
     <main>

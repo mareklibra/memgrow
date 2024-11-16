@@ -45,6 +45,9 @@ importers:
       react-dom:
         specifier: 19.0.0-rc-cd22717c-20241013
         version: 19.0.0-rc-cd22717c-20241013(react@19.0.0-rc-cd22717c-20241013)
+      string-similarity-js:
+        specifier: ^2.1.4
+        version: 2.1.4
       tailwindcss:
         specifier: 3.4.4
         version: 3.4.4
@@ -1734,6 +1737,9 @@ packages:
   streamsearch@1.1.0:
     resolution: {integrity: sha512-Mcc5wHehp9aXz1ax6bZUyY5afg9u2rv5cqQI3mRrYkGC8rW2hM02jWuwjtL++LS5qinSyhj2QfLyNsuc+VsExg==}
     engines: {node: '>=10.0.0'}
+
+  string-similarity-js@2.1.4:
+    resolution: {integrity: sha512-uApODZNjCHGYROzDSAdCmAHf60L/pMDHnP/yk6TAbvGg7JSPZlSto/ceCI7hZEqzc53/juU2aOJFkM2yUVTMTA==}
 
   string-width@4.2.3:
     resolution: {integrity: sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==}
@@ -3791,6 +3797,8 @@ snapshots:
   source-map-js@1.2.0: {}
 
   streamsearch@1.1.0: {}
+
+  string-similarity-js@2.1.4: {}
 
   string-width@4.2.3:
     dependencies:

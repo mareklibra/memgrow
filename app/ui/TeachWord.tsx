@@ -25,9 +25,8 @@ export function TeachWord({ word, correct, mistake }: TeachWordProps) {
   const [status, setStatus] = useState<FieldStatus>("normal");
   const [isAnyText, setAnyText] = useState<boolean>(false);
   const otherOptions = useMemo(
-    // TODO: read dynamically based on similarity
-    () => ["foo", "bar", "buz", "aaaa", "bbb", "ccccc", "dddd", "eeee", "ffff"],
-    []
+    () => (word.similarWords || []).map((w) => w.word),
+    [word.similarWords]
   );
   const threeOptions = useMemo(() => otherOptions.slice(0, 3), [otherOptions]);
   const sevenOptions = useMemo(() => otherOptions.slice(0, 7), [otherOptions]);
