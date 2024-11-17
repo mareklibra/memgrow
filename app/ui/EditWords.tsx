@@ -6,7 +6,11 @@ import isEqual from "lodash/isEqual";
 import { Word } from "@/app/lib/definitions";
 import { updateWord } from "@/app/lib/actions";
 import { Button } from "./button";
-import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import {
+  ExclamationTriangleIcon,
+  ArrowDownCircleIcon,
+  ArrowPathIcon,
+} from "@heroicons/react/24/outline";
 
 interface EditWordsProps {
   words: Word[];
@@ -36,6 +40,14 @@ function WordRow({ word }: { word: Word }) {
       }
     },
     [changed]
+  );
+
+  const handleReset = useCallback(
+    (e: MouseEvent) => {
+      e.preventDefault();
+      setChanged(old);
+    },
+    [old]
   );
 
   return (
@@ -75,9 +87,12 @@ function WordRow({ word }: { word: Word }) {
       </td>
       <td className={tdClass}>{changed.form}</td>
       <td className={tdClass}>
-        <div className="flex flex-row">
+        <div className="flex flex-row gap-1">
           <Button disabled={isEqual(old, changed)} onClick={handleSave}>
-            Save
+            <ArrowDownCircleIcon className="w-5" />
+          </Button>
+          <Button disabled={isEqual(old, changed)} onClick={handleReset}>
+            <ArrowPathIcon className="w-5" />
           </Button>
           {error && <ExclamationTriangleIcon className="text-red-500 w-8" />}
         </div>
@@ -88,33 +103,31 @@ function WordRow({ word }: { word: Word }) {
 
 export function EditWords({ words }: EditWordsProps) {
   return (
-    <form>
-      <table className="min-w-full divide-y divide-gray-200 dark:divide-neutral-700">
-        <thead>
-          <tr>
-            <th scope="col" className={thClass}>
-              Word
-            </th>
-            <th scope="col" className={thClass}>
-              Definition
-            </th>
-            <th scope="col" className={thClass}>
-              Memory Level
-            </th>
-            <th scope="col" className={thClass}>
-              Next Form
-            </th>
-            <th scope="col" className={thClass}>
-              Action
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-200 dark:divide-neutral-700">
-          {words.map((w) => (
-            <WordRow word={w} key={w.id} />
-          ))}
-        </tbody>
-      </table>
-    </form>
+    <table className="min-w-full divide-y divide-gray-200 dark:divide-neutral-700">
+      <thead>
+        <tr>
+          <th scope="col" className={thClass}>
+            Word
+          </th>
+          <th scope="col" className={thClass}>
+            Definition
+          </th>
+          <th scope="col" className={thClass}>
+            Memory Level
+          </th>
+          <th scope="col" className={thClass}>
+            Next Form
+          </th>
+          <th scope="col" className={thClass}>
+            Action
+          </th>
+        </tr>
+      </thead>
+      <tbody className="divide-y divide-gray-200 dark:divide-neutral-700">
+        {words.map((w) => (
+          <WordRow word={w} key={w.id} />
+        ))}
+      </tbody>
+    </table>
   );
 }
