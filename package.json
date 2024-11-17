@@ -13,6 +13,7 @@
     "autoprefixer": "10.4.19",
     "bcrypt": "^5.1.1",
     "clsx": "^2.1.1",
+    "lodash": "^4.17.21",
     "next": "^15.0.0",
     "next-auth": "5.0.0-beta.25",
     "postcss": "8.4.38",
@@ -26,6 +27,7 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
+    "@types/lodash": "^4.17.13",
     "@types/node": "20.14.8",
     "@types/react": "npm:types-react@19.0.0-rc.1",
     "@types/react-dom": "npm:types-react-dom@19.0.0-rc.1",
