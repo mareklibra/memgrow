@@ -4,9 +4,20 @@ import { sql } from "@vercel/postgres";
 
 import { signIn } from "@/auth";
 import { AuthError } from "next-auth";
+import { revalidatePath } from "next/cache";
+
 import { Word } from "./definitions";
 
-export async function updateWordProgress(word: Word) {
+export type UpdateWordResult =
+  | undefined
+  | {
+      message?: string;
+      id?: Word["id"];
+    };
+
+export async function updateWordProgress(
+  word: Word
+): Promise<UpdateWordResult> {
   try {
     await sql`
       UPDATE words
@@ -18,7 +29,27 @@ export async function updateWordProgress(word: Word) {
   }
 }
 
-export async function updateWord(changed: Word) {
+export async function addWord(word: Word): Promise<UpdateWordResult> {
+  try {
+    const result = await sql.query(
+      `
+      INSERT INTO words (word, definition, memlevel, form)
+      VALUES ($1, $2, $3, $4) RETURNING *
+    `,
+      [word.word, word.definition, word.memLevel, word.form]
+    );
+    revalidatePath("/edit");
+    return { id: result.rows[0].id };
+  } catch (e) {
+    return {
+      message: `Database Error: Failed to insert new word. ${JSON.stringify(
+        e
+      )}`,
+    };
+  }
+}
+
+export async function updateWord(changed: Word): Promise<UpdateWordResult> {
   try {
     await sql`
       UPDATE words
