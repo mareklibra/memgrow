@@ -91,11 +91,13 @@ function WordRow({ word }: { word: Word }) {
 
       if (result?.message) {
         console.error(result);
-        // setError(result?.message);
+        setError(result?.message);
       }
     },
     [word]
   );
+
+  const canSave = !isEqual(old, changed) && changed.word && changed.definition;
 
   return (
     <tr id={word.id}>
@@ -139,7 +141,7 @@ function WordRow({ word }: { word: Word }) {
       <td className={tdClass}>{changed.form}</td>
       <td className={tdClass}>
         <div className="flex flex-row gap-1 items-center">
-          <Button disabled={isEqual(old, changed)} onClick={handleSave}>
+          <Button disabled={!canSave} onClick={handleSave}>
             <ArrowDownCircleIcon className="w-5" />
           </Button>
           <Button disabled={isEqual(old, changed)} onClick={handleReset}>
