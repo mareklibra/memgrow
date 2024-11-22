@@ -4,7 +4,7 @@ import { MouseEvent, useCallback, useState } from "react";
 import isEqual from "lodash/isEqual";
 
 import { Word } from "@/app/lib/definitions";
-import { addWord, updateWord } from "@/app/lib/actions";
+import { addWord, deleteWord, updateWord } from "@/app/lib/actions";
 import {
   ExclamationTriangleIcon,
   ArrowDownCircleIcon,
@@ -14,6 +14,7 @@ import {
 
 import { Button } from "./button";
 import clsx from "clsx";
+import { DeleteButton } from "./DeleteButton";
 
 type EditWordsProps = {
   words: Word[];
@@ -82,6 +83,20 @@ function WordRow({ word }: { word: Word }) {
     [changed, handleReset]
   );
 
+  const handleDelete = useCallback(
+    async (e: MouseEvent) => {
+      e.preventDefault();
+
+      const result = await deleteWord(word);
+
+      if (result?.message) {
+        console.error(result);
+        // setError(result?.message);
+      }
+    },
+    [word]
+  );
+
   return (
     <tr id={word.id}>
       <td className={tdClassFirst}>
@@ -123,13 +138,14 @@ function WordRow({ word }: { word: Word }) {
       </td>
       <td className={tdClass}>{changed.form}</td>
       <td className={tdClass}>
-        <div className="flex flex-row gap-1">
+        <div className="flex flex-row gap-1 items-center">
           <Button disabled={isEqual(old, changed)} onClick={handleSave}>
             <ArrowDownCircleIcon className="w-5" />
           </Button>
           <Button disabled={isEqual(old, changed)} onClick={handleReset}>
             <ArrowPathIcon className="w-5" />
           </Button>
+          <DeleteButton word={old} handleDelete={handleDelete} />
         </div>
       </td>
     </tr>
@@ -138,8 +154,8 @@ function WordRow({ word }: { word: Word }) {
 
 export function EditWords({ words }: EditWordsProps) {
   return (
-    <div className="flex flex-col divide-y-4">
-      <table className="min-w-full divide-y divide-gray-200 dark:divide-neutral-700">
+    <div className="flex flex-col">
+      <table className="divide-y divide-gray-200 dark:divide-neutral-700">
         <thead>
           <tr>
             <th scope="col"></th>
@@ -155,7 +171,7 @@ export function EditWords({ words }: EditWordsProps) {
             <th scope="col" className={thClass}>
               Next Form
             </th>
-            <th scope="col" className={thClass}>
+            <th scope="col" className={clsx(thClass, "w-50")}>
               Action
             </th>
           </tr>

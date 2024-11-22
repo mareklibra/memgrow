@@ -49,6 +49,21 @@ export async function addWord(word: Word): Promise<UpdateWordResult> {
   }
 }
 
+export async function deleteWord(word: Word): Promise<UpdateWordResult> {
+  try {
+    await sql`
+      DELETE FROM words WHERE id=${word.id}
+    `;
+
+    revalidatePath("/edit");
+  } catch (e) {
+    return {
+      message: `Database Error: Failed to delete the word. ${JSON.stringify(
+        e
+      )}`,
+    };
+  }
+}
 export async function updateWord(changed: Word): Promise<UpdateWordResult> {
   try {
     await sql`
