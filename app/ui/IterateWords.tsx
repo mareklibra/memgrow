@@ -99,7 +99,7 @@ export function IterateWords({
     // insert right after recent step
     const idx = wordQueue.findLastIndex((item) => item.id === word.id);
     const newQueue = [...wordQueue];
-    newQueue.splice(idx + 1, 0, newWord);
+    newQueue.splice(idx + 2, 0, newWord);
 
     setWordQueue(newQueue);
     setWordIdx(wordIdx + 1);
