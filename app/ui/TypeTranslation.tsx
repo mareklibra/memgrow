@@ -1,4 +1,4 @@
-import { useState, MouseEvent } from "react";
+import { useState, MouseEvent, useRef } from "react";
 import clsx from "clsx";
 
 import { Word } from "@/app/lib/definitions";
@@ -19,6 +19,7 @@ export function TypeTranslation({
   onValue,
   status,
 }: TypeTranslationProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
   const [value, setValue] = useState<string>('');
 
   const toGuess = word.definition;
@@ -33,6 +34,7 @@ export function TypeTranslation({
     e.preventDefault();
     const prefix = longestCommonPrefix(correctResponse, value);
     handleChange(prefix + correctResponse[prefix.length]);
+    inputRef.current && inputRef.current.focus();
   };
 
   return (
@@ -58,6 +60,7 @@ export function TypeTranslation({
           )}
           id="word-input"
           type="text"
+          ref={inputRef}
           value={value}
           placeholder="Enter your translation"
           onChange={e => handleChange(e.currentTarget.value)}
