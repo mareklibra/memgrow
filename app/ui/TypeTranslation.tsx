@@ -1,7 +1,12 @@
-import { Word } from "@/app/lib/definitions";
-import { FieldStatus } from "./types";
+import { useState, MouseEvent } from "react";
 import clsx from "clsx";
+
+import { Word } from "@/app/lib/definitions";
+import { longestCommonPrefix } from "@/app/lib/utils";
+
 import { WordDefinition, WordStatic } from "./ShowWord";
+import { Button } from "./button";
+import { FieldStatus } from "./types";
 
 interface TypeTranslationProps {
   word: Word;
@@ -14,15 +19,35 @@ export function TypeTranslation({
   onValue,
   status,
 }: TypeTranslationProps) {
-  const handleChange = (e: React.FormEvent<HTMLInputElement>) => {
-    const value = e.currentTarget.value;
-    onValue(value, false);
+  const [value, setValue] = useState<string>('');
+
+  const toGuess = word.definition;
+  const correctResponse = word.word;
+
+  const handleChange = (newValue: string) => {
+    setValue(newValue);
+    onValue(newValue, false);
+  };
+
+  const handleHint = (e: MouseEvent) => {
+    e.preventDefault();
+    const prefix = longestCommonPrefix(correctResponse, value);
+    handleChange(prefix + correctResponse[prefix.length]);
   };
 
   return (
     <>
-      <WordStatic word={word.word} />
-      <div>
+      <WordStatic word={toGuess} />
+      <div className="flex">
+        <Button
+          className="mr-4"
+          onClick={handleHint}
+          type="submit"
+          disabled={value === correctResponse}
+        >
+          Hint
+        </Button>
+
         <input
           className={clsx(
             "peer block w-full rounded-md border border-gray-200 py-[9px] pl-10 text-sm outline-2 placeholder:text-gray-500",
@@ -33,15 +58,16 @@ export function TypeTranslation({
           )}
           id="word-input"
           type="text"
+          value={value}
           placeholder="Enter your translation"
-          onChange={handleChange}
+          onChange={e => handleChange(e.currentTarget.value)}
           autoFocus
           disabled={status !== "normal"}
           required
         />
         {status === "mistake" && (
           <WordDefinition
-            definition={word.definition}
+            definition={correctResponse}
             className="bg-green-600 py-[9px] pl-10 mt-4"
           />
         )}

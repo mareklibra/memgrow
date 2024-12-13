@@ -18,3 +18,18 @@ export function shuffleArray(array: string[]) {
     [array[i], array[j]] = [array[j], array[i]];
   }
 }
+
+export function longestCommonPrefix(s1: string, s2: string): string {
+  let commonPrefix = '';
+  const minLength = Math.min(s1.length, s2.length);
+
+  for (let i = 0; i < minLength; i++) {
+    if (s1[i] === s2[i]) {
+      commonPrefix += s1[i];
+    } else {
+      break;
+    }
+  }
+
+  return commonPrefix;
+}
