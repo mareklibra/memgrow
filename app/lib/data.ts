@@ -20,13 +20,12 @@ export async function fetchSimilarWords(
 
   words.forEach((word) => {
     const candidates = allWords
+      .filter((candidate) => candidate.word !== word.word)
       .map((candidate) => ({
         candidate,
         similarity:
-          candidate.word === word.word
-            ? -1
-            : // TODO: Tweak following
-              stringSimilarity(word.word, candidate.word, 2 /* 1 */),
+          // TODO: Tweak following
+          stringSimilarity(word.word, candidate.word, 2 /* 1 */),
       }))
       .sort((a, b) => b.similarity - a.similarity);
 

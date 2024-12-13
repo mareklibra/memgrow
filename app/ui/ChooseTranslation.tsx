@@ -7,24 +7,27 @@ import { Button } from "./button";
 import { useMemo, useState } from "react";
 
 interface ChooseTranslationProps {
-  word: Word;
+  // word: Word;
+  toGuess: string,
+  correctResponse: string,
   status: FieldStatus;
   onValue: (value: string, oneChanceOnly: boolean) => void;
   otherOptions: string[];
 }
 
 export function ChooseTranslation({
-  word,
+  toGuess,
+  correctResponse,
   onValue,
   status,
   otherOptions,
 }: ChooseTranslationProps) {
   const [value, setValue] = useState<string>();
   const options = useMemo(() => {
-    const array = [...otherOptions, word.definition];
+    const array = [...otherOptions, correctResponse];
     shuffleArray(array);
     return array;
-  }, [otherOptions, word.definition]);
+  }, [otherOptions, correctResponse]);
 
   const handleClick = (value: string) => {
     setValue(value);
@@ -33,7 +36,7 @@ export function ChooseTranslation({
 
   return (
     <>
-      <WordStatic word={word.word} />
+      <WordStatic word={toGuess} />
       <div className="grid grid-cols-2 gap-6 w-3/4 justify-self-center">
         {options.map((item) => {
           return (
@@ -42,7 +45,7 @@ export function ChooseTranslation({
                 key={item}
                 className={clsx("justify-center w-full", {
                   "bg-green-600":
-                    status !== "normal" && item === word.definition,
+                    status !== "normal" && item === correctResponse,
                   "bg-red-500": status === "mistake" && item === value,
                 })}
                 onClick={(e) => {

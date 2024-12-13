@@ -5,7 +5,7 @@ export type User = {
   password: string;
 };
 
-export type TeachingForm = "show" | "write" | "choose_4" | "choose_8";
+export type TeachingForm = "show" | "write" | "choose_4_def" | "choose_4_word" | "choose_8_def";
 export const TeachingFormCount = 4;
 
 export type Word = {

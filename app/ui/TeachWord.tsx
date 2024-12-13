@@ -24,17 +24,29 @@ const delay = async (ms: number) =>
 export function TeachWord({ word, correct, mistake }: TeachWordProps) {
   const [status, setStatus] = useState<FieldStatus>("normal");
   const [isAnyText, setAnyText] = useState<boolean>(false);
-  const otherOptions = useMemo(
+  const otherWordOptions = useMemo(
     () => (word.similarWords || []).map((w) => w.word),
     [word.similarWords]
   );
-  const threeOptions = useMemo(() => otherOptions.slice(0, 3), [otherOptions]);
-  const sevenOptions = useMemo(() => otherOptions.slice(0, 7), [otherOptions]);
+  const otherDefinitionOptions = useMemo(
+    () => (word.similarWords || []).map((w) => w.definition),
+    [word.similarWords]
+  );
+  const threeWordOptions = useMemo(() => otherWordOptions.slice(0, 3), [otherWordOptions]);
+  const threeDefinitionOptions = useMemo(() => otherDefinitionOptions.slice(0, 3), [otherDefinitionOptions]);
+  const sevenDefinitionOptions = useMemo(() => otherDefinitionOptions.slice(0, 7), [otherDefinitionOptions]);
 
   const onValue = async (value: string, oneChanceOnly: boolean) => {
     setAnyText(!!value);
 
-    if (value === word.definition) {
+    if (['choose_4_def', 'choose_8_def'].includes(word.form) && value === word.definition) {
+      setStatus("correct");
+      await delay(DELAY_CORRECT_MS);
+      correct(word);
+      return;
+    }
+
+    if ('choose_4_word' === word.form && value === word.word) {
       setStatus("correct");
       await delay(DELAY_CORRECT_MS);
       correct(word);
@@ -60,29 +72,44 @@ export function TeachWord({ word, correct, mistake }: TeachWordProps) {
   };
 
   let component;
+  console.log('----- current form: ', word.form);
   switch (word.form) {
     case "show":
       component = <ShowWord word={word} />;
       break;
-    case "choose_4":
+    case "choose_4_def":
       component = (
         <ChooseTranslation
           key={word.id}
-          word={word}
+          toGuess={word.word}
+          correctResponse={word.definition}
+          otherOptions={threeDefinitionOptions}
           onValue={onValue}
           status={status}
-          otherOptions={threeOptions}
         />
       );
       break;
-    case "choose_8":
+    case "choose_4_word":
       component = (
         <ChooseTranslation
           key={word.id}
-          word={word}
+          toGuess={word.definition}
+          correctResponse={word.word}
+          otherOptions={threeWordOptions}
           onValue={onValue}
           status={status}
-          otherOptions={sevenOptions}
+        />
+      );
+      break;
+    case "choose_8_def":
+      component = (
+        <ChooseTranslation
+          key={word.id}
+          toGuess={word.word}
+          correctResponse={word.definition}
+          otherOptions={sevenDefinitionOptions}
+          onValue={onValue}
+          status={status}
         />
       );
       break;

@@ -38,6 +38,34 @@ const words: Word[] = [
     form: "show",
     memLevel: 0,
   },
+  {
+    id: 'd4e15727-9fe1-4961-8c5b-ea44a9bd81aa',
+    word: "la casa",
+    definition: "dům",
+    form: "show",
+    memLevel: 0,
+  },
+  {
+    id: 'd5e15727-9fe1-4961-8c5b-ea44a9bd81aa',
+    word: "el coche",
+    definition: "auto",
+    form: "show",
+    memLevel: 0,
+  },
+  {
+    id: 'd6e15727-9fe1-4961-8c5b-ea44a9bd81aa',
+    word: "bailar",
+    definition: "tančit",
+    form: "show",
+    memLevel: 0,
+  },
+  {
+    id: 'd7e15727-9fe1-4961-8c5b-ea44a9bd81aa',
+    word: "uno",
+    definition: "jedna",
+    form: "show",
+    memLevel: 0,
+  },
 ];
 
 /*

@@ -3,12 +3,13 @@ import { TeachingForm } from "./definitions";
 // TODO: introduce "write_reverse"
 export function getNextForm(form: TeachingForm): TeachingForm {
   let newForm: TeachingForm = "show";
-  if (form === "show") newForm = "choose_4";
-  if (form === "choose_4") newForm = "choose_8";
-  if (form === "choose_8") newForm = "write";
+  if (form === "show") newForm = "choose_4_def";
+  if (form === "choose_4_def") newForm = "choose_4_word";
+  if (form === "choose_4_word") newForm = "choose_8_def";
+  if (form === "choose_8_def") newForm = "write";
 
   // Following is not used during learning
-  if (form === "write") newForm = "choose_4";
+  if (form === "write") newForm = "choose_4_def";
 
   return newForm;
 }
@@ -16,9 +17,10 @@ export function getNextForm(form: TeachingForm): TeachingForm {
 export function getNumericForm(form: TeachingForm): number {
   let value = 0;
   if (form === "show") value = 0.1;
-  if (form === "choose_4") value = 1;
-  if (form === "choose_8") value = 2;
-  if (form === "write") value = 3;
+  if (form === "choose_4_def") value = 1;
+  if (form === "choose_4_word") value = 2;
+  if (form === "choose_8_def") value = 3;
+  if (form === "write") value = 4;
   return value;
 }
 
