@@ -1,4 +1,3 @@
-import { Usable, use } from "react";
 import { learnRepetitionLimit, learnWordsCountLimit, maxSimilarWords } from "@/app/constants";
 import { fetchSimilarWords, fetchWordsToLearn } from "@/app/lib/data";
 import { lusitana } from "@/app/ui/fonts";

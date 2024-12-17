@@ -1,4 +1,3 @@
-import { Usable, use } from "react";
 import { lusitana } from "@/app/ui/fonts";
 import { IterateWords } from "@/app/ui/IterateWords";
 import { fetchSimilarWords, fetchWordsToTest } from "@/app/lib/data";
