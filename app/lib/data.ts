@@ -2,7 +2,7 @@ import { stringSimilarity } from "string-similarity-js";
 import { sql } from "@vercel/postgres";
 import { User } from "next-auth";
 import { auth } from "@/auth";
-import { DbWord, TeachingForm, Word } from "@/app/lib/definitions";
+import { Course, DbCourse, DbWord, TeachingForm, Word } from "@/app/lib/definitions";
 
 type DbWordProgress = DbWord & { memlevel: number, form: TeachingForm };
 type UserAuth = User & { password: string };
@@ -17,13 +17,20 @@ export async function getUserForAuth(email: string): Promise<UserAuth | undefine
   }
 }
 
-const fromDbWordProgress = (dbWord: DbWordProgress, courseId: string): Word => ({
-  courseId,
+const fromDbWordProgress = (dbWord: DbWordProgress): Word => ({
+  courseId: dbWord.course_id,
   id: dbWord.id,
   word: dbWord.word,
   definition: dbWord.definition,
   form: dbWord.form ?? 'show',
   memLevel: Number(dbWord.memlevel ?? "0"),
+});
+
+const omDbCourse = (dbCourse: DbCourse): Course => ({
+  id: dbCourse.id,
+  name: dbCourse.name,
+  knownLang: dbCourse.known_lang,
+  learningLang: dbCourse.learning_lang,
 });
 
 export async function fetchSimilarWords(
@@ -71,7 +78,7 @@ export async function fetchWordsToLearn(courseId: string, limit: number): Promis
         LIMIT ${limit}
         `;
 
-    const data: Word[] = result.rows.map((item) => fromDbWordProgress(item, courseId));
+    const data: Word[] = result.rows.map(fromDbWordProgress);
     return data;
   } catch (error) {
     console.error("Database Error:", error);
@@ -98,7 +105,7 @@ export async function fetchWordsToTest(courseId: string, limit: number): Promise
         LIMIT ${limit}
         `;
 
-    const data: Word[] = result.rows.map((item) => fromDbWordProgress(item, courseId));
+    const data: Word[] = result.rows.map(fromDbWordProgress);
     return data;
   } catch (error) {
     console.error("Database Error:", error);
@@ -123,10 +130,31 @@ export async function fetchAllWords(courseId: string): Promise<Word[]> {
           words.course_id = ${courseId}   
         `;
 
-    const data: Word[] = result.rows.map((item) => fromDbWordProgress(item, courseId));
+    const data: Word[] = result.rows.map(fromDbWordProgress);
     return data;
   } catch (error) {
     console.error("Database Error:", error);
     throw new Error("Failed to fetch all words.");
+  }
+}
+
+export async function fetchCourses(): Promise<Course[]> {
+  try {
+    const myAuth = await auth();
+    console.log('Fetching all courses for user: ', myAuth?.user?.name);
+
+    // TODO: statistics per user
+    // TODO: filter based on user permissions
+
+    const result =
+      await sql<DbCourse>`SELECT id, name, known_lang, learning_lang
+        FROM courses
+        `;
+
+    const data: Course[] = result.rows.map(omDbCourse);
+    return data;
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch all courses.");
   }
 }

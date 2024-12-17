@@ -39,15 +39,15 @@ async function seedCourses() {
     CREATE TABLE IF NOT EXISTS courses (
       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
       name VARCHAR(255) NOT NULL,
-      knownLang VARCHAR(255) NOT NULL,
-      learningLang VARCHAR(255) NOT NULL
+      known_lang VARCHAR(255) NOT NULL,
+      learning_lang VARCHAR(255) NOT NULL
     );
   `;
 
   const insertedCourses = await Promise.all(
     courses.map(async (course) => {
       return client.sql`
-        INSERT INTO courses (id, name, knownLang, learningLang)
+        INSERT INTO courses (id, name, known_lang, learning_lang)
         VALUES (${course.id}, ${course.name}, ${course.knownLang}, ${course.learningLang})
         ON CONFLICT (id) DO NOTHING;
       `;
@@ -75,7 +75,7 @@ async function seedWords() {
     words.map(async (word) => {
       return client.sql`
         INSERT INTO words (id, course_id, word, definition)
-        VALUES (${word.id}, ${word.courseId}, ${word.word}, ${word.definition})
+        VALUES (${word.id}, ${word.course_id}, ${word.word}, ${word.definition})
         ON CONFLICT (id) DO NOTHING;
       `;
     })

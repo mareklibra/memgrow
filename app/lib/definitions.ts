@@ -10,12 +10,14 @@ export const TeachingFormCount = 4;
 
 export type DbWord = {
   id: string;
-  courseId: string;
+  course_id: string;
   word: string;
   definition: string;
 };
 
-export type Word = DbWord & {
+export type Word = Omit<DbWord, 'course_id'> & {
+  courseId: string;
+
   memLevel: number;
   form: TeachingForm;
 
@@ -27,12 +29,19 @@ export type WordWithMeta = Word & {
   repeated: number;
 };
 
+export type DbCourse = {
+  id: string;
+  name: string;
+  known_lang: string;
+  learning_lang: string;
+}
+
 export type Course = {
   id: string;
   name: string;
   knownLang: string;
   learningLang: string;
-}
+};
 
 export type UserProgress = {
   userId: string;
