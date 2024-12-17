@@ -1,1 +1,1 @@
-export type FieldStatus = "normal" | "correct" | "mistake";
+export type FieldStatus = 'normal' | 'correct' | 'mistake';

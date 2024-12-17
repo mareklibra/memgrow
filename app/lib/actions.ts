@@ -1,23 +1,21 @@
-"use server";
+'use server';
 
-import { sql } from "@vercel/postgres";
+import { sql } from '@vercel/postgres';
 
-import { signIn, auth } from "@/auth";
-import { AuthError } from "next-auth";
-import { revalidatePath } from "next/cache";
+import { signIn, auth } from '@/auth';
+import { AuthError } from 'next-auth';
+import { revalidatePath } from 'next/cache';
 
-import { Word } from "./definitions";
+import { Word } from './definitions';
 
 export type UpdateWordResult =
   | undefined
   | {
-    message?: string;
-    id?: Word["id"];
-  };
+      message?: string;
+      id?: Word['id'];
+    };
 
-export async function updateWordProgress(
-  word: Word
-): Promise<UpdateWordResult> {
+export async function updateWordProgress(word: Word): Promise<UpdateWordResult> {
   const myAuth = await auth();
 
   try {
@@ -34,11 +32,12 @@ export async function updateWordProgress(
     }
 
     if (result.rowCount === 0) {
-      await sql.query(`
+      await sql.query(
+        `
         INSERT INTO user_progress (word_id, user_id, memlevel, form)
         VALUES ($1, $2, $3, $4) RETURNING *
       `,
-        [word.id, myAuth?.user?.id, word.memLevel, word.form]
+        [word.id, myAuth?.user?.id, word.memLevel, word.form],
       );
     }
   } catch (error) {
@@ -49,19 +48,18 @@ export async function updateWordProgress(
 
 export async function addWord(word: Word): Promise<UpdateWordResult> {
   try {
-    const result = await sql.query(`
+    const result = await sql.query(
+      `
       INSERT INTO words (word, definition, course_id)
       VALUES ($1, $2, $3) RETURNING *
     `,
-      [word.word, word.definition, word.courseId]
+      [word.word, word.definition, word.courseId],
     );
-    revalidatePath("/edit");
+    revalidatePath('/edit');
     return { id: result.rows[0].id };
   } catch (e) {
     return {
-      message: `Database Error: Failed to insert new word. ${JSON.stringify(
-        e
-      )}`,
+      message: `Database Error: Failed to insert new word. ${JSON.stringify(e)}`,
     };
   }
 }
@@ -72,12 +70,10 @@ export async function deleteWord(word: Word): Promise<UpdateWordResult> {
       DELETE FROM words WHERE id=${word.id}
     `;
 
-    revalidatePath("/edit");
+    revalidatePath('/edit');
   } catch (e) {
     return {
-      message: `Database Error: Failed to delete the word. ${JSON.stringify(
-        e
-      )}`,
+      message: `Database Error: Failed to delete the word. ${JSON.stringify(e)}`,
     };
   }
 }
@@ -99,19 +95,16 @@ export async function updateWord(changed: Word): Promise<UpdateWordResult> {
   }
 }
 
-export async function authenticate(
-  prevState: string | undefined,
-  formData: FormData
-) {
+export async function authenticate(prevState: string | undefined, formData: FormData) {
   try {
-    await signIn("credentials", formData);
+    await signIn('credentials', formData);
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {
-        case "CredentialsSignin":
-          return "Invalid credentials.";
+        case 'CredentialsSignin':
+          return 'Invalid credentials.';
         default:
-          return "Something went wrong.";
+          return 'Something went wrong.';
       }
     }
     throw error;

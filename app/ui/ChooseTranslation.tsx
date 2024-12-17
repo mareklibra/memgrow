@@ -1,16 +1,16 @@
-import { useMemo, useState } from "react";
-import clsx from "clsx";
+import { useMemo, useState } from 'react';
+import clsx from 'clsx';
 
-import { shuffleArray } from "@/app/lib/utils";
+import { shuffleArray } from '@/app/lib/utils';
 
-import { FieldStatus } from "./types";
-import { WordStatic } from "./ShowWord";
-import { Button } from "./button";
+import { FieldStatus } from './types';
+import { WordStatic } from './ShowWord';
+import { Button } from './button';
 
 interface ChooseTranslationProps {
   // word: Word;
-  toGuess: string,
-  correctResponse: string,
+  toGuess: string;
+  correctResponse: string;
   status: FieldStatus;
   onValue: (value: string, oneChanceOnly: boolean) => void;
   otherOptions: string[];
@@ -44,10 +44,9 @@ export function ChooseTranslation({
             <div key={item} className="">
               <Button
                 key={item}
-                className={clsx("justify-center w-full", {
-                  "bg-green-600":
-                    status !== "normal" && item === correctResponse,
-                  "bg-red-500": status === "mistake" && item === value,
+                className={clsx('justify-center w-full', {
+                  'bg-green-600': status !== 'normal' && item === correctResponse,
+                  'bg-red-500': status === 'mistake' && item === value,
                 })}
                 onClick={(e) => {
                   e.preventDefault();

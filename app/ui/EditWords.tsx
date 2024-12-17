@@ -1,36 +1,36 @@
-"use client";
+'use client';
 
-import { MouseEvent, useCallback, useState } from "react";
-import isEqual from "lodash/isEqual";
+import { MouseEvent, useCallback, useState } from 'react';
+import isEqual from 'lodash/isEqual';
 
-import { Word } from "@/app/lib/definitions";
-import { addWord, deleteWord, updateWord } from "@/app/lib/actions";
+import { Word } from '@/app/lib/definitions';
+import { addWord, deleteWord, updateWord } from '@/app/lib/actions';
 import {
   ExclamationTriangleIcon,
   ArrowDownCircleIcon,
   ArrowPathIcon,
   PlusCircleIcon,
-} from "@heroicons/react/24/outline";
+} from '@heroicons/react/24/outline';
 
-import { Button } from "./button";
-import clsx from "clsx";
-import { DeleteButton } from "./DeleteButton";
+import { Button } from './button';
+import clsx from 'clsx';
+import { DeleteButton } from './DeleteButton';
 
 type EditWordsProps = {
   words: Word[];
   courseId: string;
 };
 
-const UNUSED = "__not_used__";
+const UNUSED = '__not_used__';
 
 const thClass =
-  "px-3 py-3 text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500";
+  'px-3 py-3 text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500';
 const tdClass =
-  "px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-neutral-200";
+  'px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-neutral-200';
 const tdClassFirst =
-  "w-2 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-neutral-200";
+  'w-2 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-neutral-200';
 const inputClass =
-  "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500";
+  'bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500';
 
 function NewWordRow({ courseId }: { courseId: string }) {
   return (
@@ -38,10 +38,10 @@ function NewWordRow({ courseId }: { courseId: string }) {
       word={{
         id: UNUSED,
         courseId,
-        word: "",
-        definition: "",
+        word: '',
+        definition: '',
         memLevel: 0,
-        form: "show",
+        form: 'show',
       }}
     />
   );
@@ -57,7 +57,7 @@ function WordRow({ word }: { word: Word }) {
       e.preventDefault();
       setChanged(old);
     },
-    [old]
+    [old],
   );
 
   const handleSave = useCallback(
@@ -82,7 +82,7 @@ function WordRow({ word }: { word: Word }) {
         setOld(changed);
       }
     },
-    [changed, handleReset]
+    [changed, handleReset],
   );
 
   const handleDelete = useCallback(
@@ -96,7 +96,7 @@ function WordRow({ word }: { word: Word }) {
         setError(result?.message);
       }
     },
-    [word]
+    [word],
   );
 
   const canSave = !isEqual(old, changed) && changed.word && changed.definition;
@@ -129,7 +129,7 @@ function WordRow({ word }: { word: Word }) {
           }}
         />
       </td>
-      <td className={clsx(tdClass, "w-2")}>
+      <td className={clsx(tdClass, 'w-2')}>
         <input
           type="number"
           className={inputClass}
@@ -175,7 +175,7 @@ export function EditWords({ words, courseId }: EditWordsProps) {
             <th scope="col" className={thClass}>
               Next Form
             </th>
-            <th scope="col" className={clsx(thClass, "w-50")}>
+            <th scope="col" className={clsx(thClass, 'w-50')}>
               Action
             </th>
           </tr>

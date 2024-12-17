@@ -1,12 +1,12 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState } from 'react';
 
-import { WordWithMeta } from "@/app/lib/definitions";
-import { TypeTranslation } from "./TypeTranslation";
-import { ShowWord } from "./ShowWord";
-import { Button } from "./button";
-import { FieldStatus } from "./types";
-import { WordProgress } from "./WordProgress";
-import { ChooseTranslation } from "./ChooseTranslation";
+import { WordWithMeta } from '@/app/lib/definitions';
+import { TypeTranslation } from './TypeTranslation';
+import { ShowWord } from './ShowWord';
+import { Button } from './button';
+import { FieldStatus } from './types';
+import { WordProgress } from './WordProgress';
+import { ChooseTranslation } from './ChooseTranslation';
 
 const DELAY_MISTAKE_MS = 3 * 1000;
 const DELAY_CORRECT_MS = 1 * 1000;
@@ -18,36 +18,47 @@ interface TeachWordProps {
   mistake: (word: WordWithMeta) => void;
 }
 
-const delay = async (ms: number) =>
-  new Promise((resolve) => setTimeout(resolve, ms));
+const delay = async (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export function TeachWord({ word, correct, mistake }: TeachWordProps) {
-  const [status, setStatus] = useState<FieldStatus>("normal");
+  const [status, setStatus] = useState<FieldStatus>('normal');
   const [isAnyText, setAnyText] = useState<boolean>(false);
   const otherWordOptions = useMemo(
     () => (word.similarWords || []).map((w) => w.word),
-    [word.similarWords]
+    [word.similarWords],
   );
   const otherDefinitionOptions = useMemo(
     () => (word.similarWords || []).map((w) => w.definition),
-    [word.similarWords]
+    [word.similarWords],
   );
-  const threeWordOptions = useMemo(() => otherWordOptions.slice(0, 3), [otherWordOptions]);
-  const threeDefinitionOptions = useMemo(() => otherDefinitionOptions.slice(0, 3), [otherDefinitionOptions]);
-  const sevenDefinitionOptions = useMemo(() => otherDefinitionOptions.slice(0, 7), [otherDefinitionOptions]);
+  const threeWordOptions = useMemo(
+    () => otherWordOptions.slice(0, 3),
+    [otherWordOptions],
+  );
+  const threeDefinitionOptions = useMemo(
+    () => otherDefinitionOptions.slice(0, 3),
+    [otherDefinitionOptions],
+  );
+  const sevenDefinitionOptions = useMemo(
+    () => otherDefinitionOptions.slice(0, 7),
+    [otherDefinitionOptions],
+  );
 
   const onValue = async (value: string, oneChanceOnly: boolean) => {
     setAnyText(!!value);
 
-    if (['choose_4_def', 'choose_8_def'].includes(word.form) && value === word.definition) {
-      setStatus("correct");
+    if (
+      ['choose_4_def', 'choose_8_def'].includes(word.form) &&
+      value === word.definition
+    ) {
+      setStatus('correct');
       await delay(DELAY_CORRECT_MS);
       correct(word);
       return;
     }
 
     if (['choose_4_word', 'write'].includes(word.form) && value === word.word) {
-      setStatus("correct");
+      setStatus('correct');
       await delay(DELAY_CORRECT_MS);
       correct(word);
       return;
@@ -59,24 +70,24 @@ export function TeachWord({ word, correct, mistake }: TeachWordProps) {
   };
 
   const forceCheck = async () => {
-    if (word.form === "show") {
-      setStatus("correct");
+    if (word.form === 'show') {
+      setStatus('correct');
       correct(word);
       return;
     }
 
     // the value has been checked in onValue(), no need to repeat
-    setStatus("mistake");
+    setStatus('mistake');
     await delay(DELAY_MISTAKE_MS);
     mistake(word);
   };
 
   let component;
   switch (word.form) {
-    case "show":
+    case 'show':
       component = <ShowWord word={word} />;
       break;
-    case "choose_4_def":
+    case 'choose_4_def':
       component = (
         <ChooseTranslation
           key={word.id}
@@ -88,7 +99,7 @@ export function TeachWord({ word, correct, mistake }: TeachWordProps) {
         />
       );
       break;
-    case "choose_4_word":
+    case 'choose_4_word':
       component = (
         <ChooseTranslation
           key={word.id}
@@ -100,7 +111,7 @@ export function TeachWord({ word, correct, mistake }: TeachWordProps) {
         />
       );
       break;
-    case "choose_8_def":
+    case 'choose_8_def':
       component = (
         <ChooseTranslation
           key={word.id}
@@ -112,21 +123,16 @@ export function TeachWord({ word, correct, mistake }: TeachWordProps) {
         />
       );
       break;
-    case "write":
+    case 'write':
     default:
       component = (
-        <TypeTranslation
-          key={word.id}
-          word={word}
-          onValue={onValue}
-          status={status}
-        />
+        <TypeTranslation key={word.id} word={word} onValue={onValue} status={status} />
       );
   }
 
   const isCheckButtonDisabled = !(
-    status === "normal" &&
-    (isAnyText || word.form === "show")
+    status === 'normal' &&
+    (isAnyText || word.form === 'show')
   );
 
   return (
@@ -135,12 +141,8 @@ export function TeachWord({ word, correct, mistake }: TeachWordProps) {
         <div>{component}</div>
         <div className="py-[20px] pl-10 pr-10 flex justify-between">
           <WordProgress word={word} />
-          <Button
-            onClick={forceCheck}
-            disabled={isCheckButtonDisabled}
-            type="submit"
-          >
-            {word.form === "show" ? "Next" : "Check"}
+          <Button onClick={forceCheck} disabled={isCheckButtonDisabled} type="submit">
+            {word.form === 'show' ? 'Next' : 'Check'}
           </Button>
         </div>
       </form>

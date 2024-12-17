@@ -1,10 +1,10 @@
-import NextAuth from "next-auth";
-import Credentials from "next-auth/providers/credentials";
-import { z } from "zod";
-import bcrypt from "bcrypt";
-import { getUserForAuth } from "@/app/lib/data";
+import NextAuth from 'next-auth';
+import Credentials from 'next-auth/providers/credentials';
+import { z } from 'zod';
+import bcrypt from 'bcrypt';
+import { getUserForAuth } from '@/app/lib/data';
 
-import { authConfig } from "./auth.config";
+import { authConfig } from './auth.config';
 
 export const { auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -24,7 +24,7 @@ export const { auth, signIn, signOut } = NextAuth({
           if (passwordsMatch) return user;
         }
 
-        console.log("Invalid credentials");
+        console.log('Invalid credentials');
         return null;
       },
     }),

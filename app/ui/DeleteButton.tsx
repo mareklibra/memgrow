@@ -1,10 +1,10 @@
-import { MouseEvent, useEffect, useState } from "react";
-import { TrashIcon } from "@heroicons/react/24/outline";
+import { MouseEvent, useEffect, useState } from 'react';
+import { TrashIcon } from '@heroicons/react/24/outline';
 
-import { Word } from "@/app/lib/definitions";
+import { Word } from '@/app/lib/definitions';
 
-import { Button } from "./button";
-import { CONFIRM_DELAY_MS } from "../constants";
+import { Button } from './button';
+import { CONFIRM_DELAY_MS } from '../constants';
 
 interface DeleteButtonProps {
   word: Word;

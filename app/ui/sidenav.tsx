@@ -1,7 +1,7 @@
-import NavLinks from "@/app/ui/nav-links";
-import { PowerIcon } from "@heroicons/react/24/outline";
-import { signOut, auth } from "@/auth";
-import clsx from "clsx";
+import NavLinks from '@/app/ui/nav-links';
+import { PowerIcon } from '@heroicons/react/24/outline';
+import { signOut, auth } from '@/auth';
+import clsx from 'clsx';
 
 export default async function SideNav() {
   const myAuth = await auth();
@@ -22,23 +22,21 @@ export default async function SideNav() {
         <div className="hidden h-auto w-full grow rounded-md bg-gray-50 md:block"></div>
         <form
           action={async () => {
-            "use server";
+            'use server';
             await signOut();
           }}
         >
           <button
             className={clsx(
-              "flex h-[48px] w-full grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium md:flex-none md:justify-start md:p-2 md:px-3",
+              'flex h-[48px] w-full grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium md:flex-none md:justify-start md:p-2 md:px-3',
               {
-                "hover:bg-sky-100 hover:text-blue-600": isLoggedIn,
-              }
+                'hover:bg-sky-100 hover:text-blue-600': isLoggedIn,
+              },
             )}
             disabled={!isLoggedIn}
           >
             <PowerIcon className="w-6" />
-            <div className="hidden md:block">
-              Sign Out {myAuth?.user?.name}
-            </div>
+            <div className="hidden md:block">Sign Out {myAuth?.user?.name}</div>
           </button>
         </form>
       </div>

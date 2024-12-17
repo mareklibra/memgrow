@@ -1,5 +1,5 @@
-import { TeachingFormCount, Word } from "@/app/lib/definitions";
-import { getNumericForm } from "@/app/lib/word-transitions";
+import { TeachingFormCount, Word } from '@/app/lib/definitions';
+import { getNumericForm } from '@/app/lib/word-transitions';
 
 interface WordTeachingStatusProps {
   word: Word;

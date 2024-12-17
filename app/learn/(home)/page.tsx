@@ -1,6 +1,6 @@
-import { fetchCourses } from "@/app/lib/data";
-import { lusitana } from "@/app/ui/fonts";
-import { ChooseCourse } from "@/app/ui/ChooseCourse";
+import { fetchCourses } from '@/app/lib/data';
+import { lusitana } from '@/app/ui/fonts';
+import { ChooseCourse } from '@/app/ui/ChooseCourse';
 
 export default async function Page() {
   const courses = await fetchCourses();

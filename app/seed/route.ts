@@ -1,11 +1,11 @@
-import { db } from "@vercel/postgres";
-import bcrypt from "bcrypt";
-import { courses, userProgresses, users, words } from "../lib/placeholder-data";
+import { db } from '@vercel/postgres';
+import bcrypt from 'bcrypt';
+import { courses, userProgresses, users, words } from '../lib/placeholder-data';
 
 const client = await db.connect();
 
 async function seedUsers() {
-  console.info("Seeding users");
+  console.info('Seeding users');
 
   await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
   await client.sql`
@@ -25,14 +25,14 @@ async function seedUsers() {
         VALUES (${user.id}, ${user.name}, ${user.email}, ${hashedPassword})
         ON CONFLICT (id) DO NOTHING;
       `;
-    })
+    }),
   );
 
   return insertedUsers;
 }
 
 async function seedCourses() {
-  console.info("Seeding courses");
+  console.info('Seeding courses');
 
   await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
   await client.sql`
@@ -51,14 +51,14 @@ async function seedCourses() {
         VALUES (${course.id}, ${course.name}, ${course.knownLang}, ${course.learningLang})
         ON CONFLICT (id) DO NOTHING;
       `;
-    })
+    }),
   );
 
   return insertedCourses;
 }
 
 async function seedWords() {
-  console.info("Seeding words");
+  console.info('Seeding words');
 
   await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
   await client.sql`
@@ -78,14 +78,14 @@ async function seedWords() {
         VALUES (${word.id}, ${word.course_id}, ${word.word}, ${word.definition})
         ON CONFLICT (id) DO NOTHING;
       `;
-    })
+    }),
   );
 
   return insertedWords;
 }
 
 async function seedUserProgress() {
-  console.info("Seeding userProgress");
+  console.info('Seeding userProgress');
 
   await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
   await client.sql`
@@ -109,7 +109,7 @@ async function seedUserProgress() {
         VALUES (${userProgress.userId}, ${userProgress.wordId}, ${userProgress.memLevel}, ${userProgress.form})
         ON CONFLICT (user_id, word_id) DO NOTHING;
       `;
-    })
+    }),
   );
 
   return insertedUserProgress;
@@ -124,7 +124,7 @@ export async function GET() {
     await seedUserProgress();
     await client.sql`COMMIT`;
 
-    return Response.json({ message: "Database seeded successfully" });
+    return Response.json({ message: 'Database seeded successfully' });
   } catch (error) {
     await client.sql`ROLLBACK`;
     return Response.json({ error }, { status: 500 });

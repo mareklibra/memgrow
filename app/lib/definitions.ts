@@ -5,7 +5,12 @@ export type User = {
   password: string;
 };
 
-export type TeachingForm = "show" | "write" | "choose_4_def" | "choose_4_word" | "choose_8_def";
+export type TeachingForm =
+  | 'show'
+  | 'write'
+  | 'choose_4_def'
+  | 'choose_4_word'
+  | 'choose_8_def';
 export const TeachingFormCount = 4;
 
 export type DbWord = {
@@ -34,7 +39,7 @@ export type DbCourse = {
   name: string;
   known_lang: string;
   learning_lang: string;
-}
+};
 
 export type Course = {
   id: string;
@@ -49,4 +54,4 @@ export type UserProgress = {
 
   memLevel: number;
   form: TeachingForm;
-}
+};

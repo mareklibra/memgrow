@@ -1,8 +1,8 @@
-import { ArrowRightIcon } from "@heroicons/react/24/outline";
-import Link from "next/link";
+import { ArrowRightIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
 
-import { auth } from "@/auth";
-import { lusitana } from "./ui/fonts";
+import { auth } from '@/auth';
+import { lusitana } from './ui/fonts';
 
 export default async function Page() {
   const myAuth = await auth();

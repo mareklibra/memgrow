@@ -1,16 +1,16 @@
-"use client";
-import { useEffect, useState } from "react";
+'use client';
+import { useEffect, useState } from 'react';
 
 import {
   decreaseMemLevel,
   getNextForm,
   increaseMemLevel,
-} from "@/app/lib/word-transitions";
-import { TeachingForm, Word, WordWithMeta } from "@/app/lib/definitions";
-import { updateWordProgress } from "@/app/lib/actions";
-import { TeachWord } from "./TeachWord";
-import { DoneState } from "./DoneState";
-import Link from "next/link";
+} from '@/app/lib/word-transitions';
+import { TeachingForm, Word, WordWithMeta } from '@/app/lib/definitions';
+import { updateWordProgress } from '@/app/lib/actions';
+import { TeachWord } from './TeachWord';
+import { DoneState } from './DoneState';
+import Link from 'next/link';
 
 interface IterateWordsProps {
   words: Word[];
@@ -18,11 +18,7 @@ interface IterateWordsProps {
   isLearning?: boolean;
 }
 
-export function IterateWords({
-  words,
-  repetitionLimit,
-  isLearning,
-}: IterateWordsProps) {
+export function IterateWords({ words, repetitionLimit, isLearning }: IterateWordsProps) {
   const [wordQueue, setWordQueue] = useState<WordWithMeta[]>([]);
   const [wordIdx, setWordIdx] = useState<number>(-1);
   const [isDone, setDone] = useState<boolean>(false);
@@ -65,7 +61,7 @@ export function IterateWords({
     const newForm = getNextForm(word.form);
 
     let newMemLevel = word.memLevel;
-    if (word.form !== "show" && (!isLearning || word.form === "write")) {
+    if (word.form !== 'show' && (!isLearning || word.form === 'write')) {
       // either Learning is done or in the Testing flow
       newMemLevel = increaseMemLevel(word.memLevel);
     }
@@ -74,7 +70,7 @@ export function IterateWords({
       ...word,
       form: newForm,
       memLevel: newMemLevel,
-      repeated: word.form === "show" ? word.repeated : word.repeated + 1,
+      repeated: word.form === 'show' ? word.repeated : word.repeated + 1,
     };
 
     setWordQueue([...wordQueue, newWord]);
@@ -83,7 +79,7 @@ export function IterateWords({
 
   const mistake = (word: WordWithMeta) => {
     // Move learning backward
-    const newForm: TeachingForm = "show";
+    const newForm: TeachingForm = 'show';
     let newMemLevel = word.memLevel;
     if (!isLearning) {
       newMemLevel = decreaseMemLevel(word.memLevel);
@@ -115,11 +111,7 @@ export function IterateWords({
 
   if (isDone) {
     return (
-      <DoneState
-        words={words}
-        wordQueue={wordQueue}
-        storeProgress={storeProgress}
-      />
+      <DoneState words={words} wordQueue={wordQueue} storeProgress={storeProgress} />
     );
   }
 

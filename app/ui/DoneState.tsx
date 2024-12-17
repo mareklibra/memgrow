@@ -1,6 +1,6 @@
-import { Fragment, useEffect, useState } from "react";
-import { Word } from "@/app/lib/definitions";
-import { WordTeachingStatus } from "./WordTeachingStatus";
+import { Fragment, useEffect, useState } from 'react';
+import { Word } from '@/app/lib/definitions';
+import { WordTeachingStatus } from './WordTeachingStatus';
 
 interface DoneStateProps {
   words: Word[];
@@ -8,7 +8,7 @@ interface DoneStateProps {
   storeProgress: (word: Word) => void;
 }
 
-const findLast = (queue: Word[], wordId: Word["id"]) =>
+const findLast = (queue: Word[], wordId: Word['id']) =>
   queue.findLast((w) => w.id === wordId);
 
 type ProgressType = {
@@ -39,7 +39,7 @@ export function DoneState({ words, wordQueue, storeProgress }: DoneStateProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       /* just once*/
-    ]
+    ],
   );
   return (
     <div className="grid grid-cols-4">

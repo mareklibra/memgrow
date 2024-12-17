@@ -1,5 +1,5 @@
-import LoginForm from "@/app/ui/login-form";
-import { auth } from "@/auth";
+import LoginForm from '@/app/ui/login-form';
+import { auth } from '@/auth';
 
 export default async function LoginPage() {
   const myAuth = await auth();
