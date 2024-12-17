@@ -2,7 +2,7 @@
 
 import { sql } from "@vercel/postgres";
 
-import { signIn } from "@/auth";
+import { signIn, auth } from "@/auth";
 import { AuthError } from "next-auth";
 import { revalidatePath } from "next/cache";
 
@@ -11,32 +11,49 @@ import { Word } from "./definitions";
 export type UpdateWordResult =
   | undefined
   | {
-      message?: string;
-      id?: Word["id"];
-    };
+    message?: string;
+    id?: Word["id"];
+  };
 
 export async function updateWordProgress(
   word: Word
 ): Promise<UpdateWordResult> {
+  const myAuth = await auth();
+
   try {
-    await sql`
-      UPDATE words
+    const result = await sql`
+      UPDATE user_progress
       SET memlevel = ${word.memLevel}, form = ${word.form}
-      WHERE id = ${word.id}
+      WHERE
+        user_id = ${myAuth?.user?.id}
+        AND word_id = ${word.id}
     `;
-  } catch {
-    return { message: "Database Error: Failed to update word progress." };
+
+    if (result.rowCount > 1) {
+      throw new Error(`Update rowCount is higher than 1 (${result.rowCount})`);
+    }
+
+    if (result.rowCount === 0) {
+      await sql.query(`
+        INSERT INTO user_progress (word_id, user_id, memlevel, form)
+        VALUES ($1, $2, $3, $4) RETURNING *
+      `,
+        [word.id, myAuth?.user?.id, word.memLevel, word.form]
+      );
+    }
+  } catch (error) {
+    console.error(error);
+    return { message: `Database Error: Failed to update word progress. ${error}` };
   }
 }
 
 export async function addWord(word: Word): Promise<UpdateWordResult> {
   try {
-    const result = await sql.query(
-      `
-      INSERT INTO words (word, definition, memlevel, form)
-      VALUES ($1, $2, $3, $4) RETURNING *
+    const result = await sql.query(`
+      INSERT INTO words (word, definition, course_id)
+      VALUES ($1, $2, $3) RETURNING *
     `,
-      [word.word, word.definition, word.memLevel, word.form]
+      [word.word, word.definition, word.courseId]
     );
     revalidatePath("/edit");
     return { id: result.rows[0].id };
@@ -70,11 +87,11 @@ export async function updateWord(changed: Word): Promise<UpdateWordResult> {
       UPDATE words
       SET 
         word = ${changed.word},
-        definition = ${changed.definition},
-        memlevel = ${changed.memLevel}, 
-        form = ${changed.form}
+        definition = ${changed.definition}
       WHERE id = ${changed.id}
     `;
+
+    await updateWordProgress(changed);
   } catch (e) {
     return {
       message: `Database Error: Failed to update word. ${JSON.stringify(e)}`,

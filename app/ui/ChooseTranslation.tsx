@@ -1,10 +1,11 @@
-import { Word } from "@/app/lib/definitions";
+import { useMemo, useState } from "react";
+import clsx from "clsx";
+
 import { shuffleArray } from "@/app/lib/utils";
+
 import { FieldStatus } from "./types";
 import { WordStatic } from "./ShowWord";
-import clsx from "clsx";
 import { Button } from "./button";
-import { useMemo, useState } from "react";
 
 interface ChooseTranslationProps {
   // word: Word;

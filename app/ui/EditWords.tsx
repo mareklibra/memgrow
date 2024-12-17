@@ -18,6 +18,7 @@ import { DeleteButton } from "./DeleteButton";
 
 type EditWordsProps = {
   words: Word[];
+  courseId: string;
 };
 
 const UNUSED = "__not_used__";
@@ -31,11 +32,12 @@ const tdClassFirst =
 const inputClass =
   "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500";
 
-function NewWordRow() {
+function NewWordRow({ courseId }: { courseId: string }) {
   return (
     <WordRow
       word={{
         id: UNUSED,
+        courseId,
         word: "",
         definition: "",
         memLevel: 0,
@@ -154,7 +156,7 @@ function WordRow({ word }: { word: Word }) {
   );
 }
 
-export function EditWords({ words }: EditWordsProps) {
+export function EditWords({ words, courseId }: EditWordsProps) {
   return (
     <div className="flex flex-col">
       <table className="divide-y divide-gray-200 dark:divide-neutral-700">
@@ -182,7 +184,7 @@ export function EditWords({ words }: EditWordsProps) {
           {words.map((w) => (
             <WordRow word={w} key={w.id} />
           ))}
-          <NewWordRow key="___new___" />
+          <NewWordRow key="___new___" courseId={courseId} />
         </tbody>
       </table>
     </div>

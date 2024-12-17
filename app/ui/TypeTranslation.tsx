@@ -34,7 +34,7 @@ export function TypeTranslation({
     e.preventDefault();
     const prefix = longestCommonPrefix(correctResponse, value);
     handleChange(prefix + correctResponse[prefix.length]);
-    inputRef.current && inputRef.current.focus();
+    if (inputRef.current) inputRef.current.focus();
   };
 
   return (

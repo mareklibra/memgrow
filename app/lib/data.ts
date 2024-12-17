@@ -1,22 +1,37 @@
 import { stringSimilarity } from "string-similarity-js";
 import { sql } from "@vercel/postgres";
-import { Word } from "@/app/lib/definitions";
+import { User } from "next-auth";
+import { auth } from "@/auth";
+import { DbWord, TeachingForm, Word } from "@/app/lib/definitions";
 
-type DbWord = Word & { memlevel: number };
+type DbWordProgress = DbWord & { memlevel: number, form: TeachingForm };
+type UserAuth = User & { password: string };
 
-const fromDbWord = (dbWord: DbWord): Word => ({
+export async function getUserForAuth(email: string): Promise<UserAuth | undefined> {
+  try {
+    const user = await sql<UserAuth>`SELECT * FROM users WHERE email=${email}`;
+    return user.rows[0];
+  } catch (error) {
+    console.error("Failed to fetch user:", error);
+    throw new Error("Failed to fetch user.");
+  }
+}
+
+const fromDbWordProgress = (dbWord: DbWordProgress, courseId: string): Word => ({
+  courseId,
   id: dbWord.id,
   word: dbWord.word,
   definition: dbWord.definition,
-  form: dbWord.form,
+  form: dbWord.form ?? 'show',
   memLevel: Number(dbWord.memlevel ?? "0"),
 });
 
 export async function fetchSimilarWords(
+  courseId: string,
   words: Word[],
   limit: number
 ): Promise<Word[]> {
-  const allWords = await fetchAllWords();
+  const allWords = await fetchAllWords(courseId);
 
   words.forEach((word) => {
     const candidates = allWords
@@ -36,15 +51,27 @@ export async function fetchSimilarWords(
   return words;
 }
 
-export async function fetchWordsToLearn(limit: number): Promise<Word[]> {
+export async function fetchWordsToLearn(courseId: string, limit: number): Promise<Word[]> {
   try {
-    console.log("Fetching words to learn...");
+    const myAuth = await auth();
+    console.log('Fetching words to learn by user: ', myAuth?.user?.name);
 
     // TODO: tweak following query
     const result =
-      await sql<DbWord>`SELECT id, word, definition, memlevel, form FROM words WHERE memlevel = 0 LIMIT ${limit}`;
+      await sql<DbWordProgress>`SELECT words.id, words.word, words.definition, user_progress.form, user_progress.memlevel
+        FROM words
+        LEFT OUTER JOIN 
+          (SELECT * FROM user_progress 
+           WHERE
+             user_id = ${myAuth?.user?.id}
+             AND (user_progress.memlevel = 0 OR user_progress.memlevel is NULL)
+          ) AS user_progress ON words.id = user_progress.word_id       
+        WHERE
+          words.course_id = ${courseId}
+        LIMIT ${limit}
+        `;
 
-    const data: Word[] = result.rows.map(fromDbWord);
+    const data: Word[] = result.rows.map((item) => fromDbWordProgress(item, courseId));
     return data;
   } catch (error) {
     console.error("Database Error:", error);
@@ -52,15 +79,26 @@ export async function fetchWordsToLearn(limit: number): Promise<Word[]> {
   }
 }
 
-export async function fetchWordsToTest(limit: number): Promise<Word[]> {
+export async function fetchWordsToTest(courseId: string, limit: number): Promise<Word[]> {
   try {
-    console.log("Fetching words to test...");
+    const myAuth = await auth();
+    console.log('Fetching words to test by user: ', myAuth?.user?.name);
 
     // TODO: tweak
     const result =
-      await sql<DbWord>`SELECT id, word, definition, memlevel, form FROM words LIMIT ${limit}`;
+      await sql<DbWordProgress>`SELECT words.id, words.word, words.definition, user_progress.form, user_progress.memlevel
+        FROM words
+        LEFT OUTER JOIN 
+          (SELECT * FROM user_progress 
+           WHERE
+           user_id = ${myAuth?.user?.id}
+         ) AS user_progress ON words.id = user_progress.word_id       
+        WHERE
+          words.course_id = ${courseId}   
+        LIMIT ${limit}
+        `;
 
-    const data: Word[] = result.rows.map(fromDbWord);
+    const data: Word[] = result.rows.map((item) => fromDbWordProgress(item, courseId));
     return data;
   } catch (error) {
     console.error("Database Error:", error);
@@ -68,17 +106,27 @@ export async function fetchWordsToTest(limit: number): Promise<Word[]> {
   }
 }
 
-export async function fetchAllWords(): Promise<Word[]> {
+export async function fetchAllWords(courseId: string): Promise<Word[]> {
   try {
-    console.log("Fetching all words...");
+    const myAuth = await auth();
+    console.log('Fetching all words for user: ', myAuth?.user?.name, ' and course: ', courseId);
 
     const result =
-      await sql<DbWord>`SELECT id, word, definition, memlevel, form FROM words`;
+      await sql<DbWordProgress>`SELECT words.id, words.word, words.definition, user_progress.form, user_progress.memlevel
+        FROM words
+        LEFT OUTER JOIN 
+          (SELECT * FROM user_progress 
+           WHERE
+           user_id = ${myAuth?.user?.id}
+         ) AS user_progress ON words.id = user_progress.word_id       
+        WHERE
+          words.course_id = ${courseId}   
+        `;
 
-    const data: Word[] = result.rows.map(fromDbWord);
+    const data: Word[] = result.rows.map((item) => fromDbWordProgress(item, courseId));
     return data;
   } catch (error) {
     console.error("Database Error:", error);
-    throw new Error("Failed to fetch words to test.");
+    throw new Error("Failed to fetch all words.");
   }
 }

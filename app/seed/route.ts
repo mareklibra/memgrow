@@ -1,6 +1,6 @@
 import { db } from "@vercel/postgres";
 import bcrypt from "bcrypt";
-import { users, words } from "../lib/placeholder-data";
+import { courses, userProgresses, users, words } from "../lib/placeholder-data";
 
 const client = await db.connect();
 
@@ -31,116 +31,97 @@ async function seedUsers() {
   return insertedUsers;
 }
 
-async function seedWords() {
-  console.info("Seeding words");
+async function seedCourses() {
+  console.info("Seeding courses");
 
-  // TODO: add relation to "users"
   await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
   await client.sql`
-    CREATE TABLE IF NOT EXISTS words (
+    CREATE TABLE IF NOT EXISTS courses (
       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-      word VARCHAR(255) NOT NULL,
-      definition TEXT NOT NULL,
-      memlevel INT NOT NULL,
-      form VARCHAR(16) NOT NULL
+      name VARCHAR(255) NOT NULL,
+      knownLang VARCHAR(255) NOT NULL,
+      learningLang VARCHAR(255) NOT NULL
     );
   `;
 
-  const insertedUsers = await Promise.all(
-    words.map(async (word) => {
+  const insertedCourses = await Promise.all(
+    courses.map(async (course) => {
       return client.sql`
-        INSERT INTO words (id, word, definition, memlevel, form)
-        VALUES (${word.id}, ${word.word}, ${word.definition}, ${word.memLevel}, ${word.form})
+        INSERT INTO courses (id, name, knownLang, learningLang)
+        VALUES (${course.id}, ${course.name}, ${course.knownLang}, ${course.learningLang})
         ON CONFLICT (id) DO NOTHING;
       `;
     })
   );
 
-  return insertedUsers;
+  return insertedCourses;
 }
 
-/*
-async function seedInvoices() {
+async function seedWords() {
+  console.info("Seeding words");
+
   await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-
   await client.sql`
-    CREATE TABLE IF NOT EXISTS invoices (
+    CREATE TABLE IF NOT EXISTS words (
       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-      customer_id UUID NOT NULL,
-      amount INT NOT NULL,
-      status VARCHAR(255) NOT NULL,
-      date DATE NOT NULL
+      course_id UUID NOT NULL,
+      word VARCHAR(255) NOT NULL,
+      definition TEXT NOT NULL,
+      CONSTRAINT fk_course FOREIGN KEY(course_id) REFERENCES courses(id) ON DELETE CASCADE
     );
   `;
 
-  const insertedInvoices = await Promise.all(
-    invoices.map(
-      (invoice) => client.sql`
-        INSERT INTO invoices (customer_id, amount, status, date)
-        VALUES (${invoice.customer_id}, ${invoice.amount}, ${invoice.status}, ${invoice.date})
+  const insertedWords = await Promise.all(
+    words.map(async (word) => {
+      return client.sql`
+        INSERT INTO words (id, course_id, word, definition)
+        VALUES (${word.id}, ${word.courseId}, ${word.word}, ${word.definition})
         ON CONFLICT (id) DO NOTHING;
-      `,
-    ),
+      `;
+    })
   );
 
-  return insertedInvoices;
+  return insertedWords;
 }
 
-async function seedCustomers() {
+async function seedUserProgress() {
+  console.info("Seeding userProgress");
+
   await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-
   await client.sql`
-    CREATE TABLE IF NOT EXISTS customers (
-      id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-      name VARCHAR(255) NOT NULL,
-      email VARCHAR(255) NOT NULL,
-      image_url VARCHAR(255) NOT NULL
+    CREATE TABLE IF NOT EXISTS user_progress (
+      user_id UUID NOT NULL,
+      word_id UUID NOT NULL,
+
+      memlevel INT NOT NULL,
+      form VARCHAR(16) NOT NULL,
+
+      CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+      CONSTRAINT fk_word FOREIGN KEY(word_id) REFERENCES words(id) ON DELETE CASCADE,
+      CONSTRAINT unique_user_word UNIQUE (user_id, word_id)
     );
   `;
 
-  const insertedCustomers = await Promise.all(
-    customers.map(
-      (customer) => client.sql`
-        INSERT INTO customers (id, name, email, image_url)
-        VALUES (${customer.id}, ${customer.name}, ${customer.email}, ${customer.image_url})
-        ON CONFLICT (id) DO NOTHING;
-      `,
-    ),
+  const insertedUserProgress = await Promise.all(
+    userProgresses.map(async (userProgress) => {
+      return client.sql`
+        INSERT INTO user_progress (user_id, word_id, memlevel, form)
+        VALUES (${userProgress.userId}, ${userProgress.wordId}, ${userProgress.memLevel}, ${userProgress.form})
+        ON CONFLICT (user_id, word_id) DO NOTHING;
+      `;
+    })
   );
 
-  return insertedCustomers;
+  return insertedUserProgress;
 }
 
-async function seedRevenue() {
-  await client.sql`
-    CREATE TABLE IF NOT EXISTS revenue (
-      month VARCHAR(4) NOT NULL UNIQUE,
-      revenue INT NOT NULL
-    );
-  `;
-
-  const insertedRevenue = await Promise.all(
-    revenue.map(
-      (rev) => client.sql`
-        INSERT INTO revenue (month, revenue)
-        VALUES (${rev.month}, ${rev.revenue})
-        ON CONFLICT (month) DO NOTHING;
-      `,
-    ),
-  );
-
-  return insertedRevenue;
-}
-*/
 export async function GET() {
-  // return Response.json({
-  //   message:
-  //     'Uncomment this file and remove this line. You can delete this file when you are finished.',
-  // });
   try {
     await client.sql`BEGIN`;
     await seedUsers();
+    await seedCourses();
     await seedWords();
+    await seedUserProgress();
     await client.sql`COMMIT`;
 
     return Response.json({ message: "Database seeded successfully" });

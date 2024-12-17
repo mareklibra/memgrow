@@ -1,6 +1,5 @@
 import { TeachingForm } from "./definitions";
 
-// TODO: introduce "write_reverse"
 export function getNextForm(form: TeachingForm): TeachingForm {
   let newForm: TeachingForm = "show";
   if (form === "show") newForm = "choose_4_def";

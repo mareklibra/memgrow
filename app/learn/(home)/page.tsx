@@ -1,28 +1,13 @@
-import { learnWordsCountLimit, maxSimilarWords } from "@/app/constants";
+import { learnRepetitionLimit, learnWordsCountLimit, maxSimilarWords } from "@/app/constants";
 import { fetchSimilarWords, fetchWordsToLearn } from "@/app/lib/data";
 import { lusitana } from "@/app/ui/fonts";
 import { IterateWords } from "@/app/ui/IterateWords";
 
-// const mockWords: Word[] = [
-//   {
-//     id: "0",
-//     word: "el sol",
-//     definition: "slunce",
-//     form: "show",
-//     memLevel: 0,
-//   },
-//   {
-//     id: "1",
-//     word: "el perro",
-//     definition: "pes",
-//     form: "show",
-//     memLevel: 0,
-//   },
-// ];
-
 export default async function Page() {
+  const courseId = '3958dc9e-712f-4377-85e9-fec4b6a6442a'; // TODO
   const words = await fetchSimilarWords(
-    await fetchWordsToLearn(learnWordsCountLimit),
+    courseId,
+    await fetchWordsToLearn(courseId, learnWordsCountLimit),
     maxSimilarWords
   );
 
@@ -31,7 +16,7 @@ export default async function Page() {
       <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
         Learn new words ({words.length})
       </h1>
-      <IterateWords words={words} repetitionLimit={2} isLearning />
+      <IterateWords words={words} repetitionLimit={learnRepetitionLimit} isLearning />
     </main>
   );
 }

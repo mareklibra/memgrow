@@ -72,7 +72,6 @@ export function TeachWord({ word, correct, mistake }: TeachWordProps) {
   };
 
   let component;
-  console.log('----- current form: ', word.form);
   switch (word.form) {
     case "show":
       component = <ShowWord word={word} />;
