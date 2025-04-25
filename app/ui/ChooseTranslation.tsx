@@ -47,6 +47,7 @@ export function ChooseTranslation({
                 className={clsx('justify-center w-full', {
                   'bg-green-600': status !== 'normal' && item === correctResponse,
                   'bg-red-500': status === 'mistake' && item === value,
+                  'bg-gray-500': status === 'normal',
                 })}
                 onClick={(e) => {
                   e.preventDefault();
