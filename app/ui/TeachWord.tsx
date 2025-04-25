@@ -61,7 +61,10 @@ export function TeachWord({ word, correct, mistake, onChange }: TeachWordProps) 
       return;
     }
 
-    if (['choose_4_word', 'write', 'write_last'].includes(word.form) && value === word.word) {
+    if (
+      ['choose_4_word', 'write', 'write_last'].includes(word.form) &&
+      value === word.word
+    ) {
       setStatus('correct');
       await delay(DELAY_CORRECT_MS);
       correct(word);

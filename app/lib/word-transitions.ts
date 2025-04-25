@@ -25,7 +25,8 @@ export function getNumericForm(form: TeachingForm): number {
   return value;
 }
 
-export const getProgressInPercents = (form: TeachingForm) => Math.round((Math.floor(getNumericForm(form)) / (TeachingFormCount + 1)) * 100);;
+export const getProgressInPercents = (form: TeachingForm) =>
+  Math.round((Math.floor(getNumericForm(form)) / (TeachingFormCount + 1)) * 100);
 
 // TODO: tune following
 // TODO: mind using days instead of a level

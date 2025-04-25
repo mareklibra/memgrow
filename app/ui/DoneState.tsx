@@ -1,7 +1,13 @@
 import { Fragment, useEffect, useState } from 'react';
+import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
 import { Word } from '@/app/lib/definitions';
 import { WordTeachingStatus } from './WordTeachingStatus';
+
+const thClass =
+  'px-3 py-3 text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500';
+const tdClass =
+  'px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-neutral-200';
 
 interface DoneStateProps {
   words: Word[];
@@ -46,24 +52,39 @@ export function DoneState({ words, wordQueue, storeProgress }: DoneStateProps) {
   );
 
   return (
-    <div className="grid grid-cols-4">
-      <div>Word</div>
-      <div>Definition</div>
-      <div>Status</div>
-      <div>Level</div>
-
-      {progress.map((p) => {
-        return (
-          <Fragment key={p.start.id}>
-            <div>{p.start.word}</div>
-            <div>{p.start.definition}</div>
-            <div>
-              <WordTeachingStatus word={p.end} />
-            </div>
-            <div>{p.end.memLevel}</div>
-          </Fragment>
-        );
-      })}
+    <div className="flex flex-col">
+      <table className="divide-y divide-gray-200 dark:divide-neutral-700">
+        <thead>
+          <tr>
+            <th scope="col" className={thClass}>
+              Word
+            </th>
+            <th scope="col" className={thClass}>
+              Definition
+            </th>
+            <th scope="col" className={thClass}>
+              Status
+            </th>
+            <th scope="col" className={thClass}>
+              Level
+            </th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-200 dark:divide-neutral-700">
+          {progress.map((p) => {
+            return (
+              <tr id={p.start.id} key={p.start.id}>
+                <td className={tdClass}>{p.start.word}</td>
+                <td className={tdClass}>{p.start.definition}</td>
+                <td className={clsx(tdClass, 'w-2')}>
+                  <WordTeachingStatus word={p.end} />
+                </td>
+                <td className={tdClass}>{p.end.memLevel}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }

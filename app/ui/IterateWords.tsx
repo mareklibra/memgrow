@@ -60,13 +60,13 @@ export function IterateWords({ words, repetitionLimit, isLearning }: IterateWord
     // Move learning forward
     const newForm = getNextForm(word.form);
 
-    console.log({word})
+    console.log({ word });
     let newMemLevel = word.memLevel;
     if (word.form !== 'show' && (!isLearning || word.form === 'write_last')) {
       // either Learning is done or in the Testing flow
       newMemLevel = increaseMemLevel(word.memLevel);
     }
-    console.log({word, newMemLevel, newForm})
+    console.log({ word, newMemLevel, newForm });
 
     const newWord: WordWithMeta = {
       ...word,

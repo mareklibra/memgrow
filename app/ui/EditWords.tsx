@@ -2,6 +2,7 @@
 
 import { MouseEvent, useCallback, useState } from 'react';
 import isEqual from 'lodash/isEqual';
+import clsx from 'clsx';
 
 import { Word } from '@/app/lib/definitions';
 import { addWord, deleteWord, updateWord } from '@/app/lib/actions';
@@ -13,7 +14,6 @@ import {
 } from '@heroicons/react/24/outline';
 
 import { Button } from './button';
-import clsx from 'clsx';
 import { DeleteButton } from './DeleteButton';
 
 export type EditWordsProps = {
