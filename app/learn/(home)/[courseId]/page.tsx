@@ -4,7 +4,6 @@ import {
   maxSimilarWords,
 } from '@/app/constants';
 import { fetchSimilarWords, fetchWordsToLearn } from '@/app/lib/data';
-import { lusitana } from '@/app/ui/fonts';
 import { IterateWords } from '@/app/ui/IterateWords';
 
 export default async function Page({
@@ -22,10 +21,12 @@ export default async function Page({
 
   return (
     <main>
-      <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
-        Learn new words ({words.length})
-      </h1>
-      <IterateWords words={words} repetitionLimit={learnRepetitionLimit} isLearning />
+      <IterateWords
+        words={words}
+        repetitionLimit={learnRepetitionLimit}
+        isLearning
+        title="Learn "
+      />
     </main>
   );
 }

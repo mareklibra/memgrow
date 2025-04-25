@@ -1,4 +1,3 @@
-import { lusitana } from '@/app/ui/fonts';
 import { IterateWords } from '@/app/ui/IterateWords';
 import { fetchSimilarWords, fetchWordsToTest } from '@/app/lib/data';
 import {
@@ -22,10 +21,11 @@ export default async function Page({
 
   return (
     <main>
-      <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
-        Strengthen memory ({words.length})
-      </h1>
-      <IterateWords words={words} repetitionLimit={testRepetitionLimit} />
+      <IterateWords
+        words={words}
+        repetitionLimit={testRepetitionLimit}
+        title="Strengthen memory with "
+      />
     </main>
   );
 }

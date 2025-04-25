@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { lusitana } from '@/app/ui/fonts';
 
 import {
   decreaseMemLevel,
@@ -16,9 +17,15 @@ interface IterateWordsProps {
   words: Word[];
   repetitionLimit: number;
   isLearning?: boolean;
+  title: string;
 }
 
-export function IterateWords({ words, repetitionLimit, isLearning }: IterateWordsProps) {
+export function IterateWords({
+  words,
+  repetitionLimit,
+  isLearning,
+  title,
+}: IterateWordsProps) {
   const [wordQueue, setWordQueue] = useState<WordWithMeta[]>([]);
   const [wordIdx, setWordIdx] = useState<number>(-1);
   const [isDone, setDone] = useState<boolean>(false);
@@ -45,12 +52,7 @@ export function IterateWords({ words, repetitionLimit, isLearning }: IterateWord
       setDone(true);
       return;
     }
-
-    if (wordQueue[wordIdx] && wordQueue[wordIdx].repeated >= repetitionLimit) {
-      // This is inefficient but good enough considering the scale
-      setWordIdx(wordIdx + 1);
-    }
-  }, [repetitionLimit, wordIdx, wordQueue, wordQueue.length]);
+  }, [wordIdx, wordQueue.length]);
 
   const storeProgress = (word: Word) => {
     updateWordProgress(word);
@@ -60,22 +62,23 @@ export function IterateWords({ words, repetitionLimit, isLearning }: IterateWord
     // Move learning forward
     const newForm = getNextForm(word.form);
 
-    console.log({ word });
     let newMemLevel = word.memLevel;
     if (word.form !== 'show' && (!isLearning || word.form === 'write_last')) {
       // either Learning is done or in the Testing flow
       newMemLevel = increaseMemLevel(word.memLevel);
     }
-    console.log({ word, newMemLevel, newForm });
 
-    const newWord: WordWithMeta = {
-      ...word,
-      form: newForm,
-      memLevel: newMemLevel,
-      repeated: word.form === 'show' ? word.repeated : word.repeated + 1,
-    };
+    const repeated = word.form === 'show' ? word.repeated : word.repeated + 1;
+    if (repeated < repetitionLimit) {
+      const newWord: WordWithMeta = {
+        ...word,
+        form: newForm,
+        memLevel: newMemLevel,
+        repeated,
+      };
+      setWordQueue([...wordQueue, newWord]);
+    }
 
-    setWordQueue([...wordQueue, newWord]);
     setWordIdx(wordIdx + 1);
   };
 
@@ -134,14 +137,20 @@ export function IterateWords({ words, repetitionLimit, isLearning }: IterateWord
   const word = wordQueue[wordIdx];
 
   return (
-    <TeachWord
-      key={wordIdx}
-      word={word}
-      onChange={onChange}
-      correct={correct}
-      mistake={mistake}
-      stepsDone={wordIdx}
-      stepsTotal={wordQueue.length}
-    />
+    <>
+      <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
+        {title} {words.length} words (step {wordIdx} / {wordQueue.length})
+      </h1>
+
+      <TeachWord
+        key={wordIdx}
+        word={word}
+        onChange={onChange}
+        correct={correct}
+        mistake={mistake}
+        stepsDone={wordIdx}
+        stepsTotal={wordQueue.length}
+      />
+    </>
   );
 }
