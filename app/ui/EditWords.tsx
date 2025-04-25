@@ -16,9 +16,11 @@ import { Button } from './button';
 import clsx from 'clsx';
 import { DeleteButton } from './DeleteButton';
 
-type EditWordsProps = {
+export type EditWordsProps = {
   words: Word[];
   courseId: string;
+  reduced?: boolean;
+  onChange?: (word: Word) => void;
 };
 
 const UNUSED = '__not_used__';
@@ -47,7 +49,15 @@ function NewWordRow({ courseId }: { courseId: string }) {
   );
 }
 
-function WordRow({ word }: { word: Word }) {
+function WordRow({
+  word,
+  reduced,
+  onChange,
+}: {
+  word: Word;
+  reduced?: boolean;
+  onChange?: EditWordsProps['onChange'];
+}) {
   const [old, setOld] = useState<Word>(word);
   const [changed, setChanged] = useState<Word>(word);
   const [error, setError] = useState<string>();
@@ -80,9 +90,12 @@ function WordRow({ word }: { word: Word }) {
         setError(result?.message);
       } else {
         setOld(changed);
+        if (onChange) {
+          onChange(changed);
+        }
       }
     },
-    [changed, handleReset],
+    [changed, handleReset, onChange],
   );
 
   const handleDelete = useCallback(
@@ -138,6 +151,7 @@ function WordRow({ word }: { word: Word }) {
           onChange={(e) => {
             setChanged({ ...changed, memLevel: Number(e.currentTarget.value) });
           }}
+          disabled={reduced}
         />
       </td>
       <td className={tdClass}>{changed.form}</td>
@@ -149,14 +163,14 @@ function WordRow({ word }: { word: Word }) {
           <Button disabled={isEqual(old, changed)} onClick={handleReset}>
             <ArrowPathIcon className="w-5" />
           </Button>
-          <DeleteButton word={old} handleDelete={handleDelete} />
+          {!reduced && <DeleteButton word={old} handleDelete={handleDelete} />}
         </div>
       </td>
     </tr>
   );
 }
 
-export function EditWords({ words, courseId }: EditWordsProps) {
+export function EditWords({ words, courseId, reduced, onChange }: EditWordsProps) {
   return (
     <div className="flex flex-col">
       <table className="divide-y divide-gray-200 dark:divide-neutral-700">
@@ -182,9 +196,9 @@ export function EditWords({ words, courseId }: EditWordsProps) {
         </thead>
         <tbody className="divide-y divide-gray-200 dark:divide-neutral-700">
           {words.map((w) => (
-            <WordRow word={w} key={w.id} />
+            <WordRow word={w} key={w.id} reduced={reduced} onChange={onChange} />
           ))}
-          <NewWordRow key="___new___" courseId={courseId} />
+          {!reduced && <NewWordRow key="___new___" courseId={courseId} />}
         </tbody>
       </table>
     </div>

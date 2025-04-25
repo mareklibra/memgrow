@@ -101,6 +101,16 @@ export function IterateWords({ words, repetitionLimit, isLearning }: IterateWord
     setWordIdx(wordIdx + 1);
   };
 
+  const onChange = (word: Word) => {
+    const updated = [...wordQueue];
+    const w = updated.find((w) => w.id === word.id);
+    if (w) {
+      w.word = word.word;
+      w.definition = word.definition;
+    }
+    setWordQueue(updated);
+  };
+
   if (!words.length) {
     return (
       <div>
@@ -125,6 +135,7 @@ export function IterateWords({ words, repetitionLimit, isLearning }: IterateWord
     <TeachWord
       key={wordIdx}
       word={word}
+      onChange={onChange}
       correct={correct}
       mistake={mistake}
       stepsDone={wordIdx}

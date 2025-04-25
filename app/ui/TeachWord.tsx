@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react';
 
-import { WordWithMeta } from '@/app/lib/definitions';
+import { Word, WordWithMeta } from '@/app/lib/definitions';
 import { TypeTranslation } from './TypeTranslation';
 import { ShowWord } from './ShowWord';
 import { Button } from './button';
 import { FieldStatus } from './types';
 import { WordProgress } from './WordProgress';
 import { ChooseTranslation } from './ChooseTranslation';
+import { EditWords, EditWordsProps } from './EditWords';
 
 const DELAY_MISTAKE_MS = 3 * 1000;
 const DELAY_CORRECT_MS = 1 * 1000;
@@ -16,13 +17,16 @@ interface TeachWordProps {
   stepsTotal: number;
   correct: (word: WordWithMeta) => void;
   mistake: (word: WordWithMeta) => void;
+  onChange: EditWordsProps['onChange'];
 }
 
 const delay = async (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export function TeachWord({ word, correct, mistake }: TeachWordProps) {
+export function TeachWord({ word, correct, mistake, onChange }: TeachWordProps) {
   const [status, setStatus] = useState<FieldStatus>('normal');
   const [isAnyText, setAnyText] = useState<boolean>(false);
+  const [isEdit, setIsEdit] = useState<boolean>(false);
+
   const otherWordOptions = useMemo(
     () => (word.similarWords || []).map((w) => w.word),
     [word.similarWords],
@@ -82,6 +86,15 @@ export function TeachWord({ word, correct, mistake }: TeachWordProps) {
     mistake(word);
   };
 
+  const editWord = () => {
+    setIsEdit(!isEdit);
+  };
+
+  const handleOnChange = (word: Word) => {
+    onChange && onChange(word);
+    setIsEdit(false);
+  };
+
   let component;
   switch (word.form) {
     case 'show':
@@ -139,13 +152,26 @@ export function TeachWord({ word, correct, mistake }: TeachWordProps) {
     <div className="flex flex-col">
       <form>
         <div>{component}</div>
-        <div className="py-[20px] pl-10 pr-10 flex justify-between">
+        <div className="py-[20px] pl-10 pr-10 flex justify-evenly">
           <WordProgress word={word} />
+
+          <Button onClick={editWord} type="button">
+            Edit
+          </Button>
+
           <Button onClick={forceCheck} disabled={isCheckButtonDisabled} type="submit">
             {word.form === 'show' ? 'Next' : 'Check'}
           </Button>
         </div>
       </form>
+      {isEdit && (
+        <EditWords
+          words={[word]}
+          courseId={word.courseId}
+          reduced
+          onChange={handleOnChange}
+        />
+      )}
     </div>
   );
 }
