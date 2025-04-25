@@ -152,12 +152,14 @@ export function TeachWord({ word, correct, mistake, onChange }: TeachWordProps) 
     <div className="flex flex-col">
       <form>
         <div>{component}</div>
-        <div className="py-[20px] pl-10 pr-10 flex justify-evenly">
-          <WordProgress word={word} />
-
+        <div className="py-[20px] pl-10 pr-10 flex justify-between">
           <Button onClick={editWord} type="button">
             Edit
           </Button>
+
+          <div className="flex w-1/2">
+            <WordProgress word={word} />
+          </div>
 
           <Button onClick={forceCheck} disabled={isCheckButtonDisabled} type="submit">
             {word.form === 'show' ? 'Next' : 'Check'}
