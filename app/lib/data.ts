@@ -70,14 +70,14 @@ export async function fetchWordsToLearn(
     const result =
       await sql<DbWordProgress>`SELECT words.id, words.word, words.definition, user_progress.form, user_progress.memlevel
         FROM words
-        LEFT OUTER JOIN 
-          (SELECT * FROM user_progress 
+        LEFT OUTER JOIN
+          (SELECT * FROM user_progress
            WHERE
              user_id = ${myAuth?.user?.id}
-             AND (user_progress.memlevel = 0 OR user_progress.memlevel is NULL)
-          ) AS user_progress ON words.id = user_progress.word_id       
+          ) AS user_progress ON words.id = user_progress.word_id
         WHERE
           words.course_id = ${courseId}
+          AND (user_progress.memlevel = 0 OR user_progress.memlevel is NULL)
         LIMIT ${limit}
         `;
 
@@ -98,13 +98,14 @@ export async function fetchWordsToTest(courseId: string, limit: number): Promise
     const result =
       await sql<DbWordProgress>`SELECT words.id, words.word, words.definition, user_progress.form, user_progress.memlevel
         FROM words
-        LEFT OUTER JOIN 
-          (SELECT * FROM user_progress 
+        LEFT OUTER JOIN
+          (SELECT * FROM user_progress
            WHERE
            user_id = ${myAuth?.user?.id}
-         ) AS user_progress ON words.id = user_progress.word_id       
+         ) AS user_progress ON words.id = user_progress.word_id
         WHERE
-          words.course_id = ${courseId}   
+          words.course_id = ${courseId}
+          AND (user_progress.memlevel > 0)
         LIMIT ${limit}
         `;
 
@@ -129,13 +130,13 @@ export async function fetchAllWords(courseId: string): Promise<Word[]> {
     const result =
       await sql<DbWordProgress>`SELECT words.id, words.word, words.definition, user_progress.form, user_progress.memlevel
         FROM words
-        LEFT OUTER JOIN 
-          (SELECT * FROM user_progress 
+        LEFT OUTER JOIN
+          (SELECT * FROM user_progress
            WHERE
            user_id = ${myAuth?.user?.id}
-         ) AS user_progress ON words.id = user_progress.word_id       
+         ) AS user_progress ON words.id = user_progress.word_id
         WHERE
-          words.course_id = ${courseId}   
+          words.course_id = ${courseId}
         `;
 
     const data: Word[] = result.rows.map(fromDbWordProgress);

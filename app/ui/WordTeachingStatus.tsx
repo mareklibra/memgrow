@@ -1,12 +1,10 @@
-import { TeachingFormCount, Word } from '@/app/lib/definitions';
-import { getNumericForm } from '@/app/lib/word-transitions';
+import { Word } from '@/app/lib/definitions';
+import { getProgressInPercents } from '@/app/lib/word-transitions';
 
 interface WordTeachingStatusProps {
   word: Word;
 }
 
 export function WordTeachingStatus({ word }: WordTeachingStatusProps) {
-  const numeric = Math.floor(getNumericForm(word.form));
-  const percentage = Math.round((numeric / (TeachingFormCount - 1)) * 100);
-  return `${percentage}%`;
+  return `${getProgressInPercents(word.form)}%`;
 }

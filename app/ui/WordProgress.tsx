@@ -1,13 +1,13 @@
-import { TeachingFormCount, Word } from '@/app/lib/definitions';
-import { getNumericForm } from '@/app/lib/word-transitions';
+import { Word } from '@/app/lib/definitions';
 import { Progress, Typography } from '@material-tailwind/react';
+import { getProgressInPercents } from '@/app/lib/word-transitions';
 interface WordProgressProps {
   word: Word;
   className?: string;
 }
 
-export function WordProgress({ word, className }: WordProgressProps) {
-  const value = (getNumericForm(word.form) / TeachingFormCount) * 100;
+export function WordProgress({ word }: WordProgressProps) {
+  const value = getProgressInPercents(word.form);
 
   return (
     <div className="w-full">

@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Word } from '@/app/lib/definitions';
 import { WordTeachingStatus } from './WordTeachingStatus';
 
@@ -17,6 +18,7 @@ type ProgressType = {
 };
 
 export function DoneState({ words, wordQueue, storeProgress }: DoneStateProps) {
+  const router = useRouter();
   const [progress, setProgress] = useState<ProgressType[]>([]);
 
   useEffect(
@@ -27,6 +29,7 @@ export function DoneState({ words, wordQueue, storeProgress }: DoneStateProps) {
         const last = findLast(wordQueue, word.id);
         if (!last) return;
 
+        console.log('storing progress: ', last);
         storeProgress(last);
         progress.push({
           start: word,
@@ -41,6 +44,7 @@ export function DoneState({ words, wordQueue, storeProgress }: DoneStateProps) {
       /* just once*/
     ],
   );
+
   return (
     <div className="grid grid-cols-4">
       <div>Word</div>
