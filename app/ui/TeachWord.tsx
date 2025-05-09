@@ -17,12 +17,19 @@ interface TeachWordProps {
   stepsTotal: number;
   correct: (word: WordWithMeta) => void;
   mistake: (word: WordWithMeta) => void;
+  repeatSooner: (word: Word) => void;
   onChange: EditWordsProps['onChange'];
 }
 
 const delay = async (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export function TeachWord({ word, correct, mistake, onChange }: TeachWordProps) {
+export function TeachWord({
+  word,
+  correct,
+  mistake,
+  onChange,
+  repeatSooner,
+}: TeachWordProps) {
   const [status, setStatus] = useState<FieldStatus>('normal');
   const [isAnyText, setAnyText] = useState<boolean>(false);
   const [isEdit, setIsEdit] = useState<boolean>(false);
@@ -94,7 +101,9 @@ export function TeachWord({ word, correct, mistake, onChange }: TeachWordProps) 
   };
 
   const handleOnChange = (word: Word) => {
-    onChange && onChange(word);
+    if (onChange) {
+      onChange(word);
+    }
     setIsEdit(false);
   };
 
@@ -151,6 +160,8 @@ export function TeachWord({ word, correct, mistake, onChange }: TeachWordProps) 
     (isAnyText || word.form === 'show')
   );
 
+  const isLearning = word.memLevel === 0;
+
   return (
     <div className="flex flex-col">
       <form>
@@ -160,7 +171,13 @@ export function TeachWord({ word, correct, mistake, onChange }: TeachWordProps) 
             Edit
           </Button>
 
-          <div className="flex w-1/2">
+          {!isLearning && (
+            <Button onClick={() => repeatSooner(word)} type="button">
+              Repeat sooner
+            </Button>
+          )}
+
+          <div className="flex w-2/3">
             <WordProgress word={word} />
           </div>
 

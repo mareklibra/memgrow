@@ -1,6 +1,5 @@
-import { Fragment, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import clsx from 'clsx';
-import { useRouter } from 'next/navigation';
 import { Word } from '@/app/lib/definitions';
 import { WordTeachingStatus } from './WordTeachingStatus';
 
@@ -24,7 +23,6 @@ type ProgressType = {
 };
 
 export function DoneState({ words, wordQueue, storeProgress }: DoneStateProps) {
-  const router = useRouter();
   const [progress, setProgress] = useState<ProgressType[]>([]);
 
   useEffect(

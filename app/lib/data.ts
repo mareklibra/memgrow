@@ -106,7 +106,7 @@ export async function fetchWordsToTest(courseId: string, limit: number): Promise
         WHERE
           words.course_id = ${courseId}
           AND (user_progress.memlevel > 0)
-        ORDER BY user_progress.memlevel  
+        ORDER BY user_progress.memlevel
         LIMIT ${limit}
         `;
 

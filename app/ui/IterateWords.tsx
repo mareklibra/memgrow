@@ -107,13 +107,21 @@ export function IterateWords({
   };
 
   const onChange = (word: Word) => {
-    const updated = [...wordQueue];
-    const w = updated.find((w) => w.id === word.id);
-    if (w) {
-      w.word = word.word;
-      w.definition = word.definition;
-    }
+    const updated = wordQueue.map((w) => {
+      if (w.id === word.id) {
+        w.word = word.word;
+        w.definition = word.definition;
+        w.memLevel = word.memLevel;
+        console.log('setting', { w, word });
+      }
+      return w;
+    });
+    console.log({ wordQueue, updated });
     setWordQueue(updated);
+  };
+
+  const repeatSooner = (word: Word) => {
+    onChange({ ...word, memLevel: decreaseMemLevel(word.memLevel) });
   };
 
   if (!words.length) {
@@ -148,6 +156,7 @@ export function IterateWords({
         onChange={onChange}
         correct={correct}
         mistake={mistake}
+        repeatSooner={repeatSooner}
         stepsDone={wordIdx}
         stepsTotal={wordQueue.length}
       />

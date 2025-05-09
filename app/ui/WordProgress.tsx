@@ -16,6 +16,9 @@ export function WordProgress({ word }: WordProgressProps) {
           Memorized
         </Typography>
         <Typography color="blue-gray" variant="h6">
+          Level {word.memLevel}
+        </Typography>
+        <Typography color="blue-gray" variant="h6">
           {value}%
         </Typography>
       </div>
