@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import { Word } from '@/app/lib/definitions';
+import Link from 'next/link';
+import { Button } from '@material-tailwind/react';
 import { WordTeachingStatus } from './WordTeachingStatus';
 
 const thClass =
@@ -12,6 +14,7 @@ interface DoneStateProps {
   words: Word[];
   wordQueue: Word[];
   storeProgress: (word: Word) => void;
+  isLearning?: boolean;
 }
 
 const findLast = (queue: Word[], wordId: Word['id']) =>
@@ -22,8 +25,14 @@ type ProgressType = {
   end: Word;
 };
 
-export function DoneState({ words, wordQueue, storeProgress }: DoneStateProps) {
+export function DoneState({
+  words,
+  wordQueue,
+  storeProgress,
+  isLearning,
+}: DoneStateProps) {
   const [progress, setProgress] = useState<ProgressType[]>([]);
+  const courseId = words[0].courseId;
 
   useEffect(
     () => {
@@ -51,7 +60,7 @@ export function DoneState({ words, wordQueue, storeProgress }: DoneStateProps) {
 
   return (
     <div className="flex flex-col">
-      <table className="divide-y divide-gray-200 dark:divide-neutral-700">
+      <table className="divide-y divide-gray-200 dark:divide-neutral-700 w-full">
         <thead>
           <tr>
             <th scope="col" className={thClass}>
@@ -83,6 +92,16 @@ export function DoneState({ words, wordQueue, storeProgress }: DoneStateProps) {
           })}
         </tbody>
       </table>
+
+      <div className="w-full flex justify-center mt-10">
+        <Link
+          className=""
+          href={`/${isLearning ? 'learn' : 'test'}/${courseId ?? ''}/next`}
+          replace
+        >
+          <Button variant="outlined">{isLearning ? 'Learn' : 'Test'} more...</Button>
+        </Link>
+      </div>
     </div>
   );
 }

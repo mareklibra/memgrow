@@ -12,6 +12,7 @@ import { updateWordProgress } from '@/app/lib/actions';
 import { TeachWord } from './TeachWord';
 import { DoneState } from './DoneState';
 import Link from 'next/link';
+import { Button } from '@material-tailwind/react';
 
 interface IterateWordsProps {
   words: Word[];
@@ -120,6 +121,11 @@ export function IterateWords({
     setWordQueue(updated);
   };
 
+  const onLeave = () => {
+    // Subsequently, the DoneState will save the progress
+    setDone(true);
+  };
+
   const repeatSooner = (word: Word) => {
     onChange({ ...word, memLevel: decreaseMemLevel(word.memLevel) });
   };
@@ -134,7 +140,12 @@ export function IterateWords({
 
   if (isDone) {
     return (
-      <DoneState words={words} wordQueue={wordQueue} storeProgress={storeProgress} />
+      <DoneState
+        words={words}
+        wordQueue={wordQueue}
+        storeProgress={storeProgress}
+        isLearning={isLearning}
+      />
     );
   }
 
@@ -146,8 +157,17 @@ export function IterateWords({
 
   return (
     <>
-      <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
-        {title} {words.length} words (step {wordIdx} / {wordQueue.length})
+      <h1
+        className={`${lusitana.className} mb-4 text-xl md:text-2xl flex justify-between`}
+      >
+        <div>
+          {title} {words.length} words (step {wordIdx} / {wordQueue.length})
+        </div>
+        <div>
+          <Button variant="outlined" onClick={onLeave}>
+            X
+          </Button>
+        </div>
       </h1>
 
       <TeachWord

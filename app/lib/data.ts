@@ -68,7 +68,7 @@ export async function fetchWordsToLearn(
 
     // TODO: tweak following query
     const result =
-      await sql<DbWordProgress>`SELECT words.id, words.word, words.definition, user_progress.form, user_progress.memlevel
+      await sql<DbWordProgress>`SELECT words.id, words.word, words.course_id, words.definition, user_progress.form, user_progress.memlevel
         FROM words
         LEFT OUTER JOIN
           (SELECT * FROM user_progress
@@ -96,7 +96,7 @@ export async function fetchWordsToTest(courseId: string, limit: number): Promise
 
     // TODO: tweak
     const result =
-      await sql<DbWordProgress>`SELECT words.id, words.word, words.definition, user_progress.form, user_progress.memlevel
+      await sql<DbWordProgress>`SELECT words.id, words.word, words.course_id, words.definition, user_progress.form, user_progress.memlevel
         FROM words
         LEFT OUTER JOIN
           (SELECT * FROM user_progress

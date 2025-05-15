@@ -12,7 +12,6 @@ export default async function Page({
   params: Promise<{ courseId: string }>;
 }) {
   const { courseId } = await params;
-
   const words = await fetchSimilarWords(
     courseId,
     await fetchWordsToLearn(courseId, learnWordsCountLimit),
