@@ -21,6 +21,8 @@ export type DbWord = {
   definition: string;
 };
 
+export type WordToAdd = Pick<Word, 'word' | 'definition' | 'courseId'>;
+
 export type Word = Omit<DbWord, 'course_id'> & {
   courseId: string;
 

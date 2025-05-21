@@ -6,7 +6,7 @@ import { signIn, auth } from '@/auth';
 import { AuthError } from 'next-auth';
 import { revalidatePath } from 'next/cache';
 
-import { Word } from './definitions';
+import { Word, WordToAdd } from './definitions';
 
 export type UpdateWordResult =
   | undefined
@@ -46,7 +46,7 @@ export async function updateWordProgress(word: Word): Promise<UpdateWordResult> 
   }
 }
 
-export async function addWord(word: Word): Promise<UpdateWordResult> {
+export async function addWord(word: WordToAdd): Promise<UpdateWordResult> {
   try {
     const result = await sql.query(
       `
@@ -61,6 +61,34 @@ export async function addWord(word: Word): Promise<UpdateWordResult> {
     return {
       message: `Database Error: Failed to insert new word. ${JSON.stringify(e)}`,
     };
+  }
+}
+
+export async function addWordBatch(words: WordToAdd[]): Promise<UpdateWordResult[]> {
+  try {
+    const promises = words.map((word) =>
+      sql.query(
+        `
+      INSERT INTO words (word, definition, course_id)
+      VALUES ($1, $2, $3)
+      RETURNING *
+    `,
+        [word.word, word.definition, word.courseId],
+      ),
+    );
+    const results = await Promise.allSettled(promises);
+
+    revalidatePath('/edit');
+    return results.map((r, idx) => {
+      if (r.status === 'fulfilled') {
+        return { id: r.value.rows[0].id };
+      }
+      return {
+        message: `Database Error: Failed to insert new word "${JSON.stringify(words[idx])}". ${JSON.stringify(r.reason)}`,
+      };
+    });
+  } catch (e) {
+    return [{ message: `Generic DB error: ${JSON.stringify(e)}` }];
   }
 }
 

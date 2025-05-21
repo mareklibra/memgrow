@@ -15,6 +15,7 @@ import {
 
 import { Button } from './button';
 import { DeleteButton } from './DeleteButton';
+import { BatchImport } from './BatchImport';
 
 export type EditWordsProps = {
   words: Word[];
@@ -201,6 +202,7 @@ export function EditWords({ words, courseId, reduced, onChange }: EditWordsProps
           {!reduced && <NewWordRow key="___new___" courseId={courseId} />}
         </tbody>
       </table>
+      <BatchImport className="min-h-96" courseId={courseId} />
     </div>
   );
 }
