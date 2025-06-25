@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 
 import { Word, WordWithMeta } from '@/app/lib/definitions';
-import { TypeTranslation } from './TypeTranslation';
+import { TypeTranslation, TypeTranslationProps } from './TypeTranslation';
 import { ShowWord } from './ShowWord';
 import { Button } from './button';
 import { FieldStatus } from './types';
@@ -19,6 +19,7 @@ interface TeachWordProps {
   mistake: (word: WordWithMeta) => void;
   repeatSooner: (word: Word) => void;
   onChange: EditWordsProps['onChange'];
+  specialKeys: TypeTranslationProps['specialKeys'];
 }
 
 const delay = async (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -29,9 +30,10 @@ export function TeachWord({
   mistake,
   onChange,
   repeatSooner,
-}: TeachWordProps) {
+  specialKeys,
+}: Readonly<TeachWordProps>) {
   const [status, setStatus] = useState<FieldStatus>('normal');
-  const [isAnyText, setAnyText] = useState<boolean>(false);
+  const [isAnyText, setIsAnyText] = useState<boolean>(false);
   const [isEdit, setIsEdit] = useState<boolean>(false);
 
   const otherWordOptions = useMemo(
@@ -56,7 +58,7 @@ export function TeachWord({
   );
 
   const onValue = async (value: string, oneChanceOnly: boolean) => {
-    setAnyText(!!value);
+    setIsAnyText(!!value);
 
     if (
       ['choose_4_def', 'choose_8_def'].includes(word.form) &&
@@ -151,7 +153,13 @@ export function TeachWord({
     case 'write':
     default:
       component = (
-        <TypeTranslation key={word.id} word={word} onValue={onValue} status={status} />
+        <TypeTranslation
+          key={word.id}
+          word={word}
+          onValue={onValue}
+          status={status}
+          specialKeys={specialKeys}
+        />
       );
   }
 

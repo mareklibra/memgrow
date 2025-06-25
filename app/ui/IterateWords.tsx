@@ -14,12 +14,14 @@ import { TeachWord } from './TeachWord';
 import { DoneState } from './DoneState';
 import Link from 'next/link';
 import { Button } from '@material-tailwind/react';
+import { TypeTranslationProps } from './TypeTranslation';
 
 interface IterateWordsProps {
   words: Word[];
   repetitionLimit: number;
   isLearning?: boolean;
   title: string;
+  specialKeys: TypeTranslationProps['specialKeys'];
 }
 
 export function IterateWords({
@@ -27,6 +29,7 @@ export function IterateWords({
   repetitionLimit,
   isLearning,
   title,
+  specialKeys,
 }: Readonly<IterateWordsProps>) {
   const [wordQueue, setWordQueue] = useState<WordWithMeta[]>([]);
   const [wordIdx, setWordIdx] = useState<number>(-1);
@@ -190,6 +193,7 @@ export function IterateWords({
         repeatSooner={repeatSooner}
         stepsDone={wordIdx}
         stepsTotal={wordQueue.length}
+        specialKeys={specialKeys}
       />
     </>
   );

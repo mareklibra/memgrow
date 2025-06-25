@@ -5,6 +5,7 @@ import {
   testRepetitionLimit,
   testWordsCountLimit,
 } from '@/app/constants';
+import { getSpecialKeys } from '@/app/lib/utils';
 
 export default async function Page({
   params,
@@ -12,12 +13,8 @@ export default async function Page({
   params: Promise<{ courseId: string }>;
 }) {
   const { courseId } = await params;
-
-  const words = await fetchSimilarWords(
-    courseId,
-    await fetchWordsToTest(courseId, testWordsCountLimit),
-    maxSimilarWords,
-  );
+  const wordsToTest = await fetchWordsToTest(courseId, testWordsCountLimit);
+  const words = await fetchSimilarWords(courseId, wordsToTest, maxSimilarWords);
 
   return (
     <main>
@@ -25,6 +22,7 @@ export default async function Page({
         words={words}
         repetitionLimit={testRepetitionLimit}
         title="Strengthen memory with "
+        specialKeys={getSpecialKeys([...words, ...wordsToTest])}
       />
     </main>
   );
