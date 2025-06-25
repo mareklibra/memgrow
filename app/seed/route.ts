@@ -95,6 +95,7 @@ async function seedUserProgress() {
 
       memlevel INT NOT NULL,
       form VARCHAR(16) NOT NULL,
+      repeat_again TIMESTAMP,
 
       CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
       CONSTRAINT fk_word FOREIGN KEY(word_id) REFERENCES words(id) ON DELETE CASCADE,

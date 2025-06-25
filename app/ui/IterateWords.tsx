@@ -5,6 +5,7 @@ import { lusitana } from '@/app/ui/fonts';
 import {
   decreaseMemLevel,
   getNextForm,
+  getRepeatAgainDate,
   increaseMemLevel,
 } from '@/app/lib/word-transitions';
 import { TeachingForm, Word, WordWithMeta } from '@/app/lib/definitions';
@@ -26,10 +27,10 @@ export function IterateWords({
   repetitionLimit,
   isLearning,
   title,
-}: IterateWordsProps) {
+}: Readonly<IterateWordsProps>) {
   const [wordQueue, setWordQueue] = useState<WordWithMeta[]>([]);
   const [wordIdx, setWordIdx] = useState<number>(-1);
-  const [isDone, setDone] = useState<boolean>(false);
+  const [isDone, setIsDone] = useState<boolean>(false);
 
   useEffect(() => {
     // Initialize
@@ -50,8 +51,7 @@ export function IterateWords({
 
   useEffect(() => {
     if (wordIdx >= wordQueue.length) {
-      setDone(true);
-      return;
+      setIsDone(true);
     }
   }, [wordIdx, wordQueue.length]);
 
@@ -62,13 +62,15 @@ export function IterateWords({
   const correct = (word: WordWithMeta) => {
     // Move learning forward
     const newForm = getNextForm(word.form);
-
     let newMemLevel = word.memLevel;
-    let repeatAgain = word.repeatAgain;
+    let newRepeatAgain = word.repeatAgain;
     if (word.form !== 'show' && (!isLearning || word.form === 'write_last')) {
       // either Learning is done or in the Testing flow
       newMemLevel = increaseMemLevel(word.memLevel);
-      repeatAgain = getRepeatAgainDate(word.repeatAgain, word.memLevel /* use old memLevel */);
+      newRepeatAgain = getRepeatAgainDate(
+        word.memLevel /* use old memLevel */,
+        word.repeatAgain,
+      );
     }
 
     const repeated = word.form === 'show' ? word.repeated : word.repeated + 1;
@@ -77,10 +79,15 @@ export function IterateWords({
         ...word,
         form: newForm,
         memLevel: newMemLevel,
-        repeatAgain,
+        repeatAgain: newRepeatAgain,
         repeated,
       };
       setWordQueue([...wordQueue, newWord]);
+    } else {
+      // modify existing word (should call set state)
+      word.form = newForm;
+      word.memLevel = newMemLevel;
+      word.repeatAgain = newRepeatAgain;
     }
 
     setWordIdx(wordIdx + 1);
@@ -98,6 +105,7 @@ export function IterateWords({
       ...word,
       form: newForm,
       memLevel: newMemLevel,
+      repeatAgain: getRepeatAgainDate(newMemLevel, word.repeatAgain),
       // keep the "repeated" property untouched
     };
 
@@ -126,7 +134,7 @@ export function IterateWords({
 
   const onLeave = () => {
     // Subsequently, the DoneState will save the progress
-    setDone(true);
+    setIsDone(true);
   };
 
   const repeatSooner = (word: Word) => {

@@ -4,7 +4,7 @@ import { User } from 'next-auth';
 import { auth } from '@/auth';
 import { Course, DbCourse, DbWord, TeachingForm, Word } from '@/app/lib/definitions';
 
-type DbWordProgress = DbWord & { memlevel: number; form: TeachingForm };
+type DbWordProgress = DbWord & { memlevel: number; form: TeachingForm, repeat_again: string };
 type UserAuth = User & { password: string };
 
 export async function getUserForAuth(email: string): Promise<UserAuth | undefined> {
@@ -24,6 +24,7 @@ const fromDbWordProgress = (dbWord: DbWordProgress): Word => ({
   definition: dbWord.definition,
   form: dbWord.form ?? 'show',
   memLevel: Number(dbWord.memlevel ?? '0'),
+  repeatAgain: new Date(dbWord.repeat_again || Date.now()),
 });
 
 const omDbCourse = (dbCourse: DbCourse): Course => ({
@@ -66,9 +67,8 @@ export async function fetchWordsToLearn(
     const myAuth = await auth();
     console.log('Fetching words to learn by user: ', myAuth?.user?.name);
 
-    // TODO: tweak following query
     const result =
-      await sql<DbWordProgress>`SELECT words.id, words.word, words.course_id, words.definition, user_progress.form, user_progress.memlevel
+      await sql<DbWordProgress>`SELECT words.id, words.word, words.course_id, words.definition, user_progress.form, user_progress.memlevel, user_progress.repeat_again
         FROM words
         LEFT OUTER JOIN
           (SELECT * FROM user_progress
@@ -80,7 +80,6 @@ export async function fetchWordsToLearn(
           AND (user_progress.memlevel = 0 OR user_progress.memlevel is NULL)
         LIMIT ${limit}
         `;
-
     const data: Word[] = result.rows.map(fromDbWordProgress);
     return data;
   } catch (error) {
@@ -94,9 +93,8 @@ export async function fetchWordsToTest(courseId: string, limit: number): Promise
     const myAuth = await auth();
     console.log('Fetching words to test by user: ', myAuth?.user?.name);
 
-    // TODO: tweak
     const result =
-      await sql<DbWordProgress>`SELECT words.id, words.word, words.course_id, words.definition, user_progress.form, user_progress.memlevel
+      await sql<DbWordProgress>`SELECT words.id, words.word, words.course_id, words.definition, user_progress.form, user_progress.memlevel, user_progress.repeat_again
         FROM words
         LEFT OUTER JOIN
           (SELECT * FROM user_progress
@@ -106,7 +104,8 @@ export async function fetchWordsToTest(courseId: string, limit: number): Promise
         WHERE
           words.course_id = ${courseId}
           AND (user_progress.memlevel > 0)
-        ORDER BY user_progress.memlevel
+          AND user_progress.repeat_again < NOW()
+        ORDER BY user_progress.repeat_again
         LIMIT ${limit}
         `;
 
@@ -129,7 +128,7 @@ export async function fetchAllWords(courseId: string): Promise<Word[]> {
     );
 
     const result =
-      await sql<DbWordProgress>`SELECT words.id, words.word, words.definition, user_progress.form, user_progress.memlevel
+      await sql<DbWordProgress>`SELECT words.id, words.word, words.definition, user_progress.form, user_progress.memlevel, user_progress.repeat_again
         FROM words
         LEFT OUTER JOIN
           (SELECT * FROM user_progress

@@ -1,3 +1,4 @@
+import { DAY_MS } from '../constants';
 import { TeachingForm, TeachingFormCount } from './definitions';
 
 export function getNextForm(form: TeachingForm): TeachingForm {
@@ -35,4 +36,10 @@ export function increaseMemLevel(level: number): number {
 
 export function decreaseMemLevel(level: number): number {
   return 2;
+}
+
+export function getRepeatAgainDate(memLevel: number, current: Date): Date {
+  const currentTime = current?.getTime() || Date.now();
+  const result = new Date(currentTime + DAY_MS * memLevel);
+  return result;
 }
