@@ -28,12 +28,11 @@ export function getNumericForm(form: TeachingForm): number {
 export const getProgressInPercents = (form: TeachingForm) =>
   Math.round((Math.floor(getNumericForm(form)) / (TeachingFormCount + 1)) * 100);
 
-// TODO: tune following
-// TODO: mind using days instead of a level
 export function increaseMemLevel(level: number): number {
-  return level + 10;
+  // Amount of days until retested again
+  return level + 2;
 }
 
 export function decreaseMemLevel(level: number): number {
-  return Math.round(level / 2);
+  return 2;
 }

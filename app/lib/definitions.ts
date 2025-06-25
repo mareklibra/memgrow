@@ -28,7 +28,8 @@ export type Word = Omit<DbWord, 'course_id'> & {
 
   memLevel: number;
   form: TeachingForm;
-
+  repeatAgain: Date;
+  
   // calculated:
   similarWords?: Word[];
 };

@@ -64,9 +64,11 @@ export function IterateWords({
     const newForm = getNextForm(word.form);
 
     let newMemLevel = word.memLevel;
+    let repeatAgain = word.repeatAgain;
     if (word.form !== 'show' && (!isLearning || word.form === 'write_last')) {
       // either Learning is done or in the Testing flow
       newMemLevel = increaseMemLevel(word.memLevel);
+      repeatAgain = getRepeatAgainDate(word.repeatAgain, word.memLevel /* use old memLevel */);
     }
 
     const repeated = word.form === 'show' ? word.repeated : word.repeated + 1;
@@ -75,6 +77,7 @@ export function IterateWords({
         ...word,
         form: newForm,
         memLevel: newMemLevel,
+        repeatAgain,
         repeated,
       };
       setWordQueue([...wordQueue, newWord]);
