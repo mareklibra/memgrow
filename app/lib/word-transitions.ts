@@ -34,7 +34,10 @@ export function increaseMemLevel(level: number): number {
   return level + 2;
 }
 
-export function decreaseMemLevel(level: number): number {
+export function decreaseMemLevel(
+  // eslint-disable-next-line
+  _: number,
+): number {
   return 2;
 }
 

@@ -69,7 +69,7 @@ export function ChooseTranslation({
               handleClick('');
             }}
           >
-            Don't know
+            Do not know
           </Button>
         </div>
       </div>

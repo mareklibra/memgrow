@@ -4,7 +4,11 @@ import { User } from 'next-auth';
 import { auth } from '@/auth';
 import { Course, DbCourse, DbWord, TeachingForm, Word } from '@/app/lib/definitions';
 
-type DbWordProgress = DbWord & { memlevel: number; form: TeachingForm, repeat_again: string };
+type DbWordProgress = DbWord & {
+  memlevel: number;
+  form: TeachingForm;
+  repeat_again: string;
+};
 type UserAuth = User & { password: string };
 
 export async function getUserForAuth(email: string): Promise<UserAuth | undefined> {
