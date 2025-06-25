@@ -38,27 +38,40 @@ export function ChooseTranslation({
   return (
     <>
       <WordStatic word={toGuess} />
-      <div className="grid grid-cols-2 gap-6 w-3/4 justify-self-center">
-        {options.map((item) => {
-          return (
-            <div key={item} className="">
-              <Button
-                key={item}
-                className={clsx('justify-center w-full', {
-                  'bg-green-600': status !== 'normal' && item === correctResponse,
-                  'bg-red-500': status === 'mistake' && item === value,
-                  'bg-gray-500': status === 'normal',
-                })}
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleClick(item);
-                }}
-              >
-                {item}
-              </Button>
-            </div>
-          );
-        })}
+      <div className="grid grid-cols-12 w-100">
+        <div className="grid grid-cols-2 gap-6 w-3/4 col-span-11 justify-self-center">
+          {options.map((item) => {
+            return (
+              <div key={item} className="">
+                <Button
+                  key={item}
+                  className={clsx('justify-center w-full', {
+                    'bg-green-600': status !== 'normal' && item === correctResponse,
+                    'bg-red-500': status === 'mistake' && item === value,
+                    'bg-gray-500': status === 'normal',
+                  })}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleClick(item);
+                  }}
+                >
+                  {item}
+                </Button>
+              </div>
+            );
+          })}
+        </div>
+
+        <div>
+          <Button
+            onClick={(e) => {
+              e.preventDefault();
+              handleClick('');
+            }}
+          >
+            Don't know
+          </Button>
+        </div>
       </div>
     </>
   );
