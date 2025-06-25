@@ -30,7 +30,7 @@ export function DoneState({
   wordQueue,
   storeProgress,
   isLearning,
-}: DoneStateProps) {
+}: Readonly<DoneStateProps>) {
   const [progress, setProgress] = useState<ProgressType[]>([]);
   const courseId = words[0].courseId;
 
@@ -75,6 +75,9 @@ export function DoneState({
             <th scope="col" className={thClass}>
               Level
             </th>
+            <th scope="col" className={thClass}>
+              Next
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200 dark:divide-neutral-700">
@@ -87,6 +90,7 @@ export function DoneState({
                   <WordTeachingStatus word={p.end} />
                 </td>
                 <td className={tdClass}>{p.end.memLevel}</td>
+                <td className={tdClass}>{p.end.repeatAgain.toLocaleDateString()}</td>
               </tr>
             );
           })}
