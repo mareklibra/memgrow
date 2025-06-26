@@ -35,22 +35,27 @@
     "@types/node": "20.14.8",
     "@types/react": "18.2.42",
     "@types/react-dom": "18.2.7",
-    "eslint": "^8",
-    "eslint-config-next": "15.0.3",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.2.1",
-    "prettier": "^3.5.3"
+    "eslint": "^9",
+    "eslint-config-next": "^15.3.4",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-prettier": "^5.5.1",
+    "prettier": "^3.6.1"
   },
   "pnpm": {
     "overrides": {
       "@types/react": "18.2.42",
-      "@types/react-dom": "18.2.7"
+      "@types/react-dom": "18.2.7",
+      "@typescript-eslint/parser": "^8.35.0",
+      "@typescript-eslint/eslint-plugin": "^8.35.0"
     },
     "onlyBuiltDependencies": [
       "bcrypt",
       "bufferutil",
       "sharp",
       "utf-8-validate"
+    ],
+    "ignoredBuiltDependencies": [
+      "unrs-resolver"
     ]
   }
 }
