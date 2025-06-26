@@ -45,6 +45,7 @@ function NewWordRow({ courseId }: { courseId: string }) {
         definition: '',
         memLevel: 0,
         form: 'show',
+        repeatAgain: new Date(Date.now()),
       }}
     />
   );
@@ -54,11 +55,11 @@ function WordRow({
   word,
   reduced,
   onChange,
-}: {
+}: Readonly<{
   word: Word;
   reduced?: boolean;
   onChange?: EditWordsProps['onChange'];
-}) {
+}>) {
   const [old, setOld] = useState<Word>(word);
   const [changed, setChanged] = useState<Word>(word);
   const [error, setError] = useState<string>();

@@ -1,6 +1,10 @@
 'use client';
 
-import { useActionState, useEffect } from 'react';
+import {
+  // @ts-expect-error Part of React 19, react/types are v18 due to tailwind/react compatibility
+  useActionState,
+  useEffect,
+} from 'react';
 import {
   AtSymbolIcon,
   KeyIcon,
@@ -14,7 +18,7 @@ import { Button } from './button';
 import { Session } from 'next-auth';
 import { useRouter } from 'next/navigation';
 
-export default function LoginForm({ auth }: { auth: Session | null }) {
+export default function LoginForm({ auth }: Readonly<{ auth: Session | null }>) {
   const router = useRouter();
 
   useEffect(() => {
