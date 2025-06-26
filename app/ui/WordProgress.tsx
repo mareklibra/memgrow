@@ -3,14 +3,13 @@ import { Progress, Typography } from '@material-tailwind/react';
 import { getProgressInPercents } from '@/app/lib/word-transitions';
 interface WordProgressProps {
   word: Word;
-  className?: string;
 }
 
-export function WordProgress({ word }: WordProgressProps) {
+export function WordProgress({ word }: Readonly<WordProgressProps>) {
   const value = getProgressInPercents(word.form);
 
   return (
-    <div className="w-full">
+    <div>
       <div className="mb-2 flex items-center justify-between gap-4">
         <Typography color="blue-gray" variant="h6">
           Memorized
