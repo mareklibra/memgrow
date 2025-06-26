@@ -170,7 +170,7 @@ export function IterateWords({
   const word = wordQueue[wordIdx];
 
   return (
-    <>
+    <div className="w-full p-5">
       <h1
         className={`${lusitana.className} mb-4 text-xl md:text-2xl flex justify-between`}
       >
@@ -195,6 +195,6 @@ export function IterateWords({
         stepsTotal={wordQueue.length}
         specialKeys={specialKeys}
       />
-    </>
+    </div>
   );
 }

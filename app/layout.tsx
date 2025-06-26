@@ -12,7 +12,7 @@ export default function RootLayout({
           <div className="w-full flex-none md:w-64">
             <SideNav />
           </div>
-          <div className="flex-growp-2">{children}</div>
+          <div className="flex-group-2 w-screen">{children}</div>
         </div>
       </body>
     </html>

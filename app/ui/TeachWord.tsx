@@ -172,7 +172,7 @@ export function TeachWord({
 
   return (
     <form>
-      <div className="flex flex-col w-max" id="teach-word">
+      <div className="flex flex-col" id="teach-word">
         <div>{component}</div>
         <div className="py-[20px]">
           <WordProgress word={word} />
