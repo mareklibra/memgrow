@@ -2,7 +2,9 @@ import '@/app/ui/global.css';
 import { inter } from '@/app/ui/fonts';
 import SideNav from '@/app/ui/sidenav';
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
       <body className={`${inter.className} antialiased`}>

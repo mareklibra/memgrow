@@ -49,7 +49,7 @@ export function TypeTranslation({
       e.preventDefault();
       handleChange(`${value}${key}`);
       focusInputbox();
-    }
+    };
   };
 
   return (
@@ -93,11 +93,7 @@ export function TypeTranslation({
 
       <div className="flex w-3/4 gap-4 mt-4">
         {specialKeys.map((key) => (
-          <ButtonTW
-            key={key}
-            variant="outlined"
-            onClick={getHandleKey(key)}
-          >
+          <ButtonTW key={key} variant="outlined" onClick={getHandleKey(key)}>
             {key}
           </ButtonTW>
         ))}

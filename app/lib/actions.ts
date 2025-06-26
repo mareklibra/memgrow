@@ -19,13 +19,6 @@ export async function updateWordProgress(word: Word): Promise<UpdateWordResult> 
   const myAuth = await auth();
 
   try {
-    console.log(`
-      UPDATE user_progress
-      SET memlevel = ${word.memLevel}, form = ${word.form}, repeat_again = ${word.repeatAgain?.toISOString() || 'NULL'}
-      WHERE
-        user_id = ${myAuth?.user?.id}
-        AND word_id = ${word.id}
-    `);
     const result = await sql`
       UPDATE user_progress
       SET memlevel = ${word.memLevel}, form = ${word.form}, repeat_again = ${word.repeatAgain?.toISOString() || 'NULL'}
@@ -49,7 +42,9 @@ export async function updateWordProgress(word: Word): Promise<UpdateWordResult> 
     }
   } catch (error) {
     console.error(error);
-    return { message: `Database Error: Failed to update word progress. ${error}` };
+    return {
+      message: `Database Error: Failed to update "${word.word}" (${word.id}) word progress. ${error}`,
+    };
   }
 }
 

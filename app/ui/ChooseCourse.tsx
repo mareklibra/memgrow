@@ -4,7 +4,10 @@ import Link from 'next/link';
 
 const Course = ({ course, pathPrefix }: { course: CourseType; pathPrefix: string }) => (
   // <div id={`course-${course.id}`} className="relative flex flex-col my-6 bg-white shadow-sm border border-slate-200 rounded-lg w-96 m-2">
-  <div id={`course-${course.id}`} className="my-6 bg-white shadow-sm border border-slate-200 rounded-lg m-2">
+  <div
+    id={`course-${course.id}`}
+    className="my-6 bg-white shadow-sm border border-slate-200 rounded-lg m-2"
+  >
     {/* <div className="mx-3 mb-0 border-b border-slate-200 pt-3 pb-2 px-1">
       <span className="text-sm text-slate-600 font-medium">
         TODO: add course statistics

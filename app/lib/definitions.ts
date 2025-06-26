@@ -21,8 +21,6 @@ export type DbWord = {
   definition: string;
 };
 
-export type WordToAdd = Pick<Word, 'word' | 'definition' | 'courseId'>;
-
 export type Word = Omit<DbWord, 'course_id'> & {
   courseId: string;
 
@@ -32,6 +30,11 @@ export type Word = Omit<DbWord, 'course_id'> & {
 
   // calculated:
   similarWords?: Word[];
+};
+
+export type WordToAdd = Pick<Word, 'word' | 'definition' | 'courseId'> & {
+  // repeatAgain?: Word['repeatAgain'];
+  repeat: number;
 };
 
 export type WordWithMeta = Word & {

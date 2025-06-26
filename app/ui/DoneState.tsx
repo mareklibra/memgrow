@@ -7,8 +7,7 @@ import { WordTeachingStatus } from './WordTeachingStatus';
 
 const thClass =
   'px-3 py-3 text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500';
-const tdClass =
-  'px-3 py-4 text-sm font-medium text-gray-800 dark:text-neutral-200';
+const tdClass = 'px-3 py-4 text-sm font-medium text-gray-800 dark:text-neutral-200';
 
 interface DoneStateProps {
   words: Word[];
@@ -27,8 +26,12 @@ type ProgressType = {
 
 function RepeatCell({ date }: Readonly<{ date: Date }>) {
   const [isDetail, setIsDetail] = useState<boolean>(false);
-  return <td className={tdClass} onClick={() => setIsDetail(!isDetail)}>{isDetail ? date.toLocaleString() : date.toLocaleDateString()}</td>
-};
+  return (
+    <td className={tdClass} onClick={() => setIsDetail(!isDetail)}>
+      {isDetail ? date.toLocaleString() : date.toLocaleDateString()}
+    </td>
+  );
+}
 
 export function DoneState({
   words,

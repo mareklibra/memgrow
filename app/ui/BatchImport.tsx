@@ -4,8 +4,19 @@ import { Textarea, Typography } from '@material-tailwind/react';
 import { parse } from 'csv-parse/sync';
 
 import { Button } from './button';
-import { addWordBatch } from '../lib/actions';
+import { addWordBatch, updateWordProgress } from '../lib/actions';
 import { WordToAdd } from '../lib/definitions';
+import { DAY_MS } from '../constants';
+
+const getMemLevelFromRepeat = (repeat: number) => {
+  if (repeat < 2) {
+    return 2;
+  }
+  if (repeat > 60) {
+    return repeat;
+  }
+  return repeat;
+};
 
 export const BatchImport = ({
   className,
@@ -23,10 +34,9 @@ export const BatchImport = ({
     setError(undefined);
     setInProgress(true);
 
-    let records: { word: string; definition: string }[];
+    let records: { word: string; definition: string; repeat?: string }[];
     try {
-      // TODO: add timestamp for next repeat
-      records = parse(`word${delimiter}definition\n${value}`, {
+      records = parse(`word${delimiter}definition${delimiter}repeat\n${value}`, {
         columns: true,
         skip_empty_lines: true,
         delimiter,
@@ -40,11 +50,22 @@ export const BatchImport = ({
           );
         }
 
+        let repeat = -1;
+        if (record.repeat === 'now') {
+          repeat = 0;
+        } else if (record.repeat) {
+          const numeric: number = parseInt(record.repeat);
+          if (!isNaN(numeric)) {
+            repeat = numeric;
+          }
+        }
+
         console.log('--- TODO: check for similarity');
 
         return {
           ...record,
           courseId,
+          repeat,
         };
       });
 
@@ -52,6 +73,27 @@ export const BatchImport = ({
       const errors = results.map((r) => r?.message).filter(Boolean);
       if (errors.length > 0) {
         setError(errors.join('; '));
+      }
+
+      for (let idx = 0; idx < results.length; idx++) {
+        const result = results[idx];
+        if (!result?.id) {
+          return;
+        }
+
+        const word = words[idx];
+        if (word.repeat >= 0) {
+          // Either switch to a batch-mode or issue queries one-by-one
+          await updateWordProgress({
+            courseId,
+            id: result.id,
+            form: 'choose_4_def',
+            memLevel: getMemLevelFromRepeat(word.repeat),
+            repeatAgain: new Date(Date.now() + DAY_MS * word.repeat),
+            word: 'not_relevant',
+            definition: 'not_relevant',
+          });
+        }
       }
     } catch (err) {
       setError(JSON.stringify(err));
@@ -83,7 +125,7 @@ export const BatchImport = ({
         </div>
       </div>
       <Typography variant="small" className="font-semibold">
-        Format: [WORD]{delimiter}[DEFINITION]\n
+        Format: [WORD]{delimiter}[DEFINITION]{delimiter}[NEXT_REPEAT_IN_DAYS]\n
       </Typography>
     </div>
   );
