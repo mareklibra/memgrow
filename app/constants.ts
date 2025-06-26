@@ -8,3 +8,5 @@ export const maxSimilarWords = 7;
 export const CONFIRM_DELAY_MS = 1000;
 
 export const DAY_MS = 60 * 60 * 24 * 1000;
+
+export const STRING_SIMILARITY_SUBSTRING_LENGTH = 2;

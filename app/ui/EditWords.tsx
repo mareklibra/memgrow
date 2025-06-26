@@ -16,6 +16,8 @@ import {
 import { Button } from './button';
 import { DeleteButton } from './DeleteButton';
 import { BatchImport } from './BatchImport';
+import stringSimilarity from 'string-similarity-js';
+import { STRING_SIMILARITY_SUBSTRING_LENGTH } from '../constants';
 
 export type EditWordsProps = {
   words: Word[];
@@ -35,7 +37,16 @@ const tdClassFirst =
 const inputClass =
   'bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500';
 
-function NewWordRow({ courseId }: { courseId: string }) {
+const getWordSimilarity = (allWords: Word[], word: Word) =>
+  allWords
+    .map((candidate) =>
+      word.id === candidate.id
+        ? 0
+        : stringSimilarity(word.word, candidate.word, STRING_SIMILARITY_SUBSTRING_LENGTH),
+    )
+    .sort((a, b) => b - a)?.[0];
+
+function NewWordRow({ courseId }: Readonly<{ courseId: string }>) {
   return (
     <WordRow
       word={{
@@ -55,10 +66,12 @@ function WordRow({
   word,
   reduced,
   onChange,
+  similarity,
 }: Readonly<{
   word: Word;
   reduced?: boolean;
   onChange?: EditWordsProps['onChange'];
+  similarity?: number;
 }>) {
   const [old, setOld] = useState<Word>(word);
   const [changed, setChanged] = useState<Word>(word);
@@ -121,6 +134,11 @@ function WordRow({
       <td className={tdClassFirst}>
         {error && <ExclamationTriangleIcon className="text-red-500 w-8" />}
         {word.id === UNUSED && <PlusCircleIcon className="text-blue-500 w-8" />}
+        {similarity && similarity >= 0.8 ? (
+          <div>{parseFloat(similarity.toFixed(2))}</div>
+        ) : (
+          ''
+        )}
       </td>
       <td className={tdClass}>
         <input
@@ -173,7 +191,12 @@ function WordRow({
   );
 }
 
-export function EditWords({ words, courseId, reduced, onChange }: EditWordsProps) {
+export function EditWords({
+  words,
+  courseId,
+  reduced,
+  onChange,
+}: Readonly<EditWordsProps>) {
   return (
     <div className="flex flex-col">
       <table className="divide-y divide-gray-200 dark:divide-neutral-700">
@@ -202,7 +225,13 @@ export function EditWords({ words, courseId, reduced, onChange }: EditWordsProps
         </thead>
         <tbody className="divide-y divide-gray-200 dark:divide-neutral-700">
           {words.map((w) => (
-            <WordRow word={w} key={w.id} reduced={reduced} onChange={onChange} />
+            <WordRow
+              word={w}
+              key={w.id}
+              reduced={reduced}
+              onChange={onChange}
+              similarity={getWordSimilarity(words, w)}
+            />
           ))}
           {!reduced && <NewWordRow key="___new___" courseId={courseId} />}
         </tbody>

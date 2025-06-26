@@ -3,6 +3,7 @@ import { sql } from '@vercel/postgres';
 import { User } from 'next-auth';
 import { auth } from '@/auth';
 import { Course, DbCourse, DbWord, TeachingForm, Word } from '@/app/lib/definitions';
+import { STRING_SIMILARITY_SUBSTRING_LENGTH } from '../constants';
 
 type DbWordProgress = DbWord & {
   memlevel: number;
@@ -52,7 +53,7 @@ export async function fetchSimilarWords(
         candidate,
         similarity:
           // TODO: Tweak following
-          stringSimilarity(word.word, candidate.word, 2 /* 1 */),
+          stringSimilarity(word.word, candidate.word, STRING_SIMILARITY_SUBSTRING_LENGTH),
       }))
       .sort((a, b) => b.similarity - a.similarity);
 
