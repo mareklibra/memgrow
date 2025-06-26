@@ -1,6 +1,6 @@
 import { db } from '@vercel/postgres';
 import bcrypt from 'bcrypt';
-import { courses, userProgresses, users, words } from '../lib/placeholder-data';
+import { courses, userProgresses, users, words } from '../lib/seed-data';
 
 const client = await db.connect();
 
