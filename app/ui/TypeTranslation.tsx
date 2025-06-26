@@ -33,11 +33,23 @@ export function TypeTranslation({
     onValue(newValue, false);
   };
 
+  const focusInputbox = () => {
+    if (inputRef.current) inputRef.current.focus();
+  };
+
   const handleHint = (e: MouseEvent) => {
     e.preventDefault();
     const prefix = longestCommonPrefix(correctResponse, value);
     handleChange(prefix + correctResponse[prefix.length]);
-    if (inputRef.current) inputRef.current.focus();
+    focusInputbox();
+  };
+
+  const getHandleKey = (key: string) => {
+    return (e: MouseEvent) => {
+      e.preventDefault();
+      handleChange(`${value}${key}`);
+      focusInputbox();
+    }
   };
 
   return (
@@ -84,9 +96,7 @@ export function TypeTranslation({
           <ButtonTW
             key={key}
             variant="outlined"
-            onClick={() => {
-              handleChange(`${value}${key}`);
-            }}
+            onClick={getHandleKey(key)}
           >
             {key}
           </ButtonTW>

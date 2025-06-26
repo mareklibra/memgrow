@@ -8,11 +8,11 @@ export default async function Page() {
   const words = await fetchAllWords(courseId);
 
   return (
-    <main>
+    <>
       <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
         All words ({words.length})
       </h1>
       <EditWords words={words} courseId={courseId} />
-    </main>
+    </>
   );
 }

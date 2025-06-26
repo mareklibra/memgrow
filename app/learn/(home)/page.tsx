@@ -6,11 +6,11 @@ export default async function Page() {
   const courses = await fetchCourses();
 
   return (
-    <main>
+    <>
       <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
         Choose course to learn new words from
       </h1>
       <ChooseCourse courses={courses} pathPrefix="/learn" />
-    </main>
+    </>
   );
 }

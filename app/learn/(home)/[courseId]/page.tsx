@@ -17,14 +17,12 @@ export default async function Page({
   const words = await fetchSimilarWords(courseId, wordsToLearn, maxSimilarWords);
 
   return (
-    <main>
-      <IterateWords
-        words={words}
-        repetitionLimit={learnRepetitionLimit}
-        isLearning
-        title="Learn "
-        specialKeys={getSpecialKeys([...words, ...wordsToLearn])}
-      />
-    </main>
+    <IterateWords
+      words={words}
+      repetitionLimit={learnRepetitionLimit}
+      isLearning
+      title="Learn "
+      specialKeys={getSpecialKeys([...words, ...wordsToLearn])}
+    />
   );
 }

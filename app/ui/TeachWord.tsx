@@ -171,10 +171,10 @@ export function TeachWord({
   const isLearning = word.memLevel === 0;
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col" id="teach-word">
       <form>
         <div>{component}</div>
-        <div className="py-[20px] pl-10 pr-10 flex justify-between">
+        <div className="py-[20px] flex justify-between">
           <Button onClick={editWord} type="button">
             Edit
           </Button>
@@ -185,7 +185,7 @@ export function TeachWord({
             </Button>
           )}
 
-          <div className="flex w-2/3">
+          <div className="flex w-2/3 pl-2 pr-2">
             <WordProgress word={word} />
           </div>
 

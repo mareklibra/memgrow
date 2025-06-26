@@ -8,7 +8,7 @@ import { WordTeachingStatus } from './WordTeachingStatus';
 const thClass =
   'px-3 py-3 text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500';
 const tdClass =
-  'px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-neutral-200';
+  'px-3 py-4 text-sm font-medium text-gray-800 dark:text-neutral-200';
 
 interface DoneStateProps {
   words: Word[];
@@ -23,6 +23,11 @@ const findLast = (queue: Word[], wordId: Word['id']) =>
 type ProgressType = {
   start: Word;
   end: Word;
+};
+
+function RepeatCell({ date }: Readonly<{ date: Date }>) {
+  const [isDetail, setIsDetail] = useState<boolean>(false);
+  return <td className={tdClass} onClick={() => setIsDetail(!isDetail)}>{isDetail ? date.toLocaleString() : date.toLocaleDateString()}</td>
 };
 
 export function DoneState({
@@ -60,7 +65,7 @@ export function DoneState({
 
   return (
     <div className="flex flex-col">
-      <table className="divide-y divide-gray-200 dark:divide-neutral-700 w-full">
+      <table className="divide-y divide-gray-200 dark:divide-neutral-700 w-3/4">
         <thead>
           <tr>
             <th scope="col" className={thClass}>
@@ -73,10 +78,10 @@ export function DoneState({
               Status
             </th>
             <th scope="col" className={thClass}>
-              Level
+              Next
             </th>
             <th scope="col" className={thClass}>
-              Next
+              Level
             </th>
           </tr>
         </thead>
@@ -89,8 +94,8 @@ export function DoneState({
                 <td className={clsx(tdClass, 'w-2')}>
                   <WordTeachingStatus word={p.end} />
                 </td>
+                <RepeatCell date={p.end.repeatAgain} />
                 <td className={tdClass}>{p.end.memLevel}</td>
-                <td className={tdClass}>{p.end.repeatAgain.toLocaleDateString()}</td>
               </tr>
             );
           })}

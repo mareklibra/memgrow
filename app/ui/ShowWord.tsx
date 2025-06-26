@@ -15,9 +15,10 @@ interface WordStaticProps {
   className?: string;
 }
 
-export function WordDefinition({ definition, className }: WordDefinitionProps) {
+export function WordDefinition({ definition, className }: Readonly<WordDefinitionProps>) {
   return (
     <div
+      id="word-definition"
       className={clsx(
         'w-full rounded-md border border-gray-200 text-lg outline-2 mb-8',
         className,
@@ -28,11 +29,12 @@ export function WordDefinition({ definition, className }: WordDefinitionProps) {
   );
 }
 
-export function WordStatic({ word, className }: WordStaticProps) {
+export function WordStatic({ word, className }: Readonly<WordStaticProps>) {
   return (
     <div
+      id="word-static"
       className={clsx(
-        'w-full rounded-md border border-blue-200 text-lg outline-2 mb-8 py-[20px] pl-10 bg-light-blue-100 text-center',
+        'w-full rounded-md border border-blue-200 text-lg outline-2 mb-8 py-[0.7rem] pl-2 pr-2 bg-light-blue-100 text-center',
         className,
       )}
     >
@@ -41,13 +43,13 @@ export function WordStatic({ word, className }: WordStaticProps) {
   );
 }
 
-export function ShowWord({ word }: ShowWordProps) {
+export function ShowWord({ word }: Readonly<ShowWordProps>) {
   return (
     <>
       <WordStatic word={word.word} />
       <WordDefinition
         definition={word.definition}
-        className="py-[20px] pl-10 text-center"
+        className="py-[20px] pl-2 pr-2 text-center"
       />
     </>
   );
