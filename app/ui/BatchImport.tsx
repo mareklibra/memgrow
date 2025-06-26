@@ -82,7 +82,7 @@ export const BatchImport = ({
         }
 
         const word = words[idx];
-        if (word.repeat >= 0) {
+        if (word?.repeat !== undefined && word.repeat >= 0) {
           // Either switch to a batch-mode or issue queries one-by-one
           await updateWordProgress({
             courseId,

@@ -33,8 +33,7 @@ export type Word = Omit<DbWord, 'course_id'> & {
 };
 
 export type WordToAdd = Pick<Word, 'word' | 'definition' | 'courseId'> & {
-  // repeatAgain?: Word['repeatAgain'];
-  repeat: number;
+  repeat?: number;
 };
 
 export type WordWithMeta = Word & {

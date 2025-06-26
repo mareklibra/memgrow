@@ -157,6 +157,7 @@ function WordRow({
         />
       </td>
       <td className={tdClass}>{changed.form}</td>
+      <td className={tdClass}>{changed.repeatAgain?.toLocaleDateString()}</td>
       <td className={tdClass}>
         <div className="flex flex-row gap-1 items-center">
           <Button disabled={!canSave} onClick={handleSave}>
@@ -190,6 +191,9 @@ export function EditWords({ words, courseId, reduced, onChange }: EditWordsProps
             </th>
             <th scope="col" className={thClass}>
               Next Form
+            </th>
+            <th scope="col" className={thClass}>
+              Repeat
             </th>
             <th scope="col" className={clsx(thClass, 'w-50')}>
               Action
