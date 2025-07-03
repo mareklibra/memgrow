@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { Word, WordWithMeta } from '@/app/lib/definitions';
+import { SpeakerWaveIcon } from '@heroicons/react/24/outline';
 import { TypeTranslation, TypeTranslationProps } from './TypeTranslation';
 import { ShowWord } from './ShowWord';
 import { Button } from './button';
@@ -8,6 +9,7 @@ import { FieldStatus } from './types';
 import { WordProgress } from './WordProgress';
 import { ChooseTranslation } from './ChooseTranslation';
 import { EditWords, EditWordsProps } from './EditWords';
+import { useWithSound } from '../lib/useWithSound';
 
 const DELAY_MISTAKE_MS = 3 * 1000;
 const DELAY_CORRECT_MS = 1 * 1000;
@@ -35,6 +37,9 @@ export function TeachWord({
   const [status, setStatus] = useState<FieldStatus>('normal');
   const [isAnyText, setIsAnyText] = useState<boolean>(false);
   const [isEdit, setIsEdit] = useState<boolean>(false);
+  const [audioSource, setAudioSource] = useState<string>();
+  const { playSound } = useWithSound(audioSource);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
 
   const otherWordOptions = useMemo(
     () => (word.similarWords || []).map((w) => w.word),
@@ -56,6 +61,20 @@ export function TeachWord({
     () => otherDefinitionOptions.slice(0, 7),
     [otherDefinitionOptions],
   );
+
+  useEffect(() => {
+    const runAsync = async () => {
+      try {
+        setIsPlaying(true);
+        if (playSound) {
+          await playSound();
+        }
+      } finally {
+        setIsPlaying(false);
+      }
+    };
+    runAsync();
+  }, [playSound]);
 
   const onValue = async (value: string, oneChanceOnly: boolean) => {
     setIsAnyText(!!value);
@@ -170,6 +189,10 @@ export function TeachWord({
 
   const isLearning = word.memLevel === 0;
 
+  const playPronunciation = () => {
+    setAudioSource(`/api/sound/word/${word.courseId}/${word.id}`);
+  };
+
   return (
     <form>
       <div className="flex flex-col" id="teach-word">
@@ -187,6 +210,10 @@ export function TeachWord({
               Repeat sooner
             </Button>
           )}
+
+          <Button onClick={playPronunciation} type="button" disabled={isPlaying}>
+            <SpeakerWaveIcon className="w-5" />
+          </Button>
 
           <Button onClick={forceCheck} disabled={isCheckButtonDisabled} type="submit">
             {word.form === 'show' ? 'Next' : 'Check'}

@@ -39,6 +39,16 @@ const omDbCourse = (dbCourse: DbCourse): Course => ({
   learningLang: dbCourse.learning_lang,
 });
 
+export type WordPronunciation = Pick<Word, 'id' | 'word' | 'definition'>;
+const omDbPronunciation = (
+  dbWord: Pick<DbWord, 'id' | 'course_id' | 'word' | 'definition'>,
+): WordPronunciation => ({
+  id: dbWord.id,
+  word: dbWord.word,
+  definition: dbWord.definition,
+  // TODO: binary data for pronunciation
+});
+
 export async function fetchSimilarWords(
   courseId: string,
   words: Word[],
@@ -166,6 +176,34 @@ export async function fetchCourses(): Promise<Course[]> {
 
     const data: Course[] = result.rows.map(omDbCourse);
     return data;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch all courses.');
+  }
+}
+
+export async function fetchPronunciation({
+  id,
+  courseId,
+}: Pick<Word, 'id' | 'courseId'>): Promise<WordPronunciation | undefined> {
+  try {
+    // TODO: add LEFT OUTER JOIN for binary data
+    const result = await sql<DbWord>`
+      SELECT words.id, words.word, words.course_id, words.definition
+      FROM words
+      WHERE
+        words.id = ${id}
+        AND words.course_id = ${courseId}
+      `;
+
+    if (result.rows.length < 1) {
+      console.info(
+        `fetchPronunciation, word not found, id: ${id}, courseId: ${courseId}`,
+      );
+      return undefined;
+    }
+
+    return omDbPronunciation(result.rows[0]);
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch all courses.');
