@@ -39,6 +39,7 @@ export function TeachWord({
   const [audioSource, setAudioSource] = useState<string>();
   const { playSound } = useWithSound(audioSource);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [reply, setReply] = useState<number>(0);
 
   const otherWordOptions = useMemo(
     () => (word.similarWords || []).map((w) => w.word),
@@ -73,7 +74,7 @@ export function TeachWord({
       }
     };
     runAsync();
-  }, [playSound]);
+  }, [playSound, reply]);
 
   const onValue = async (value: string, oneChanceOnly: boolean) => {
     setIsAnyText(!!value);
@@ -190,6 +191,7 @@ export function TeachWord({
 
   const playPronunciation = () => {
     setAudioSource(`/api/sound/word/${word.courseId}/${word.id}`);
+    setReply(reply + 1);
   };
 
   return (

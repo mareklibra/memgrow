@@ -1,18 +1,25 @@
-import { useMemo } from 'react';
+import { useEffect, useState } from 'react';
 
-export const useWithSound = (
-  audioSource?: string,
-): { playSound?: () => Promise<void>; pauseSound?: () => void } =>
-  useMemo(() => {
-    if (audioSource) {
-      const soundRef = new Audio(audioSource);
-      return {
-        playSound: () => soundRef.play(),
-        pauseSound: () => soundRef.pause(),
-      };
+export type UseWithSound = {
+  playSound?: () => Promise<void>;
+  pauseSound?: () => void;
+};
+
+export const useWithSound = (audioSource?: string): UseWithSound => {
+  const [sound, setSound] = useState<UseWithSound>({});
+  const [currentAudioSrc, setCurrentAudioSrc] = useState<string>();
+
+  useEffect(() => {
+    if (audioSource && currentAudioSrc !== audioSource) {
+      console.log('Changing audio to: ', audioSource, ', from: ', currentAudioSrc);
+      const audio = new Audio(audioSource);
+      setSound({
+        playSound: () => audio.play(),
+        pauseSound: () => audio.pause(),
+      });
+      setCurrentAudioSrc(audioSource);
     }
-    return {
-      playSound: undefined,
-      pauseSound: undefined,
-    };
-  }, [audioSource]);
+  }, [audioSource, currentAudioSrc]);
+
+  return sound;
+};

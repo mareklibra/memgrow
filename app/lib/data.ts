@@ -39,14 +39,19 @@ const omDbCourse = (dbCourse: DbCourse): Course => ({
   learningLang: dbCourse.learning_lang,
 });
 
-export type WordPronunciation = Pick<Word, 'id' | 'word' | 'definition'>;
+export type WordPronunciation = Pick<Word, 'id' | 'word' | 'definition'> & {
+  audioSourceB64?: string;
+};
+
 const omDbPronunciation = (
-  dbWord: Pick<DbWord, 'id' | 'course_id' | 'word' | 'definition'>,
+  dbWord: Pick<DbWord, 'id' | 'course_id' | 'word' | 'definition'> & {
+    audio_source_base64?: string;
+  },
 ): WordPronunciation => ({
   id: dbWord.id,
   word: dbWord.word,
   definition: dbWord.definition,
-  // TODO: binary data for pronunciation
+  audioSourceB64: dbWord.audio_source_base64,
 });
 
 export async function fetchSimilarWords(
@@ -189,8 +194,9 @@ export async function fetchPronunciation({
   try {
     // TODO: add LEFT OUTER JOIN for binary data
     const result = await sql<DbWord>`
-      SELECT words.id, words.word, words.course_id, words.definition
+      SELECT words.id, words.word, words.course_id, words.definition, sounds.audio_source_base64
       FROM words
+      LEFT OUTER JOIN sounds ON words.id = sounds.word_id
       WHERE
         words.id = ${id}
         AND words.course_id = ${courseId}

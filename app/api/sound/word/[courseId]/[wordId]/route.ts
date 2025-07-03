@@ -1,9 +1,51 @@
+import 'core-js/proposals/array-buffer-base64';
 import { NextRequest } from 'next/server';
 import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
 import { fetchPronunciation } from '@/app/lib/data';
+import { insertPronunciation } from '@/app/lib/actions';
 
 const voiceId = 'Xb7hH8MSUJpSbSDYk0k2';
 const elevenlabs = new ElevenLabsClient(/* use process.env.ELEVENLABS_API_KEY */);
+
+function mergeUint8Arrays(...arrays: Uint8Array[]) {
+  const totalSize = arrays.reduce((acc, e) => acc + e.length, 0);
+  const merged = new Uint8Array(totalSize);
+
+  arrays.forEach((array, i, arrays) => {
+    const offset = arrays.slice(0, i).reduce((acc, e) => acc + e.length, 0);
+    merged.set(array, offset);
+  });
+
+  return merged;
+}
+
+async function streamToBase64(stream: ReadableStream<Uint8Array>): Promise<string> {
+  const reader = stream.getReader();
+  const values: Uint8Array[] = [];
+
+  while (true) {
+    const { done, value } = await reader.read();
+
+    if (value) {
+      values.push(value);
+    }
+
+    if (done) {
+      const mergedArray = mergeUint8Arrays(...values);
+      const base64 = mergedArray.toBase64();
+      // const binaryData = Uint8Array.fromBase64(base64);
+      // console.log('=== done: ', {
+      //   mergedArrayLength: mergedArray.length,
+      //   byteLength: byteLength,
+      //   base64Length: base64.length,
+      //   binaryDataLength: binaryData.length,
+      //   areEqual: mergedArray.every((value, index) => value === binaryData[index]),
+      // });
+
+      return base64;
+    }
+  }
+}
 
 export async function GET(
   _: NextRequest,
@@ -25,6 +67,22 @@ export async function GET(
     });
   }
 
+  if (word.audioSourceB64) {
+    console.log(
+      'Reusing pronunciation from DB for word: ',
+      word.word,
+      word.id,
+      '. Length: ',
+      word.audioSourceB64.length,
+    );
+    const binaryData = Uint8Array.fromBase64(word.audioSourceB64);
+    return new Response(binaryData, {
+      status: 200,
+      headers: { 'Content-Type': 'audio/mpeg' },
+    });
+  }
+
+  console.log('Generating pronunciation for word: ', word.word, word.id);
   const audio = await elevenlabs.textToSpeech.convert(voiceId, {
     text: word.word,
     modelId: 'eleven_multilingual_v2',
@@ -33,11 +91,11 @@ export async function GET(
     // languageCode: ... TODO: add language code
   });
 
-  // TODO: cache via DB
+  const base64FromReadableStream = await streamToBase64(audio);
+  await insertPronunciation(wordId, base64FromReadableStream);
 
-  // console.log('---- WORD GET, id: ', {id, audio});
-
-  return new Response(audio, {
+  const binaryData = Uint8Array.fromBase64(base64FromReadableStream);
+  return new Response(binaryData, {
     status: 200,
     headers: { 'Content-Type': 'audio/mpeg' },
   });
