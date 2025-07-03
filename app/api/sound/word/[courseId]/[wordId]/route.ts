@@ -3,6 +3,7 @@ import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
 import { fetchPronunciation } from '@/app/lib/data';
 
 const voiceId = 'Xb7hH8MSUJpSbSDYk0k2';
+const elevenlabs = new ElevenLabsClient(/* use process.env.ELEVENLABS_API_KEY */);
 
 export async function GET(
   _: NextRequest,
@@ -23,15 +24,13 @@ export async function GET(
       status: 404,
     });
   }
-  console.log('---- WORD GET: ', { wordId, courseId, word });
-  const elevenlabs = new ElevenLabsClient(/* use process.env.ELEVENLABS_API_KEY */);
 
   const audio = await elevenlabs.textToSpeech.convert(voiceId, {
     text: word.word,
     modelId: 'eleven_multilingual_v2',
     enableLogging: true,
 
-    // languageCode: ...
+    // languageCode: ... TODO: add language code
   });
 
   // TODO: cache via DB
