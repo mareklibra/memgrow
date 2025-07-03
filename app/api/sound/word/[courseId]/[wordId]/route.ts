@@ -32,6 +32,7 @@ async function streamToBase64(stream: ReadableStream<Uint8Array>): Promise<strin
 
     if (done) {
       const mergedArray = mergeUint8Arrays(...values);
+      // @ts-expect-error From polyfill
       const base64 = mergedArray.toBase64();
       // const binaryData = Uint8Array.fromBase64(base64);
       // console.log('=== done: ', {
@@ -75,6 +76,8 @@ export async function GET(
       '. Length: ',
       word.audioSourceB64.length,
     );
+
+    // @ts-expect-error From polyfill
     const binaryData = Uint8Array.fromBase64(word.audioSourceB64);
     return new Response(binaryData, {
       status: 200,
@@ -94,6 +97,7 @@ export async function GET(
   const base64FromReadableStream = await streamToBase64(audio);
   await insertPronunciation(wordId, base64FromReadableStream);
 
+  // @ts-expect-error From polyfill
   const binaryData = Uint8Array.fromBase64(base64FromReadableStream);
   return new Response(binaryData, {
     status: 200,
