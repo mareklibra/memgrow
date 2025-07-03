@@ -10,9 +10,8 @@ import { WordProgress } from './WordProgress';
 import { ChooseTranslation } from './ChooseTranslation';
 import { EditWords, EditWordsProps } from './EditWords';
 import { useWithSound } from '../lib/useWithSound';
+import { DELAY_CORRECT_MS, DELAY_MISTAKE_MS } from '../constants';
 
-const DELAY_MISTAKE_MS = 3 * 1000;
-const DELAY_CORRECT_MS = 1 * 1000;
 interface TeachWordProps {
   word: WordWithMeta;
   stepsDone: number;
