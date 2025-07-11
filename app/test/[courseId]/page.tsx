@@ -9,11 +9,18 @@ import { getSpecialKeys } from '@/app/lib/utils';
 
 export default async function Page({
   params,
+  searchParams,
 }: {
   params: Promise<{ courseId: string }>;
+  searchParams: Promise<{ priorityFirst: string }>;
 }) {
   const { courseId } = await params;
-  const wordsToTest = await fetchWordsToTest(courseId, testWordsCountLimit);
+  const { priorityFirst } = await searchParams;
+  const wordsToTest = await fetchWordsToTest(
+    courseId,
+    testWordsCountLimit,
+    priorityFirst === 'true',
+  );
   const words = await fetchSimilarWords(courseId, wordsToTest, maxSimilarWords);
 
   return (

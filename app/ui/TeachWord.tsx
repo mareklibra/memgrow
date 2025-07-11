@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { Word, WordWithMeta } from '@/app/lib/definitions';
-import { SpeakerWaveIcon } from '@heroicons/react/24/outline';
+import { BoltIcon, BoltSlashIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline';
 import { TypeTranslation, TypeTranslationProps } from './TypeTranslation';
 import { ShowWord } from './ShowWord';
 import { Button } from './button';
@@ -19,6 +19,7 @@ interface TeachWordProps {
   correct: (word: WordWithMeta) => void;
   mistake: (word: WordWithMeta) => void;
   repeatSooner: (word: Word) => void;
+  handlePriority: (word: Word) => void;
   onChange: EditWordsProps['onChange'];
   specialKeys: TypeTranslationProps['specialKeys'];
 }
@@ -31,6 +32,7 @@ export function TeachWord({
   mistake,
   onChange,
   repeatSooner,
+  handlePriority,
   specialKeys,
 }: Readonly<TeachWordProps>) {
   const [status, setStatus] = useState<FieldStatus>('normal');
@@ -206,14 +208,28 @@ export function TeachWord({
             Edit
           </Button>
 
+          <Button onClick={playPronunciation} type="button" disabled={isPlaying}>
+            <SpeakerWaveIcon className="w-5" />
+          </Button>
+
           {!isLearning && (
             <Button onClick={() => repeatSooner(word)} type="button">
               Repeat sooner
             </Button>
           )}
 
-          <Button onClick={playPronunciation} type="button" disabled={isPlaying}>
-            <SpeakerWaveIcon className="w-5" />
+          <Button onClick={() => handlePriority(word)} type="button">
+            {word.isPriority ? (
+              <>
+                <BoltSlashIcon className="w-5" />
+                &nbsp;Remove priority
+              </>
+            ) : (
+              <>
+                <BoltIcon className="w-5" />
+                &nbsp;Set priority
+              </>
+            )}
           </Button>
 
           <Button onClick={forceCheck} disabled={isCheckButtonDisabled} type="submit">

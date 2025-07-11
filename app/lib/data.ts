@@ -9,6 +9,7 @@ type DbWordProgress = DbWord & {
   memlevel: number;
   form: TeachingForm;
   repeat_again: string;
+  is_priority: boolean;
 };
 type UserAuth = User & { password: string };
 
@@ -30,6 +31,7 @@ const fromDbWordProgress = (dbWord: DbWordProgress): Word => ({
   form: dbWord.form ?? 'show',
   memLevel: Number(dbWord.memlevel ?? '0'),
   repeatAgain: new Date(dbWord.repeat_again || Date.now()),
+  isPriority: dbWord.is_priority ?? false,
 });
 
 const omDbCourse = (dbCourse: DbCourse): Course => ({
@@ -87,8 +89,9 @@ export async function fetchWordsToLearn(
     const myAuth = await auth();
     console.log('Fetching words to learn by user: ', myAuth?.user?.name);
 
-    const result =
-      await sql<DbWordProgress>`SELECT words.id, words.word, words.course_id, words.definition, user_progress.form, user_progress.memlevel, user_progress.repeat_again
+    const result = await sql<DbWordProgress>`
+        SELECT words.id, words.word, words.course_id, words.definition,
+               user_progress.form, user_progress.memlevel, user_progress.repeat_again, user_progress.is_priority
         FROM words
         LEFT OUTER JOIN
           (SELECT * FROM user_progress
@@ -108,26 +111,33 @@ export async function fetchWordsToLearn(
   }
 }
 
-export async function fetchWordsToTest(courseId: string, limit: number): Promise<Word[]> {
+export async function fetchWordsToTest(
+  courseId: string,
+  limit: number,
+  priorityFirst: boolean,
+): Promise<Word[]> {
   try {
     const myAuth = await auth();
-    console.log('Fetching words to test by user: ', myAuth?.user?.name);
 
-    const result =
-      await sql<DbWordProgress>`SELECT words.id, words.word, words.course_id, words.definition, user_progress.form, user_progress.memlevel, user_progress.repeat_again
-        FROM words
-        LEFT OUTER JOIN
-          (SELECT * FROM user_progress
-           WHERE
-           user_id = ${myAuth?.user?.id}
-         ) AS user_progress ON words.id = user_progress.word_id
-        WHERE
-          words.course_id = ${courseId}
-          AND (user_progress.memlevel > 0)
-          AND user_progress.repeat_again < NOW()
-        ORDER BY user_progress.repeat_again
-        LIMIT ${limit}
-        `;
+    const query = `
+    SELECT words.id, words.word, words.course_id, words.definition,
+           user_progress.form, user_progress.memlevel, user_progress.repeat_again, user_progress.is_priority
+    FROM words
+    LEFT OUTER JOIN
+      (SELECT * FROM user_progress
+       WHERE
+       user_id = '${myAuth?.user?.id}'
+     ) AS user_progress ON words.id = user_progress.word_id
+    WHERE
+      words.course_id = '${courseId}'
+      AND (user_progress.memlevel > 0)
+      AND user_progress.repeat_again < NOW()
+    ORDER BY
+      ${priorityFirst ? 'user_progress.is_priority DESC,' : ''}
+      user_progress.repeat_again
+    LIMIT ${limit}
+    `;
+    const result = await sql.query<DbWordProgress>(query);
 
     const data: Word[] = result.rows.map(fromDbWordProgress);
     return data;
@@ -147,8 +157,10 @@ export async function fetchAllWords(courseId: string): Promise<Word[]> {
       courseId,
     );
 
-    const result =
-      await sql<DbWordProgress>`SELECT words.id, words.word, words.definition, user_progress.form, user_progress.memlevel, user_progress.repeat_again
+    const result = await sql<DbWordProgress>`
+        SELECT
+          words.id, words.word, words.definition,
+          user_progress.form, user_progress.memlevel, user_progress.repeat_again, user_progress.is_priority
         FROM words
         LEFT OUTER JOIN
           (SELECT * FROM user_progress

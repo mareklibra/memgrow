@@ -92,6 +92,7 @@ export const BatchImport = ({
             repeatAgain: new Date(Date.now() + DAY_MS * word.repeat),
             word: 'not_relevant',
             definition: 'not_relevant',
+            isPriority: false,
           });
         }
       }

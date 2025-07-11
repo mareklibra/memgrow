@@ -57,6 +57,7 @@ function NewWordRow({ courseId }: Readonly<{ courseId: string }>) {
         memLevel: 0,
         form: 'show',
         repeatAgain: new Date(Date.now()),
+        isPriority: false,
       }}
     />
   );

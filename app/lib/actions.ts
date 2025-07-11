@@ -21,7 +21,7 @@ export async function updateWordProgress(word: Word): Promise<UpdateWordResult> 
   try {
     const result = await sql`
       UPDATE user_progress
-      SET memlevel = ${word.memLevel}, form = ${word.form}, repeat_again = ${word.repeatAgain?.toISOString() || 'NULL'}
+      SET memlevel = ${word.memLevel}, form = ${word.form}, repeat_again = ${word.repeatAgain?.toISOString() || 'NULL'}, is_priority = ${word.isPriority}
       WHERE
         user_id = ${myAuth?.user?.id}
         AND word_id = ${word.id}
@@ -34,10 +34,17 @@ export async function updateWordProgress(word: Word): Promise<UpdateWordResult> 
     if (result.rowCount === 0) {
       await sql.query(
         `
-        INSERT INTO user_progress (word_id, user_id, memlevel, form, repeat_again)
-        VALUES ($1, $2, $3, $4, $5) RETURNING *
+        INSERT INTO user_progress (word_id, user_id, memlevel, form, repeat_again, is_priority)
+        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *
       `,
-        [word.id, myAuth?.user?.id, word.memLevel, word.form, word.repeatAgain],
+        [
+          word.id,
+          myAuth?.user?.id,
+          word.memLevel,
+          word.form,
+          word.repeatAgain,
+          word.isPriority,
+        ],
       );
     }
   } catch (error) {

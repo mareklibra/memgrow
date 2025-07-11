@@ -127,6 +127,7 @@ export function IterateWords({
         w.word = word.word;
         w.definition = word.definition;
         w.memLevel = word.memLevel;
+        w.isPriority = word.isPriority;
         console.log('setting', { w, word });
       }
       return w;
@@ -142,6 +143,10 @@ export function IterateWords({
 
   const repeatSooner = (word: Word) => {
     onChange({ ...word, memLevel: decreaseMemLevel(word.memLevel) });
+  };
+
+  const handlePriority = (word: Word) => {
+    onChange({ ...word, isPriority: !word.isPriority });
   };
 
   if (!words.length) {
@@ -191,6 +196,7 @@ export function IterateWords({
         correct={correct}
         mistake={mistake}
         repeatSooner={repeatSooner}
+        handlePriority={handlePriority}
         stepsDone={wordIdx}
         stepsTotal={wordQueue.length}
         specialKeys={specialKeys}
