@@ -24,7 +24,7 @@ const Course = ({
   return (
     <div
       id={`course-${course.id}`}
-      className="my-6 bg-white shadow-sm border border-slate-200 rounded-lg m-2 w-96"
+      className="my-6 bg-white shadow-sm border border-slate-200 rounded-lg m-2 w-96 min-w-64"
     >
       {/* <div className="mx-3 mb-0 border-b border-slate-200 pt-3 pb-2 px-1">
       <span className="text-sm text-slate-600 font-medium">
@@ -69,7 +69,7 @@ export const ChooseCourse = ({
   showPriority: boolean;
 }) => {
   return (
-    <div className="flex w-10/12" id="choose-course">
+    <div className="flex w-10/12 flex-wrap" id="choose-course">
       {courses.map((course) => (
         <Course
           course={course}
