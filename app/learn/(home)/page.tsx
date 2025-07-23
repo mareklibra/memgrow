@@ -10,7 +10,12 @@ export default async function Page() {
       <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
         Choose course to learn new words from
       </h1>
-      <ChooseCourse courses={courses} pathPrefix="/learn" showPriority={false} />
+      <ChooseCourse
+        courses={courses}
+        pathPrefix="/learn"
+        showPriority={false}
+        showFastEntry={false}
+      />
     </>
   );
 }

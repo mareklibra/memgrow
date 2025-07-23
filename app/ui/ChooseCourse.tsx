@@ -9,10 +9,12 @@ const Course = ({
   course,
   pathPrefix,
   showPriority,
+  showFastEntry,
 }: {
   course: CourseType;
   pathPrefix: string;
   showPriority: boolean;
+  showFastEntry: boolean;
 }) => {
   const [isPriorityFirst, setIsPriorityFirst] = useState(false);
 
@@ -55,6 +57,12 @@ const Course = ({
             />
           </div>
         )}
+
+        {showFastEntry && (
+          <div className="flex justify-end mt-2">
+            <Link href={`/edit/fastentry/${course.id}`}>&gt;&gt; Fast entry</Link>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -62,11 +70,13 @@ const Course = ({
 export const ChooseCourse = ({
   courses,
   pathPrefix,
-  showPriority: showPriority,
+  showPriority,
+  showFastEntry,
 }: {
   courses: CourseType[];
   pathPrefix: string;
   showPriority: boolean;
+  showFastEntry: boolean;
 }) => {
   return (
     <div className="flex w-10/12 flex-wrap" id="choose-course">
@@ -76,6 +86,7 @@ export const ChooseCourse = ({
           key={course.id}
           pathPrefix={pathPrefix}
           showPriority={showPriority}
+          showFastEntry={showFastEntry}
         />
       ))}
     </div>
