@@ -5,7 +5,12 @@ import { fetchPronunciation } from '@/app/lib/data';
 import { insertPronunciation } from '@/app/lib/actions';
 
 const voiceId = 'Xb7hH8MSUJpSbSDYk0k2';
-const elevenlabs = new ElevenLabsClient(/* use process.env.ELEVENLABS_API_KEY */);
+let elevenlabs: ElevenLabsClient | null = null;
+try {
+  elevenlabs = new ElevenLabsClient(/* use process.env.ELEVENLABS_API_KEY */);
+} catch (e) {
+  console.error('Error initializing ElevenLabsClient: ', e);
+}
 
 function mergeUint8Arrays(...arrays: Uint8Array[]) {
   const totalSize = arrays.reduce((acc, e) => acc + e.length, 0);
@@ -52,6 +57,12 @@ export async function GET(
   _: NextRequest,
   { params }: { params: Promise<{ wordId: string; courseId: string }> },
 ) {
+  if (!elevenlabs) {
+    return new Response('ElevenLabsClient not initialized', {
+      status: 500,
+    });
+  }
+
   const wordId = (await params).wordId;
   const courseId = (await params).courseId;
 
