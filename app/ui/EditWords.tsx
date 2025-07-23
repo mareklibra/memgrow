@@ -28,7 +28,7 @@ export type EditWordsProps = {
 
 const UNUSED = '__not_used__';
 
-const thClass =
+export const thClass =
   'px-3 py-3 text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500';
 const tdClass =
   'px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-neutral-200';
@@ -46,7 +46,10 @@ const getWordSimilarity = (allWords: Word[], word: Word) =>
     )
     .sort((a, b) => b - a)?.[0];
 
-function NewWordRow({ courseId }: Readonly<{ courseId: string }>) {
+export function NewWordRow({
+  courseId,
+  fastEntry,
+}: Readonly<{ courseId: string; fastEntry?: boolean }>) {
   return (
     <WordRow
       word={{
@@ -59,6 +62,7 @@ function NewWordRow({ courseId }: Readonly<{ courseId: string }>) {
         repeatAgain: new Date(Date.now()),
         isPriority: false,
       }}
+      fastEntry={fastEntry}
     />
   );
 }
@@ -68,11 +72,13 @@ function WordRow({
   reduced,
   onChange,
   similarity,
+  fastEntry,
 }: Readonly<{
   word: Word;
   reduced?: boolean;
   onChange?: EditWordsProps['onChange'];
   similarity?: number;
+  fastEntry?: boolean;
 }>) {
   const [old, setOld] = useState<Word>(word);
   const [changed, setChanged] = useState<Word>(word);
@@ -163,29 +169,37 @@ function WordRow({
           }}
         />
       </td>
-      <td className={clsx(tdClass, 'w-2')}>
-        <input
-          type="number"
-          className={inputClass}
-          required
-          value={changed.memLevel}
-          onChange={(e) => {
-            setChanged({ ...changed, memLevel: Number(e.currentTarget.value) });
-          }}
-          disabled={reduced}
-        />
-      </td>
-      <td className={tdClass}>{changed.form}</td>
-      <td className={tdClass}>{changed.repeatAgain?.toLocaleDateString()}</td>
+      {!fastEntry && (
+        <>
+          <td className={clsx(tdClass, 'w-2')}>
+            <input
+              type="number"
+              className={inputClass}
+              required
+              value={changed.memLevel}
+              onChange={(e) => {
+                setChanged({ ...changed, memLevel: Number(e.currentTarget.value) });
+              }}
+              disabled={reduced}
+            />
+          </td>
+          <td className={tdClass}>{changed.form}</td>
+          <td className={tdClass}>{changed.repeatAgain?.toLocaleDateString()}</td>
+        </>
+      )}
       <td className={tdClass}>
         <div className="flex flex-row gap-1 items-center">
           <Button disabled={!canSave} onClick={handleSave}>
             <ArrowDownCircleIcon className="w-5" />
           </Button>
-          <Button disabled={isEqual(old, changed)} onClick={handleReset}>
-            <ArrowPathIcon className="w-5" />
-          </Button>
-          {!reduced && <DeleteButton word={old} handleDelete={handleDelete} />}
+          {!fastEntry && (
+            <>
+              <Button disabled={isEqual(old, changed)} onClick={handleReset}>
+                <ArrowPathIcon className="w-5" />
+              </Button>
+              {!reduced && <DeleteButton word={old} handleDelete={handleDelete} />}
+            </>
+          )}
         </div>
       </td>
     </tr>

@@ -199,6 +199,27 @@ export async function fetchCourses(): Promise<Course[]> {
   }
 }
 
+export async function fetchCourse(courseId: string): Promise<Course | undefined> {
+  try {
+    const myAuth = await auth();
+    console.log(`Fetching a single course "${courseId}" for user: `, myAuth?.user?.name);
+
+    // TODO: statistics per user
+    // TODO: filter based on user permissions
+
+    const result = await sql<DbCourse>`SELECT id, name, known_lang, learning_lang
+        FROM courses
+        WHERE id = ${courseId}
+        `;
+
+    const data: Course[] = result.rows.map(omDbCourse);
+    return data[0];
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch all courses.');
+  }
+}
+
 export async function fetchPronunciation({
   id,
   courseId,
