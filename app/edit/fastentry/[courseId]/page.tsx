@@ -1,8 +1,9 @@
-import { fetchCourse } from '@/app/lib/data';
-import { NewWordRow, thClass } from '@/app/ui/EditWords';
-import { lusitana } from '@/app/ui/fonts';
-import clsx from 'clsx';
 import Link from 'next/link';
+
+import { fetchCourse } from '@/app/lib/data';
+import { EditWordHeader } from '@/app/ui/EditWordHeader';
+import { lusitana } from '@/app/ui/fonts';
+import { NewWordRow } from '@/app/ui/EditWordRow';
 
 export default async function Page({
   params,
@@ -43,20 +44,7 @@ export default async function Page({
         Fast entry for course {course.name}
       </h1>
       <table className="divide-y divide-gray-200 dark:divide-neutral-700">
-        <thead>
-          <tr>
-            <th scope="col"></th>
-            <th scope="col" className={thClass}>
-              Word
-            </th>
-            <th scope="col" className={thClass}>
-              Definition
-            </th>
-            <th scope="col" className={clsx(thClass, 'w-50')}>
-              Action
-            </th>
-          </tr>
-        </thead>
+        <EditWordHeader fastEntry />
         <tbody className="divide-y divide-gray-200 dark:divide-neutral-700">
           <NewWordRow courseId={courseId} fastEntry />
         </tbody>
@@ -66,7 +54,7 @@ export default async function Page({
         <Link color="" href={`/edit/${courseId}`}>
           Edit
         </Link>
-        page.
+        &nbsp; page.
       </p>
     </>
   );
