@@ -15,7 +15,7 @@ export default async function Page() {
           <p
             className={`text-xl text-gray-800 md:text-3xl md:leading-normal ${lusitana.className}`}
           >
-            <strong>Welcome to MemGrow</strong>
+            <strong>Welcome to the MemGrow app</strong>
           </p>
           {!isLoggedIn && (
             <Link
