@@ -8,4 +8,3 @@ export FILE=${DIR}/memgrow.db.${DATE}
 
 mkdir -p ${DIR}
 pg_dump -Fc -v -d "${POSTGRES_URL}" -f ${FILE}
-
