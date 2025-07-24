@@ -12,7 +12,13 @@ import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
 import { Fragment } from 'react';
 
-export default function NavLinks({ isLoggedIn }: { isLoggedIn: boolean }) {
+export default function NavLinks({
+  isLoggedIn,
+  userName,
+}: {
+  isLoggedIn: boolean;
+  userName: string;
+}) {
   const pathname = usePathname();
 
   // Map of links to display in the side navigation.
@@ -27,7 +33,7 @@ export default function NavLinks({ isLoggedIn }: { isLoggedIn: boolean }) {
       icon: PencilSquareIcon,
     },
     {
-      name: 'Settings',
+      name: userName ? `Settings (${userName})` : 'Settings',
       href: '/settings',
       icon: Cog6ToothIcon,
       disabled: !isLoggedIn,
