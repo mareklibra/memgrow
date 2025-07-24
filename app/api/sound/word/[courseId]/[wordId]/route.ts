@@ -103,14 +103,18 @@ export async function GET(
     });
   }
 
-  console.log('Generating pronunciation for word: ', word.word, word.id);
+  console.log('Generating pronunciation for word: ', {
+    word: word.word,
+    id: word.id,
+    languageCode: course.courseCode,
+  });
   const audio = await elevenlabs.textToSpeech.convert(voiceId, {
     text: word.word,
-    modelId: 'eleven_multilingual_v2',
+    // modelId: 'eleven_multilingual_v2',
+    modelId: 'eleven_flash_v2_5',
     enableLogging: true,
     languageCode: course.courseCode,
   });
-
   const base64FromReadableStream = await streamToBase64(audio);
   await insertPronunciation(wordId, base64FromReadableStream);
 
