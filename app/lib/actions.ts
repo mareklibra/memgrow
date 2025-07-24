@@ -209,3 +209,22 @@ export async function updateCourse(courseId: string, course: { courseCode: strin
     };
   }
 }
+
+export async function createCourse(course: {
+  name: string;
+  knownLang: string;
+  learningLang: string;
+  courseCode: string;
+}) {
+  try {
+    await sql`
+      INSERT INTO courses (name, known_lang, learning_lang, course_code)
+      VALUES (${course.name}, ${course.knownLang}, ${course.learningLang}, ${course.courseCode})
+    `;
+    revalidatePath('/edit');
+  } catch (e) {
+    return {
+      message: `Database Error: Failed to create course. ${JSON.stringify(e)}`,
+    };
+  }
+}
