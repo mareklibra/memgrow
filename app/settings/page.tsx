@@ -6,6 +6,7 @@ import { signOut, auth } from '@/auth';
 // import { IterateWords } from '@/app/ui/IterateWords';
 import SignoutButton from '../ui/SignoutButton';
 import { ChangePasswordCard } from '../ui/ChangePasswordCard';
+import { AddNewUserCard } from '../ui/AddNewUserCard';
 
 export default async function Page() {
   const myAuth = await auth();
@@ -17,8 +18,8 @@ export default async function Page() {
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex flex-row w-11/12">
+    <div className="flex flex-col">
+      <div className="flex flex-row">
         <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
           Settings for {myAuth?.user?.name}
         </h1>
@@ -30,8 +31,14 @@ export default async function Page() {
         />
       </div>
 
-      <div className="flex grow h-full w-11/12">
-        <ChangePasswordCard userId={myAuth?.user?.id} />
+      <div className="flex flex-row space-x-4">
+        <div className="flex">
+          <ChangePasswordCard userId={myAuth?.user?.id} />
+        </div>
+
+        <div className="flex">
+          <AddNewUserCard />
+        </div>
       </div>
     </div>
   );

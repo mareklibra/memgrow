@@ -177,3 +177,21 @@ export async function changeUserPassword(userId: string, newPassword: string) {
     };
   }
 }
+
+export async function addNewUser(user: {
+  name: string;
+  email: string;
+  password: string;
+}) {
+  const hashedPassword = await bcrypt.hash(user.password, 10);
+  try {
+    await sql`
+      INSERT INTO users (name, email, password)
+      VALUES (${user.name}, ${user.email}, ${hashedPassword})
+    `;
+  } catch (e) {
+    return {
+      message: `Database Error: Failed to add new user. ${JSON.stringify(e)}`,
+    };
+  }
+}
