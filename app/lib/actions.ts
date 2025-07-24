@@ -1,6 +1,7 @@
 'use server';
 
 import { sql } from '@vercel/postgres';
+import bcrypt from 'bcrypt';
 
 import { signIn, auth } from '@/auth';
 import { AuthError } from 'next-auth';
@@ -159,5 +160,20 @@ export async function authenticate(_: string | undefined, formData: FormData) {
       }
     }
     throw error;
+  }
+}
+
+export async function changeUserPassword(userId: string, newPassword: string) {
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  try {
+    await sql`
+      UPDATE users
+      SET password = ${hashedPassword}
+      WHERE id = ${userId}
+    `;
+  } catch (e) {
+    return {
+      message: `Database Error: Failed to change user password. ${JSON.stringify(e)}`,
+    };
   }
 }

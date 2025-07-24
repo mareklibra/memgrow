@@ -8,12 +8,10 @@ import { useState } from 'react';
 export default function SignoutButton({
   isLoggedIn,
   handleSignOut,
-  userName,
   className,
 }: {
   isLoggedIn: boolean;
   handleSignOut: () => void;
-  userName?: string | null;
   className?: string;
 }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -27,7 +25,7 @@ export default function SignoutButton({
         onClick={() => setIsDialogOpen(true)}
       >
         <PowerIcon className="w-6" />
-        <div className="hidden md:block">Sign Out {userName}</div>
+        <div className="hidden md:block">Sign Out</div>
       </button>
       <ConfirmationDialog
         isOpen={isDialogOpen}
