@@ -1,9 +1,10 @@
 import Link from 'next/link';
 
 import { fetchCourse } from '@/app/lib/data';
-import { EditWordHeader } from '@/app/ui/EditWordHeader';
 import { lusitana } from '@/app/ui/fonts';
-import { NewWordRow } from '@/app/ui/EditWordRow';
+import { FastEntryForm } from '@/app/ui/FastEntryForm';
+import { WordToAdd } from '@/app/lib/definitions';
+import { addWord, UpdateWordResult } from '@/app/lib/actions';
 
 export default async function Page({
   params,
@@ -38,17 +39,19 @@ export default async function Page({
     );
   }
 
+  const handleAdd = async (word: WordToAdd): Promise<UpdateWordResult | undefined> => {
+    'use server';
+    return await addWord(word);
+  };
+
   return (
     <>
       <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
         Fast entry for course {course.name}
       </h1>
-      <table className="divide-y divide-gray-200 dark:divide-neutral-700">
-        <EditWordHeader fastEntry />
-        <tbody className="divide-y divide-gray-200 dark:divide-neutral-700">
-          <NewWordRow courseId={courseId} fastEntry />
-        </tbody>
-      </table>
+      <div className="flex flex-col gap-2">
+        <FastEntryForm course={course} addWord={handleAdd} />
+      </div>
       <p>
         For full features, go to the{' '}
         <Link color="" href={`/edit/${courseId}`}>
