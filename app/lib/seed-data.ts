@@ -15,6 +15,7 @@ const courses: Course[] = [
     name: 'Development only',
     knownLang: 'Czech',
     learningLang: 'Spanish',
+    courseCode: 'es',
   },
 ];
 

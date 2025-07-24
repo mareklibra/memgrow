@@ -1,6 +1,6 @@
 import { client } from './client';
 
-async function createSoundsTable() {
+async function alterUserProgressTable() {
   console.info('Alter table user_progress to add is_priority column');
 
   await client.sql`
@@ -9,6 +9,6 @@ async function createSoundsTable() {
   `;
 }
 
-const batch = () => Promise.all([createSoundsTable()]);
+const batch = () => Promise.all([alterUserProgressTable()]);
 
 export default batch;

@@ -39,6 +39,7 @@ const omDbCourse = (dbCourse: DbCourse): Course => ({
   name: dbCourse.name,
   knownLang: dbCourse.known_lang,
   learningLang: dbCourse.learning_lang,
+  courseCode: dbCourse.course_code,
 });
 
 export type WordPronunciation = Pick<Word, 'id' | 'word' | 'definition'> & {
@@ -207,7 +208,8 @@ export async function fetchCourse(courseId: string): Promise<Course | undefined>
     // TODO: statistics per user
     // TODO: filter based on user permissions
 
-    const result = await sql<DbCourse>`SELECT id, name, known_lang, learning_lang
+    const result =
+      await sql<DbCourse>`SELECT id, name, known_lang, learning_lang, course_code
         FROM courses
         WHERE id = ${courseId}
         `;
