@@ -8,27 +8,24 @@ import { useState } from 'react';
 export default function SignoutButton({
   isLoggedIn,
   handleSignOut,
-  userName,
+  className,
 }: {
   isLoggedIn: boolean;
   handleSignOut: () => void;
-  userName?: string | null;
+  className?: string;
 }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   return (
     <div>
       <button
-        className={clsx(
-          'flex h-[48px] w-full grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium md:flex-none md:justify-start md:p-2 md:px-3',
-          {
-            'hover:bg-sky-100 hover:text-blue-600': isLoggedIn,
-          },
-        )}
+        className={clsx(className, {
+          'hover:bg-sky-100 hover:text-blue-600': isLoggedIn,
+        })}
         disabled={!isLoggedIn}
         onClick={() => setIsDialogOpen(true)}
       >
         <PowerIcon className="w-6" />
-        <div className="hidden md:block">Sign Out {userName}</div>
+        <div className="hidden md:block">Sign Out</div>
       </button>
       <ConfirmationDialog
         isOpen={isDialogOpen}

@@ -8,11 +8,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} antialiased`}>
-        <div className="flex flex-col md:flex-row md:overflow-hidden">
+        <div className="flex flex-col md:flex-row  h-screen">
           <div className="w-full flex-none md:w-64">
             <SideNav />
           </div>
-          <div className="flex-group-2 w-screen">{children}</div>
+          <div className="flex-group-2 w-full mt-4 ml-4">{children}</div>
         </div>
       </body>
     </html>

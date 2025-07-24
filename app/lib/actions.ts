@@ -1,6 +1,7 @@
 'use server';
 
 import { sql } from '@vercel/postgres';
+import bcrypt from 'bcrypt';
 
 import { signIn, auth } from '@/auth';
 import { AuthError } from 'next-auth';
@@ -159,5 +160,71 @@ export async function authenticate(_: string | undefined, formData: FormData) {
       }
     }
     throw error;
+  }
+}
+
+export async function changeUserPassword(userId: string, newPassword: string) {
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  try {
+    await sql`
+      UPDATE users
+      SET password = ${hashedPassword}
+      WHERE id = ${userId}
+    `;
+  } catch (e) {
+    return {
+      message: `Database Error: Failed to change user password. ${JSON.stringify(e)}`,
+    };
+  }
+}
+
+export async function addNewUser(user: {
+  name: string;
+  email: string;
+  password: string;
+}) {
+  const hashedPassword = await bcrypt.hash(user.password, 10);
+  try {
+    await sql`
+      INSERT INTO users (name, email, password)
+      VALUES (${user.name}, ${user.email}, ${hashedPassword})
+    `;
+  } catch (e) {
+    return {
+      message: `Database Error: Failed to add new user. ${JSON.stringify(e)}`,
+    };
+  }
+}
+
+export async function updateCourse(courseId: string, course: { courseCode: string }) {
+  try {
+    await sql`
+      UPDATE courses
+      SET course_code = ${course.courseCode}
+      WHERE id = ${courseId}
+    `;
+  } catch (e) {
+    return {
+      message: `Database Error: Failed to update course. ${JSON.stringify(e)}`,
+    };
+  }
+}
+
+export async function createCourse(course: {
+  name: string;
+  knownLang: string;
+  learningLang: string;
+  courseCode: string;
+}) {
+  try {
+    await sql`
+      INSERT INTO courses (name, known_lang, learning_lang, course_code)
+      VALUES (${course.name}, ${course.knownLang}, ${course.learningLang}, ${course.courseCode})
+    `;
+    revalidatePath('/edit');
+  } catch (e) {
+    return {
+      message: `Database Error: Failed to create course. ${JSON.stringify(e)}`,
+    };
   }
 }

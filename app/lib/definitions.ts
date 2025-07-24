@@ -46,6 +46,7 @@ export type DbCourse = {
   name: string;
   known_lang: string;
   learning_lang: string;
+  course_code: string;
 };
 
 export type Course = {
@@ -53,6 +54,7 @@ export type Course = {
   name: string;
   knownLang: string;
   learningLang: string;
+  courseCode: string;
 };
 
 export type UserProgress = {

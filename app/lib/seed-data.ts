@@ -12,15 +12,10 @@ const users = [
 const courses: Course[] = [
   {
     id: '3958dc9e-712f-4377-85e9-fec4b6a6442a',
-    name: 'My Spanish',
+    name: 'Development only',
     knownLang: 'Czech',
     learningLang: 'Spanish',
-  },
-  {
-    id: '3058dc9e-712f-4377-85e9-fec4b6a6442a',
-    name: 'Another Course',
-    knownLang: 'German',
-    learningLang: 'English',
+    courseCode: 'es',
   },
 ];
 

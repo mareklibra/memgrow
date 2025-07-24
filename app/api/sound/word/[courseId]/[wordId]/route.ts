@@ -1,7 +1,7 @@
 import 'core-js/proposals/array-buffer-base64';
 import { NextRequest } from 'next/server';
 import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
-import { fetchPronunciation } from '@/app/lib/data';
+import { fetchCourse, fetchPronunciation } from '@/app/lib/data';
 import { insertPronunciation } from '@/app/lib/actions';
 
 const voiceId = 'Xb7hH8MSUJpSbSDYk0k2';
@@ -72,6 +72,13 @@ export async function GET(
     });
   }
 
+  const course = await fetchCourse(courseId);
+  if (!course) {
+    return new Response(`course not found, id: ${courseId}`, {
+      status: 404,
+    });
+  }
+
   const word = await fetchPronunciation({ id: wordId, courseId });
   if (!word) {
     return new Response(`word not found, id: ${wordId}, courseId: ${courseId}`, {
@@ -101,8 +108,7 @@ export async function GET(
     text: word.word,
     modelId: 'eleven_multilingual_v2',
     enableLogging: true,
-
-    // languageCode: ... TODO: add language code
+    languageCode: course.courseCode,
   });
 
   const base64FromReadableStream = await streamToBase64(audio);
