@@ -1,4 +1,4 @@
-export const testWordsCountLimit = 3;
+export const testWordsCountLimit = 10;
 export const testRepetitionLimit = 1; // keep at 1
 
 export const learnWordsCountLimit = 5; // 5
