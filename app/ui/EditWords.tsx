@@ -1,17 +1,18 @@
 'use client';
 
 import { Word } from '@/app/lib/definitions';
-import { BatchImport } from './BatchImport';
 import stringSimilarity from 'string-similarity-js';
 import { STRING_SIMILARITY_SUBSTRING_LENGTH } from '../constants';
 import { EditWordRowProps, NewWordRow, WordRow } from './EditWordRow';
 import { EditWordHeader } from './EditWordHeader';
+import { BatchImport } from './BatchImport';
 
 export type EditWordsProps = {
   words: Word[];
   courseId: string;
   reduced?: boolean;
   onChange?: EditWordRowProps['onChange'];
+  forceDbReload?: () => Promise<void>;
 };
 
 const getWordSimilarity = (allWords: Word[], word: Word) =>
@@ -28,6 +29,7 @@ export function EditWords({
   courseId,
   reduced,
   onChange,
+  forceDbReload,
 }: Readonly<EditWordsProps>) {
   return (
     <div className="flex flex-col">
@@ -46,7 +48,7 @@ export function EditWords({
           {!reduced && <NewWordRow key="___new___" courseId={courseId} />}
         </tbody>
       </table>
-      <BatchImport className="min-h-96" courseId={courseId} />
+      <BatchImport className="min-h-96" courseId={courseId} forceDbReload={forceDbReload} />
     </div>
   );
 }

@@ -9,6 +9,9 @@ import { WordToAdd } from '../lib/definitions';
 import { DAY_MS } from '../constants';
 
 const getMemLevelFromRepeat = (repeat: number) => {
+  if (repeat < 1) {
+    return 0;
+  }
   if (repeat < 2) {
     return 2;
   }
@@ -21,9 +24,11 @@ const getMemLevelFromRepeat = (repeat: number) => {
 export const BatchImport = ({
   className,
   courseId,
+  forceDbReload,
 }: {
   className?: string;
   courseId: string;
+  forceDbReload?: () => Promise<void>;
 }) => {
   const [value, setValue] = useState<string>('');
   const [error, setError] = useState<string>();
@@ -53,14 +58,12 @@ export const BatchImport = ({
         let repeat = -1;
         if (record.repeat === 'now') {
           repeat = 0;
-        } else if (record.repeat) {
+        } else if (record.repeat !== undefined) {
           const numeric: number = parseInt(record.repeat);
           if (!isNaN(numeric)) {
             repeat = numeric;
           }
         }
-
-        console.log('--- TODO: check for similarity');
 
         return {
           ...record,
@@ -82,7 +85,7 @@ export const BatchImport = ({
         }
 
         const word = words[idx];
-        if (word?.repeat !== undefined && word.repeat >= 0) {
+        if (word?.repeat !== undefined && word.repeat > 0) {
           // Either switch to a batch-mode or issue queries one-by-one
           await updateWordProgress({
             courseId,
@@ -101,8 +104,11 @@ export const BatchImport = ({
       return;
     } finally {
       setInProgress(false);
+      if (forceDbReload) {
+        await forceDbReload();
+      }
     }
-  }, [courseId, value, delimiter]);
+  }, [courseId, value, delimiter, forceDbReload ]);
 
   return (
     <div className="flex flex-col">
