@@ -39,13 +39,13 @@ export function ChooseTranslation({
     <>
       <WordStatic word={toGuess} />
       <div className="grid grid-cols-12">
-        <div className="grid grid-cols-2 gap-4 w-3/4 col-span-11 justify-self-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-3/4 col-span-11 justify-self-center">
           {options.map((item) => {
             return (
               <div key={item}>
                 <Button
                   key={item}
-                  className={clsx('justify-center w-full', {
+                  className={clsx('justify-center w-full h-16', {
                     'bg-green-600': status !== 'normal' && item === correctResponse,
                     'bg-red-500': status === 'mistake' && item === value,
                     'bg-gray-200': status === 'normal',
