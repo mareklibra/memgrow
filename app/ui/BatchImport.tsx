@@ -108,7 +108,7 @@ export const BatchImport = ({
         await forceDbReload();
       }
     }
-  }, [courseId, value, delimiter, forceDbReload ]);
+  }, [courseId, value, delimiter, forceDbReload]);
 
   return (
     <div className="flex flex-col">
