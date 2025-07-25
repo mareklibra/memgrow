@@ -4,6 +4,7 @@ import { EditWords } from '@/app/ui/EditWords';
 import Link from 'next/link';
 import { EditCourse } from '@/app/ui/EditCourse';
 import { updateCourse } from '@/app/lib/actions';
+import { revalidatePath } from 'next/cache';
 
 export default async function Page({
   params,
@@ -45,13 +46,18 @@ export default async function Page({
     return await updateCourse(courseId, course);
   };
 
+  const forceDbReload = async () => {
+    'use server';
+    revalidatePath('/edit');
+  };
+
   const words = await fetchAllWords(courseId);
   return (
     <>
       <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
         All words ({words.length}) of course {course.name} ({course.courseCode})
       </h1>
-      <EditWords words={words} courseId={courseId} />
+      <EditWords words={words} courseId={courseId} forceDbReload={forceDbReload} />
       <hr className="w-full m-4 border-t-2 border-gray-400" />
       <EditCourse course={course} onSave={handleSave} />
     </>
