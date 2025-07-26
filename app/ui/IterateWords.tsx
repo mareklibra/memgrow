@@ -180,7 +180,7 @@ export function IterateWords({
         className={`${lusitana.className} mb-4 text-xl md:text-2xl flex justify-between`}
       >
         <div>
-          {title} {words.length} words (step {wordIdx} / {wordQueue.length})
+          {title} {words.length} words ({wordQueue.length - wordIdx} left)
         </div>
         <div>
           <Button variant="outlined" onClick={onLeave}>

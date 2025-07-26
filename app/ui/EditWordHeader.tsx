@@ -6,10 +6,10 @@ export const EditWordHeader = ({ fastEntry }: { fastEntry?: boolean }) => (
   <thead>
     <tr>
       <th scope="col"></th>
-      <th scope="col" className={clsx(thClass, 'mw-32')}>
+      <th scope="col" className={clsx(thClass, 'min-w-32')}>
         Word
       </th>
-      <th scope="col" className={clsx(thClass, 'w-32')}>
+      <th scope="col" className={clsx(thClass, 'min-w-32')}>
         Definition
       </th>
       {!fastEntry && (
