@@ -4,6 +4,7 @@ import { Course as CourseType } from '@/app/lib/definitions';
 import { ChevronDoubleRightIcon } from '@heroicons/react/24/outline';
 import { Switch } from '@material-tailwind/react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 const Course = ({
   course,
@@ -30,11 +31,17 @@ const Course = ({
     >
       <div className="p-4">
         <Link href={link}>
-          <h5 className="mb-2 text-slate-800 text-xl font-semibold">
-            <span className="inline-flex items-center text-base font-semibold text-gray-900">
-              <ChevronDoubleRightIcon className="h-5 w-5 text-gray-900" />
-              {course.name}
-            </span>
+          <h5 className="flex flex-row items-center mb-2 text-slate-800 text-xl font-semibold">
+            <ChevronDoubleRightIcon className="h-5 w-5 text-gray-900" />
+            <div className="text-base font-semibold text-gray-900">{course.name}</div>
+
+            <Image
+              className="ml-2"
+              src={`/${course.courseCode}_flag.svg`}
+              width={20}
+              height={20}
+              alt={`${course.learningLang} (${course.courseCode}) flag`}
+            />
           </h5>
           <p className="text-slate-600 leading-normal font-light">
             Learning {course.learningLang} from {course.knownLang}

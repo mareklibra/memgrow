@@ -190,7 +190,8 @@ export async function fetchCourses(): Promise<Course[]> {
 
     // TODO: filter based on user permissions
 
-    const result = await sql<DbCourse>`SELECT id, name, known_lang, learning_lang, total
+    const result =
+      await sql<DbCourse>`SELECT id, name, known_lang, learning_lang, course_code, total
       FROM
         courses
         LEFT OUTER JOIN
