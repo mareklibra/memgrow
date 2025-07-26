@@ -28,12 +28,6 @@ const Course = ({
       id={`course-${course.id}`}
       className="my-6 bg-white shadow-sm border border-slate-200 rounded-lg m-2 w-96 min-w-64"
     >
-      {/* <div className="mx-3 mb-0 border-b border-slate-200 pt-3 pb-2 px-1">
-      <span className="text-sm text-slate-600 font-medium">
-        TODO: add course statistics
-      </span>
-    </div> */}
-
       <div className="p-4">
         <Link href={link}>
           <h5 className="mb-2 text-slate-800 text-xl font-semibold">
@@ -46,6 +40,10 @@ const Course = ({
             Learning {course.learningLang} from {course.knownLang}
           </p>
         </Link>
+
+        <p className="text-slate-600 leading-normal font-light text-xs">
+          {course.toTest} to refresh, {course.toLearn} new to learn, {course.total} total
+        </p>
 
         {showPriority && (
           <div className="flex justify-end mt-2">
@@ -67,6 +65,7 @@ const Course = ({
     </div>
   );
 };
+
 export const ChooseCourse = ({
   courses,
   pathPrefix,
