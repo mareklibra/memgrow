@@ -93,7 +93,8 @@ export function TeachWord({
 
     if (
       ['choose_4_word', 'write', 'write_last'].includes(word.form) &&
-      value === word.word
+      // TODO: make this configurable (e.g. for german)
+      value?.toLowerCase() === word.word.toLowerCase()
     ) {
       setStatus('correct');
       await delay(DELAY_CORRECT_MS);
