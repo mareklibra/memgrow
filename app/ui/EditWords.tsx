@@ -48,11 +48,13 @@ export function EditWords({
           {!reduced && <NewWordRow key="___new___" courseId={courseId} />}
         </tbody>
       </table>
-      <BatchImport
-        className="min-h-96"
-        courseId={courseId}
-        forceDbReload={forceDbReload}
-      />
+      {!reduced && (
+        <BatchImport
+          className="min-h-96"
+          courseId={courseId}
+          forceDbReload={forceDbReload}
+        />
+      )}
     </div>
   );
 }
