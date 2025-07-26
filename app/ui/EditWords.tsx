@@ -31,18 +31,28 @@ export function EditWords({
   onChange,
   forceDbReload,
 }: Readonly<EditWordsProps>) {
+  const enriched: Record<string, { similarity: number; word: Word }> = {};
+  words.forEach((w) => {
+    enriched[w.id] = { similarity: getWordSimilarity(words, w), word: w };
+  });
+
+  const sortedWords = words.sort((a, b) => {
+    const diff = enriched[b.id].similarity - enriched[a.id].similarity;
+    return diff === 0 ? a.word.localeCompare(b.word) : diff;
+  });
+
   return (
     <div className="flex flex-col">
       <table className="divide-y divide-gray-200 dark:divide-neutral-700">
         <EditWordHeader />
         <tbody className="divide-y divide-gray-200 dark:divide-neutral-700">
-          {words.map((w) => (
+          {sortedWords.map((w) => (
             <WordRow
               word={w}
               key={w.id}
               reduced={reduced}
               onChange={onChange}
-              similarity={getWordSimilarity(words, w)}
+              similarity={enriched[w.id].similarity}
             />
           ))}
           {!reduced && <NewWordRow key="___new___" courseId={courseId} />}
