@@ -15,6 +15,7 @@ import { DoneState } from './DoneState';
 import Link from 'next/link';
 import { Button } from '@material-tailwind/react';
 import { TypeTranslationProps } from './TypeTranslation';
+import { learnBatchLimit } from '../constants';
 
 interface IterateWordsProps {
   words: Word[];
@@ -53,7 +54,7 @@ export function IterateWords({
   }, [words, wordQueue]);
 
   useEffect(() => {
-    if (wordIdx >= wordQueue.length) {
+    if (wordIdx >= wordQueue.length || wordIdx >= learnBatchLimit) {
       setIsDone(true);
     }
   }, [wordIdx, wordQueue.length]);
@@ -128,11 +129,9 @@ export function IterateWords({
         w.definition = word.definition;
         w.memLevel = word.memLevel;
         w.isPriority = word.isPriority;
-        console.log('setting', { w, word });
       }
       return w;
     });
-    console.log({ wordQueue, updated });
     setWordQueue(updated);
   };
 
@@ -174,13 +173,17 @@ export function IterateWords({
 
   const word = wordQueue[wordIdx];
 
+  const progress = Math.round(
+    (wordIdx / Math.min(wordQueue.length, learnBatchLimit)) * 100,
+  );
+
   return (
     <div className="w-full p-5">
       <h1
         className={`${lusitana.className} mb-4 text-xl md:text-2xl flex justify-between`}
       >
         <div>
-          {title} {words.length} words ({wordQueue.length - wordIdx} left)
+          {title} up to {words.length} words ({progress}% done)
         </div>
         <div>
           <Button variant="outlined" onClick={onLeave}>

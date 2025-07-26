@@ -40,6 +40,9 @@ const omDbCourse = (dbCourse: DbCourse): Course => ({
   knownLang: dbCourse.known_lang,
   learningLang: dbCourse.learning_lang,
   courseCode: dbCourse.course_code,
+  total: dbCourse.total ?? 0,
+  toLearn: -1,
+  toTest: -1,
 });
 
 export type WordPronunciation = Pick<Word, 'id' | 'word' | 'definition'> & {
@@ -185,15 +188,64 @@ export async function fetchCourses(): Promise<Course[]> {
     const myAuth = await auth();
     console.log('Fetching all courses for user: ', myAuth?.user?.name);
 
-    // TODO: statistics per user
     // TODO: filter based on user permissions
 
-    const result = await sql<DbCourse>`SELECT id, name, known_lang, learning_lang
-        FROM courses
-        `;
+    const result =
+      await sql<DbCourse>`SELECT id, name, known_lang, learning_lang, course_code, total
+      FROM
+        courses
+        LEFT OUTER JOIN
+        (SELECT course_id, count(*) as total FROM words GROUP BY course_id) as total ON total.course_id = courses.id
+      ORDER BY
+        courses.name
+      `;
 
-    const data: Course[] = result.rows.map(omDbCourse);
-    return data;
+    const courses: Course[] = result.rows.map(omDbCourse);
+
+    const toLearnStats = await sql<{
+      total: number;
+      course_id: string;
+    }>`SELECT count(words.id) as total, words.course_id as course_id
+        FROM
+          words
+          LEFT OUTER JOIN
+            (SELECT *
+             FROM user_progress
+             WHERE user_id = ${myAuth?.user?.id}
+            ) AS user_progress ON words.id = user_progress.word_id
+        WHERE
+          words.course_id IN (SELECT id FROM courses)
+          AND (user_progress.memlevel = 0 OR user_progress.memlevel is NULL)
+        GROUP BY
+          words.course_id
+    `;
+
+    const toTestStats = await sql<{
+      total: number;
+      course_id: string;
+    }>`SELECT count(words.id) as total, words.course_id as course_id
+        FROM
+          words
+          LEFT OUTER JOIN
+            (SELECT *
+             FROM user_progress
+             WHERE user_id = ${myAuth?.user?.id}
+            ) AS user_progress ON words.id = user_progress.word_id
+        WHERE
+          words.course_id IN (SELECT id FROM courses)
+          AND (user_progress.memlevel > 0)
+          AND user_progress.repeat_again < NOW()
+        GROUP BY
+          words.course_id
+    `;
+
+    courses.forEach((course) => {
+      course.toLearn =
+        toLearnStats.rows.find((s) => s.course_id === course.id)?.total ?? 0;
+      course.toTest = toTestStats.rows.find((s) => s.course_id === course.id)?.total ?? 0;
+    });
+
+    return courses;
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch all courses.');

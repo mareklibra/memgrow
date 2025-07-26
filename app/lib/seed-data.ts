@@ -16,6 +16,9 @@ const courses: Course[] = [
     knownLang: 'Czech',
     learningLang: 'Spanish',
     courseCode: 'es',
+    total: 0,
+    toLearn: 0,
+    toTest: 0,
   },
 ];
 
