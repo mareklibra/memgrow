@@ -1,8 +1,9 @@
 export const testWordsCountLimit = 10;
 export const testRepetitionLimit = 1; // keep at 1
 
-export const learnWordsCountLimit = 5; // 5
-export const learnRepetitionLimit = 3; // 3
+export const learnWordsCountLimit = 6;
+export const learnRepetitionLimit = 3;
+export const learnBatchLimit = 20;
 
 export const DELAY_MISTAKE_MS = 3 * 1000;
 export const DELAY_CORRECT_MS = 1 * 1000;
