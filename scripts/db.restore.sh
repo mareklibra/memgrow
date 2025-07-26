@@ -12,5 +12,5 @@ else
   exit 1
 fi
 
-pg_restore --clean --if-exists -v -d "${POSTGRES_URL}" ${FILE}
+pg_restore --clean --if-exists -j 4 -v -d "${POSTGRES_URL}" ${FILE}
 
