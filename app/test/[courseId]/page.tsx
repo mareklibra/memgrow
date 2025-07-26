@@ -22,10 +22,11 @@ export default async function Page({
     priorityFirst === 'true',
   );
   const words = await fetchSimilarWords(courseId, wordsToTest, maxSimilarWords);
+  const randomlyShuffledWords = words.sort(() => Math.random() - 0.5);
 
   return (
     <IterateWords
-      words={words}
+      words={randomlyShuffledWords}
       repetitionLimit={testRepetitionLimit}
       title="Strengthen memory with "
       specialKeys={getSpecialKeys([...words, ...wordsToTest])}
