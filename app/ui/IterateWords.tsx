@@ -86,7 +86,12 @@ export function IterateWords({
         repeatAgain: newRepeatAgain,
         repeated,
       };
-      setWordQueue([...wordQueue, newWord]);
+
+      const randomIdx =
+        wordIdx + Math.floor(Math.random() * (wordQueue.length - wordIdx + 1));
+      const oldQueue = wordQueue.slice(0, randomIdx);
+      const newQueue = wordQueue.slice(randomIdx);
+      setWordQueue([...oldQueue, newWord, ...newQueue]);
     } else {
       // modify existing word (should call set state)
       word.form = newForm;
