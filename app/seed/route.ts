@@ -4,6 +4,7 @@ import batch001 from './001';
 import batch002 from './002';
 import batch003 from './003';
 import batch004 from './004';
+import batch005 from './005';
 
 export async function GET() {
   try {
@@ -12,6 +13,7 @@ export async function GET() {
     await batch002();
     await batch003();
     await batch004();
+    await batch005();
     await seedData();
     await client.sql`COMMIT`;
 

@@ -39,15 +39,6 @@ async function streamToBase64(stream: ReadableStream<Uint8Array>): Promise<strin
       const mergedArray = mergeUint8Arrays(...values);
       // @ts-expect-error From polyfill
       const base64 = mergedArray.toBase64();
-      // const binaryData = Uint8Array.fromBase64(base64);
-      // console.log('=== done: ', {
-      //   mergedArrayLength: mergedArray.length,
-      //   byteLength: byteLength,
-      //   base64Length: base64.length,
-      //   binaryDataLength: binaryData.length,
-      //   areEqual: mergedArray.every((value, index) => value === binaryData[index]),
-      // });
-
       return base64;
     }
   }

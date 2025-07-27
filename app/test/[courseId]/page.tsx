@@ -7,6 +7,7 @@ import {
   testWordsCountLimitOffline,
 } from '@/app/constants';
 import { getSpecialKeys } from '@/app/lib/utils';
+import { queryExamples, deleteExample } from '@/app/lib/examples';
 
 export default async function Page({
   params,
@@ -34,6 +35,8 @@ export default async function Page({
       title="Strengthen memory with "
       specialKeys={getSpecialKeys([...words, ...wordsToTest])}
       isOffline={isOffline}
+      queryExamples={queryExamples}
+      deleteExample={deleteExample}
     />
   );
 }
