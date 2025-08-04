@@ -1,4 +1,4 @@
-import { DAY_MS, SUCCESS_MULTIPLIER } from '../constants';
+import { DAY_MS, MAX_MEM_LEVEL, SUCCESS_MULTIPLIER } from '../constants';
 import { TeachingForm, TeachingFormCount } from './definitions';
 
 export function getNextForm(form: TeachingForm): TeachingForm {
@@ -31,7 +31,8 @@ export const getProgressInPercents = (form: TeachingForm) =>
 
 export function increaseMemLevel(level: number): number {
   // Amount of days until retested again
-  return Math.round(level * SUCCESS_MULTIPLIER * 100) / 100;
+  const next = Math.round(level * SUCCESS_MULTIPLIER * 100) / 100;
+  return Math.min(next, MAX_MEM_LEVEL);
 }
 
 export function decreaseMemLevel(
