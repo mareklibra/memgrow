@@ -14,3 +14,6 @@ export const CONFIRM_DELAY_MS = 1000;
 export const DAY_MS = 60 * 60 * 24 * 1000;
 
 export const STRING_SIMILARITY_SUBSTRING_LENGTH = 2;
+
+export const SUCCESS_INCREASE = 1.5;
+export const MAX_MEM_LEVEL = 4 * 30; // 4 months

@@ -5,9 +5,10 @@ import { Word } from '@/app/lib/definitions';
 import { longestCommonPrefix } from '@/app/lib/utils';
 import { Button as ButtonTW } from '@material-tailwind/react';
 
-import { WordDefinition, WordStatic } from './ShowWord';
+import { WordStatic } from './ShowWord';
 import { Button } from './button';
 import { FieldStatus } from './types';
+import { WordDefinition } from './WordDefinition';
 
 export interface TypeTranslationProps {
   word: Word;
@@ -87,6 +88,7 @@ export function TypeTranslation({
           <WordDefinition
             definition={correctResponse}
             className="bg-green-600 py-[9px] pl-10 mt-4"
+            onClick={() => {}}
           />
         )}
       </div>

@@ -78,7 +78,6 @@ export async function fetchSimilarWords(
       }))
       .sort((a, b) => b.similarity - a.similarity);
 
-    console.log(`-- candidates for ${word.word}: `, candidates);
     word.similarWords = candidates.slice(0, limit).map((c) => c.candidate);
   });
 
@@ -135,14 +134,16 @@ export async function fetchWordsToTest(
     WHERE
       words.course_id = '${courseId}'
       AND (user_progress.memlevel > 0)
-      AND user_progress.repeat_again < NOW()
+      AND (
+        user_progress.repeat_again < NOW()
+        OR (${priorityFirst} AND user_progress.is_priority = TRUE)
+      )
     ORDER BY
       ${priorityFirst ? 'user_progress.is_priority DESC,' : ''}
       user_progress.repeat_again
     LIMIT ${limit}
     `;
     const result = await sql.query<DbWordProgress>(query);
-
     const data: Word[] = result.rows.map(fromDbWordProgress);
     return data;
   } catch (error) {

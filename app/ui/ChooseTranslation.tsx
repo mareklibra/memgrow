@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
-import clsx from 'clsx';
 
 import { shuffleArray } from '@/app/lib/utils';
 
 import { FieldStatus } from './types';
 import { WordStatic } from './ShowWord';
 import { Button } from './button';
+import { TranslationOption, TranslationOptionState } from './TranslationOption';
 
 interface ChooseTranslationProps {
   // word: Word;
@@ -41,23 +41,22 @@ export function ChooseTranslation({
       <div className="grid grid-cols-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-3/4 col-span-11 justify-self-center">
           {options.map((item) => {
+            let state: TranslationOptionState = 'normal';
+            if (status !== 'normal' && item === correctResponse) {
+              state = 'correct';
+            } else if (status === 'mistake' && item === value) {
+              state = 'mistake';
+            } else if (status === 'normal') {
+              state = 'disabled';
+            }
+
             return (
-              <div key={item}>
-                <Button
-                  key={item}
-                  className={clsx('justify-center w-full h-16', {
-                    'bg-green-600': status !== 'normal' && item === correctResponse,
-                    'bg-red-500': status === 'mistake' && item === value,
-                    'bg-gray-200': status === 'normal',
-                  })}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleClick(item);
-                  }}
-                >
-                  <div className="text-black">{item}</div>
-                </Button>
-              </div>
+              <TranslationOption
+                state={state}
+                option={item}
+                handleClick={handleClick}
+                key={item}
+              />
             );
           })}
         </div>

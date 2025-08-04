@@ -21,6 +21,7 @@ export default async function Page({
     testWordsCountLimit,
     priorityFirst === 'true',
   );
+
   const words = await fetchSimilarWords(courseId, wordsToTest, maxSimilarWords);
   const randomlyShuffledWords = words.sort(() => Math.random() - 0.5);
 

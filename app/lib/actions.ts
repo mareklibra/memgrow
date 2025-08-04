@@ -63,7 +63,7 @@ export async function addWord(word: WordToAdd): Promise<UpdateWordResult> {
       INSERT INTO words (word, definition, course_id)
       VALUES ($1, $2, $3) RETURNING *
     `,
-      [word.word, word.definition, word.courseId],
+      [word.word.trim(), word.definition.trim(), word.courseId],
     );
     revalidatePath('/edit');
     return { id: result.rows[0].id };
@@ -83,7 +83,7 @@ export async function addWordBatch(words: WordToAdd[]): Promise<UpdateWordResult
       VALUES ($1, $2, $3)
       RETURNING *
     `,
-        [word.word, word.definition, word.courseId],
+        [word.word.trim(), word.definition.trim(), word.courseId],
       ),
     );
     const results = await Promise.allSettled(promises);
@@ -121,8 +121,8 @@ export async function updateWord(changed: Word): Promise<UpdateWordResult> {
     await sql`
       UPDATE words
       SET 
-        word = ${changed.word},
-        definition = ${changed.definition}
+        word = ${changed.word.trim()},
+        definition = ${changed.definition.trim()}
       WHERE id = ${changed.id}
     `;
 
@@ -187,7 +187,7 @@ export async function addNewUser(user: {
   try {
     await sql`
       INSERT INTO users (name, email, password)
-      VALUES (${user.name}, ${user.email}, ${hashedPassword})
+      VALUES (${user.name.trim()}, ${user.email.trim()}, ${hashedPassword})
     `;
   } catch (e) {
     return {
@@ -219,7 +219,7 @@ export async function createCourse(course: {
   try {
     await sql`
       INSERT INTO courses (name, known_lang, learning_lang, course_code)
-      VALUES (${course.name}, ${course.knownLang}, ${course.learningLang}, ${course.courseCode})
+      VALUES (${course.name.trim()}, ${course.knownLang.trim()}, ${course.learningLang.trim()}, ${course.courseCode.trim()})
     `;
     revalidatePath('/edit');
   } catch (e) {
