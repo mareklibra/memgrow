@@ -110,6 +110,7 @@ export function TeachWord({
   const forceCheck = async () => {
     if (word.form === 'show') {
       setStatus('correct');
+      await delay(DELAY_CORRECT_MS);
       correct(word);
       return;
     }
@@ -134,7 +135,7 @@ export function TeachWord({
   let component;
   switch (word.form) {
     case 'show':
-      component = <ShowWord word={word} />;
+      component = <ShowWord status={status} word={word} onClick={forceCheck} />;
       break;
     case 'choose_4_def':
       component = (

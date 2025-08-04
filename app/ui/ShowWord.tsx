@@ -1,32 +1,16 @@
 import clsx from 'clsx';
 import { Word } from '@/app/lib/definitions';
+import { TranslationOption, TranslationOptionState } from './TranslationOption';
+import { FieldStatus } from './types';
 
 interface ShowWordProps {
   word: Word;
+  onClick: () => void;
+  status: FieldStatus;
 }
-
-interface WordDefinitionProps {
-  definition: Word['definition'];
-  className?: string;
-}
-
 interface WordStaticProps {
   word: Word['definition'];
   className?: string;
-}
-
-export function WordDefinition({ definition, className }: Readonly<WordDefinitionProps>) {
-  return (
-    <div
-      id="word-definition"
-      className={clsx(
-        'w-full rounded-md border border-gray-200 text-lg outline-2 mb-8',
-        className,
-      )}
-    >
-      {definition}
-    </div>
-  );
 }
 
 export function WordStatic({ word, className }: Readonly<WordStaticProps>) {
@@ -43,14 +27,17 @@ export function WordStatic({ word, className }: Readonly<WordStaticProps>) {
   );
 }
 
-export function ShowWord({ word }: Readonly<ShowWordProps>) {
+export function ShowWord({ word, onClick, status }: Readonly<ShowWordProps>) {
+  let state: TranslationOptionState = 'disabled';
+
+  if (status === 'correct') {
+    state = 'correct';
+  }
+
   return (
     <>
       <WordStatic word={word.word} />
-      <WordDefinition
-        definition={word.definition}
-        className="py-[20px] pl-2 pr-2 text-center"
-      />
+      <TranslationOption state={state} option={word.definition} handleClick={onClick} />
     </>
   );
 }
