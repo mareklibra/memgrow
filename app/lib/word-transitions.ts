@@ -1,4 +1,4 @@
-import { DAY_MS, MAX_MEM_LEVEL, SUCCESS_MULTIPLIER } from '../constants';
+import { DAY_MS, MAX_MEM_LEVEL, SUCCESS_INCREASE } from '../constants';
 import { TeachingForm, TeachingFormCount } from './definitions';
 
 export function getNextForm(form: TeachingForm): TeachingForm {
@@ -31,7 +31,7 @@ export const getProgressInPercents = (form: TeachingForm) =>
 
 export function increaseMemLevel(level: number): number {
   // Amount of days until retested again
-  const next = Math.round(level * SUCCESS_MULTIPLIER * 100) / 100;
+  const next = Math.ceil(level * SUCCESS_INCREASE);
   return Math.min(next, MAX_MEM_LEVEL);
 }
 
@@ -43,7 +43,8 @@ export function decreaseMemLevel(
 }
 
 export function getRepeatAgainDate(memLevel: number, current: Date): Date {
-  const currentTime = current?.getTime() || Date.now();
+  // const currentTime = current?.getTime() || Date.now();
+  const currentTime = Date.now();
   const result = new Date(currentTime + DAY_MS * memLevel);
   return result;
 }
