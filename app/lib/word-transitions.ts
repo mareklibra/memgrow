@@ -42,7 +42,7 @@ export function decreaseMemLevel(
   return 1;
 }
 
-export function getRepeatAgainDate(memLevel: number, current: Date): Date {
+export function getRepeatAgainDate(memLevel: number): Date {
   // const currentTime = current?.getTime() || Date.now();
   const currentTime = Date.now();
   const result = new Date(currentTime + DAY_MS * memLevel);

@@ -73,7 +73,7 @@ export function IterateWords({
       newMemLevel = increaseMemLevel(word.memLevel);
       newRepeatAgain = getRepeatAgainDate(
         word.memLevel /* use old memLevel */,
-        word.repeatAgain,
+        // word.repeatAgain,
       );
     }
 
@@ -114,7 +114,10 @@ export function IterateWords({
       ...word,
       form: newForm,
       memLevel: newMemLevel,
-      repeatAgain: getRepeatAgainDate(newMemLevel, word.repeatAgain),
+      repeatAgain: getRepeatAgainDate(
+        newMemLevel,
+        // word.repeatAgain
+      ),
       // keep the "repeated" property untouched
     };
 
