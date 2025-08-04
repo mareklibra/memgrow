@@ -1,4 +1,4 @@
-import { DAY_MS } from '../constants';
+import { DAY_MS, SUCCESS_MULTIPLIER } from '../constants';
 import { TeachingForm, TeachingFormCount } from './definitions';
 
 export function getNextForm(form: TeachingForm): TeachingForm {
@@ -31,14 +31,14 @@ export const getProgressInPercents = (form: TeachingForm) =>
 
 export function increaseMemLevel(level: number): number {
   // Amount of days until retested again
-  return level + 2;
+  return Math.round(level * SUCCESS_MULTIPLIER * 100) / 100;
 }
 
 export function decreaseMemLevel(
   // eslint-disable-next-line
   _: number,
 ): number {
-  return 2;
+  return 1;
 }
 
 export function getRepeatAgainDate(memLevel: number, current: Date): Date {

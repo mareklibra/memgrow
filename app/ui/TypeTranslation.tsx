@@ -88,6 +88,7 @@ export function TypeTranslation({
           <WordDefinition
             definition={correctResponse}
             className="bg-green-600 py-[9px] pl-10 mt-4"
+            onClick={() => {}}
           />
         )}
       </div>
