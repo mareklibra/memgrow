@@ -18,7 +18,6 @@ export type UpdateWordResult =
 
 export async function updateWordProgress(word: Word): Promise<UpdateWordResult> {
   const myAuth = await auth();
-
   try {
     const result = await sql`
       UPDATE user_progress
