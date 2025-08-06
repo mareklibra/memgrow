@@ -9,7 +9,7 @@ import {
   increaseMemLevel,
 } from '@/app/lib/word-transitions';
 import { TeachingForm, Word, WordWithMeta } from '@/app/lib/definitions';
-import { updateWordProgress } from '@/app/lib/actions';
+import { updateWordProgress, UpdateWordResult } from '@/app/lib/actions';
 import { TeachWord } from './TeachWord';
 import { DoneState } from './DoneState';
 import Link from 'next/link';
@@ -59,46 +59,69 @@ export function IterateWords({
     }
   }, [wordIdx, wordQueue.length]);
 
-  const storeProgress = (word: Word) => {
-    updateWordProgress(word);
+  const storeProgress = async (word: Word): Promise<UpdateWordResult> => {
+    return updateWordProgress(word);
   };
 
   const correct = (word: WordWithMeta) => {
-    // Move learning forward
-    const newForm = getNextForm(word.form);
-    let newMemLevel = word.memLevel;
-    let newRepeatAgain = word.repeatAgain;
-    if (word.form !== 'show' && (!isLearning || word.form === 'write_last')) {
-      // either Learning is done or in the Testing flow
-      newMemLevel = increaseMemLevel(word.memLevel);
-      newRepeatAgain = getRepeatAgainDate(
-        word.memLevel /* use old memLevel */,
-        // word.repeatAgain,
-      );
-    }
-
+    // learning show
+    // learning progress
+    // learning last
+    // test
     const repeated = word.form === 'show' ? word.repeated : word.repeated + 1;
-    if (repeated < repetitionLimit) {
-      const newWord: WordWithMeta = {
-        ...word,
-        form: newForm,
-        memLevel: newMemLevel,
-        repeatAgain: newRepeatAgain,
-        repeated,
-      };
 
+    const insertNextAtRandomPosition = (w: WordWithMeta) => {
       const randomIdx =
-        wordIdx + Math.floor(Math.random() * (wordQueue.length - wordIdx + 1));
+        2 + wordIdx + Math.floor(Math.random() * (wordQueue.length - wordIdx));
       const oldQueue = wordQueue.slice(0, randomIdx);
       const newQueue = wordQueue.slice(randomIdx);
-      setWordQueue([...oldQueue, newWord, ...newQueue]);
+      setWordQueue([...oldQueue, w, ...newQueue]);
+    };
+
+    const updateCurrentWord = (w: WordWithMeta) => {
+      const newQueue = [...wordQueue];
+      newQueue[wordIdx] = w;
+      setWordQueue(newQueue);
+    };
+
+    if (isLearning) {
+      if (repeated < repetitionLimit && word.form !== 'write_last') {
+        insertNextAtRandomPosition({
+          ...word,
+          form: getNextForm(word.form),
+          repeated,
+        });
+      } else {
+        const newMemLevel =
+          word.form === 'write_last' ? increaseMemLevel(word.memLevel) : word.memLevel;
+        updateCurrentWord({
+          ...word,
+          form: getNextForm(word.form),
+          memLevel: newMemLevel,
+          repeatAgain: getRepeatAgainDate(newMemLevel),
+        });
+      }
     } else {
-      // modify existing word (should call set state)
-      word.form = newForm;
-      word.memLevel = newMemLevel;
-      word.repeatAgain = newRepeatAgain;
+      // Test
+      if (repeated < repetitionLimit) {
+        insertNextAtRandomPosition({
+          ...word,
+          form: getNextForm(word.form),
+          memLevel: increaseMemLevel(word.memLevel),
+          repeatAgain: getRepeatAgainDate(word.memLevel),
+          repeated,
+        });
+      } else {
+        updateCurrentWord({
+          ...word,
+          form: getNextForm(word.form),
+          memLevel: increaseMemLevel(word.memLevel),
+          repeatAgain: getRepeatAgainDate(word.memLevel),
+        });
+      }
     }
 
+    // Move learning forward
     setWordIdx(wordIdx + 1);
   };
 
