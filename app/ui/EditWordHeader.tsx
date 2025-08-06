@@ -1,11 +1,26 @@
+import { Checkbox } from '@material-tailwind/react';
 import clsx from 'clsx';
 export const thClass =
   'px-3 py-3 text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500';
 
-export const EditWordHeader = ({ fastEntry }: { fastEntry?: boolean }) => (
+export const EditWordHeader = ({
+  fastEntry,
+  isEnriched,
+  switchEnrichment,
+}: {
+  fastEntry?: boolean;
+  isEnriched: boolean;
+  switchEnrichment: () => void;
+}) => (
   <thead>
     <tr>
-      <th scope="col"></th>
+      <th scope="col">
+        <Checkbox
+          checked={isEnriched}
+          onChange={switchEnrichment}
+          crossOrigin={undefined}
+        />
+      </th>
       <th scope="col" className={clsx(thClass, 'min-w-32')}>
         Word
       </th>
