@@ -40,18 +40,20 @@ export function DoneState({
   isLearning,
 }: Readonly<DoneStateProps>) {
   const [progress, setProgress] = useState<ProgressType[]>([]);
+  const [wordsToPersist, setWordsToPersist] = useState<Word[]>([]);
   const courseId = words[0].courseId;
 
   useEffect(
     () => {
       const progress: ProgressType[] = [];
 
+      const lastWords: Word[] = [];
       words.forEach((word) => {
         const last = findLast(wordQueue, word.id);
         if (!last) return;
 
-        console.log('storing progress: ', last);
-        storeProgress(last);
+        // storeProgress(last);
+        lastWords.push(last);
         progress.push({
           start: word,
           end: last,
@@ -59,12 +61,22 @@ export function DoneState({
       });
 
       setProgress(progress);
+      setWordsToPersist(lastWords);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       /* just once*/
     ],
   );
+
+  useEffect(() => {
+    if (wordsToPersist.length > 0) {
+      console.log('persisting words: ', wordsToPersist);
+      wordsToPersist.forEach(storeProgress);
+      // TODO: for offline mode, track result and enable retry
+      setWordsToPersist([]);
+    }
+  }, [wordsToPersist]);
 
   return (
     <div className="flex flex-col">
