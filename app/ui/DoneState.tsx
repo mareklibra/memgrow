@@ -4,6 +4,7 @@ import { Word } from '@/app/lib/definitions';
 import Link from 'next/link';
 import { Button } from '@material-tailwind/react';
 import { WordTeachingStatus } from './WordTeachingStatus';
+import { UpdateWordResult } from '../lib/actions';
 
 const thClass =
   'px-3 py-3 text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500';
@@ -12,7 +13,7 @@ const tdClass = 'px-3 py-4 text-sm font-medium text-gray-800 dark:text-neutral-2
 interface DoneStateProps {
   words: Word[];
   wordQueue: Word[];
-  storeProgress: (word: Word) => void;
+  storeProgress: (word: Word) => Promise<UpdateWordResult>;
   isLearning?: boolean;
 }
 
@@ -41,6 +42,7 @@ export function DoneState({
 }: Readonly<DoneStateProps>) {
   const [progress, setProgress] = useState<ProgressType[]>([]);
   const [wordsToPersist, setWordsToPersist] = useState<Word[]>([]);
+  const [isRetrigger, setIsRetrigger] = useState<boolean>(true);
   const courseId = words[0].courseId;
 
   useEffect(
@@ -70,13 +72,27 @@ export function DoneState({
   );
 
   useEffect(() => {
-    if (wordsToPersist.length > 0) {
-      console.log('persisting words: ', wordsToPersist);
-      wordsToPersist.forEach(storeProgress);
-      // TODO: for offline mode, track result and enable retry
-      setWordsToPersist([]);
-    }
-  }, [wordsToPersist]);
+    const runAsync = async () => {
+      if (wordsToPersist.length > 0 && isRetrigger) {
+        console.log('persisting words: ', wordsToPersist);
+
+        const results = await Promise.all(wordsToPersist.map(storeProgress));
+        console.log('results: ', results);
+
+        const failed = results.filter((r) => r?.message);
+        const failedWords = wordsToPersist.filter((w) =>
+          failed.find((f) => f?.id === w.id),
+        );
+        if (failedWords.length > 0) {
+          console.error('Failed to persist words: ', failedWords);
+        }
+
+        setIsRetrigger(false);
+        setWordsToPersist(failedWords);
+      }
+    };
+    runAsync();
+  }, [wordsToPersist, isRetrigger]);
 
   return (
     <div className="flex flex-col">
@@ -117,15 +133,35 @@ export function DoneState({
         </tbody>
       </table>
 
-      <div className="w-full flex justify-center mt-10">
-        <Link
-          className=""
-          href={`/${isLearning ? 'learn' : 'test'}/${courseId ?? ''}/next`}
-          replace
-        >
-          <Button variant="outlined">{isLearning ? 'Learn' : 'Test'} more...</Button>
-        </Link>
-      </div>
+      {!isRetrigger && wordsToPersist.length > 0 && (
+        <div className="w-full flex justify-center mt-10">
+          <Button
+            variant="text"
+            onClick={() => setIsRetrigger(true)}
+            disabled={isRetrigger}
+          >
+            Failed to persist {wordsToPersist.length} words. Try again.
+          </Button>
+        </div>
+      )}
+
+      {wordsToPersist.length === 0 && (
+        <div className="w-full flex justify-center mt-10">
+          All words have been persisted.
+        </div>
+      )}
+
+      {wordsToPersist.length === 0 && (
+        <div className="w-full flex justify-center mt-10">
+          <Link
+            className=""
+            href={`/${isLearning ? 'learn' : 'test'}/${courseId ?? ''}/next`}
+            replace
+          >
+            <Button variant="outlined">{isLearning ? 'Learn' : 'Test'} more...</Button>
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

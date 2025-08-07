@@ -51,6 +51,7 @@ export async function updateWordProgress(word: Word): Promise<UpdateWordResult> 
     console.error(error);
     return {
       message: `Database Error: Failed to update "${word.word}" (${word.id}) word progress. ${error}`,
+      id: word.id,
     };
   }
 }

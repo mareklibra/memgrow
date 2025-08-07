@@ -60,7 +60,12 @@ export function IterateWords({
   }, [wordIdx, wordQueue.length]);
 
   const storeProgress = async (word: Word): Promise<UpdateWordResult> => {
-    return updateWordProgress(word);
+    try {
+      return await updateWordProgress(word);
+    } catch (error) {
+      console.error('Failed to call updateWordProgress action: ', error);
+      return { message: 'Failed to call updateWordProgress action', id: word.id };
+    }
   };
 
   const correct = (word: WordWithMeta) => {
