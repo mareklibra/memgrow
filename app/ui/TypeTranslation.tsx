@@ -93,12 +93,14 @@ export function TypeTranslation({
         )}
       </div>
 
-      <div className="flex w-3/4 gap-4 mt-4">
-        {specialKeys.map((key) => (
-          <ButtonTW key={key} variant="outlined" onClick={getHandleKey(key)}>
-            {key}
-          </ButtonTW>
-        ))}
+      <div className="w-full mt-4">
+        <div className="flex justify-center flex-wrap gap-4">
+          {specialKeys.map((key) => (
+            <ButtonTW key={key} variant="outlined" onClick={getHandleKey(key)}>
+              {key}
+            </ButtonTW>
+          ))}
+        </div>
       </div>
     </>
   );
