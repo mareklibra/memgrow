@@ -62,17 +62,6 @@ const Course = ({
           {course.toTest} to refresh, {course.toLearn} new to learn, {course.total} total
         </p>
 
-        {showPriority && (
-          <div className="flex justify-end mt-2">
-            <Switch
-              crossOrigin={undefined}
-              label="Priority first"
-              checked={isPriorityFirst}
-              onChange={() => setIsPriorityFirst(!isPriorityFirst)}
-            />
-          </div>
-        )}
-
         {showForOffline && (
           <div className="flex justify-end mt-2">
             <Switch
@@ -80,6 +69,17 @@ const Course = ({
               label="For offline"
               checked={isOffline}
               onChange={() => setIsOffline(!isOffline)}
+            />
+          </div>
+        )}
+
+        {showPriority && (
+          <div className="flex justify-end mt-2">
+            <Switch
+              crossOrigin={undefined}
+              label="Priority first"
+              checked={isPriorityFirst}
+              onChange={() => setIsPriorityFirst(!isPriorityFirst)}
             />
           </div>
         )}
