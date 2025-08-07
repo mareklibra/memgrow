@@ -47,6 +47,18 @@ export function IterateWords({
   const [wordIdx, setWordIdx] = useState<number>(-1);
   const [isDone, setIsDone] = useState<boolean>(false);
 
+  useEffect(
+    () => {
+      window.onbeforeunload = confirmExit;
+      function confirmExit() {
+        return 'By closing this page you will lose your progress.';
+      }
+    },
+    [
+      /* just once*/
+    ],
+  );
+
   useEffect(() => {
     // Initialize
     if (words.length === 0) {
