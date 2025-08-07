@@ -72,9 +72,11 @@ export async function fetchSimilarWords(
       .filter((candidate) => candidate.word !== word.word)
       .map((candidate) => ({
         candidate,
-        similarity:
-          // TODO: Tweak following
-          stringSimilarity(word.word, candidate.word, STRING_SIMILARITY_SUBSTRING_LENGTH),
+        similarity: stringSimilarity(
+          word.word,
+          candidate.word,
+          STRING_SIMILARITY_SUBSTRING_LENGTH,
+        ),
       }))
       .sort((a, b) => b.similarity - a.similarity);
 

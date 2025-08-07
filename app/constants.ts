@@ -1,7 +1,11 @@
-export const testWordsCountLimit = 10;
+export const testWordsCountLimit = 10; // Keep at 10 for testing
+export const testWordsCountLimitOffline = 20; // Keep at 500 for testing
 export const testRepetitionLimit = 1; // keep at 1
 
+export const maxDistanceForRandomQueueInsertion = 10;
+
 export const learnWordsCountLimit = 7;
+export const learnWordsCountLimitOffline = 3; // Keep at 500 for testing
 export const learnRepetitionLimit = 3;
 export const learnBatchLimit = 17;
 
