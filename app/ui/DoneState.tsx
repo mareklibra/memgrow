@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import { Word } from '@/app/lib/definitions';
 import Link from 'next/link';
-import { Button } from '@material-tailwind/react';
+import { Button, Spinner } from '@material-tailwind/react';
 import { WordTeachingStatus } from './WordTeachingStatus';
 import { UpdateWordResult } from '../lib/actions';
 
@@ -96,6 +96,42 @@ export function DoneState({
 
   return (
     <div className="flex flex-col">
+      {isRetrigger && (
+        <div className="w-full flex justify-center mt-10 mb-10">
+          <Spinner className="h-6 w-6" />
+          &nbsp;Persisting...
+        </div>
+      )}
+      {!isRetrigger && wordsToPersist.length > 0 && (
+        <div className="w-full flex justify-center mt-10">
+          <Button
+            variant="text"
+            onClick={() => setIsRetrigger(true)}
+            disabled={isRetrigger}
+          >
+            Failed to persist {wordsToPersist.length} words. Try again.
+          </Button>
+        </div>
+      )}
+
+      {wordsToPersist.length === 0 && (
+        <div className="w-full flex justify-center mt-10">
+          All words have been persisted.
+        </div>
+      )}
+
+      {wordsToPersist.length === 0 && (
+        <div className="w-full flex justify-center mt-10">
+          <Link
+            className=""
+            href={`/${isLearning ? 'learn' : 'test'}/${courseId ?? ''}/next`}
+            replace
+          >
+            <Button variant="outlined">{isLearning ? 'Learn' : 'Test'} more...</Button>
+          </Link>
+        </div>
+      )}
+
       <table className="divide-y divide-gray-200 dark:divide-neutral-700 w-3/4">
         <thead>
           <tr>
@@ -132,36 +168,6 @@ export function DoneState({
           })}
         </tbody>
       </table>
-
-      {!isRetrigger && wordsToPersist.length > 0 && (
-        <div className="w-full flex justify-center mt-10">
-          <Button
-            variant="text"
-            onClick={() => setIsRetrigger(true)}
-            disabled={isRetrigger}
-          >
-            Failed to persist {wordsToPersist.length} words. Try again.
-          </Button>
-        </div>
-      )}
-
-      {wordsToPersist.length === 0 && (
-        <div className="w-full flex justify-center mt-10">
-          All words have been persisted.
-        </div>
-      )}
-
-      {wordsToPersist.length === 0 && (
-        <div className="w-full flex justify-center mt-10">
-          <Link
-            className=""
-            href={`/${isLearning ? 'learn' : 'test'}/${courseId ?? ''}/next`}
-            replace
-          >
-            <Button variant="outlined">{isLearning ? 'Learn' : 'Test'} more...</Button>
-          </Link>
-        </div>
-      )}
     </div>
   );
 }
