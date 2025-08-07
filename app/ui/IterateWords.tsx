@@ -15,7 +15,7 @@ import { DoneState } from './DoneState';
 import Link from 'next/link';
 import { Button } from '@material-tailwind/react';
 import { TypeTranslationProps } from './TypeTranslation';
-import { learnBatchLimit } from '../constants';
+import { learnBatchLimit, maxDistanceForRandomQueueInsertion } from '../constants';
 
 interface IterateWordsProps {
   words: Word[];
@@ -23,7 +23,17 @@ interface IterateWordsProps {
   isLearning?: boolean;
   title: string;
   specialKeys: TypeTranslationProps['specialKeys'];
+  isOffline: boolean;
 }
+
+const storeProgress = async (word: Word): Promise<UpdateWordResult> => {
+  try {
+    return await updateWordProgress(word);
+  } catch (error) {
+    console.error('Failed to call updateWordProgress action: ', error);
+    return { message: 'Failed to call updateWordProgress action', id: word.id };
+  }
+};
 
 export function IterateWords({
   words,
@@ -31,6 +41,7 @@ export function IterateWords({
   isLearning,
   title,
   specialKeys,
+  isOffline,
 }: Readonly<IterateWordsProps>) {
   const [wordQueue, setWordQueue] = useState<WordWithMeta[]>([]);
   const [wordIdx, setWordIdx] = useState<number>(-1);
@@ -59,15 +70,6 @@ export function IterateWords({
     }
   }, [wordIdx, wordQueue.length]);
 
-  const storeProgress = async (word: Word): Promise<UpdateWordResult> => {
-    try {
-      return await updateWordProgress(word);
-    } catch (error) {
-      console.error('Failed to call updateWordProgress action: ', error);
-      return { message: 'Failed to call updateWordProgress action', id: word.id };
-    }
-  };
-
   const correct = (word: WordWithMeta) => {
     // learning show
     // learning progress
@@ -76,8 +78,10 @@ export function IterateWords({
     const repeated = word.form === 'show' ? word.repeated : word.repeated + 1;
 
     const insertNextAtRandomPosition = (w: WordWithMeta) => {
-      const randomIdx =
-        2 + wordIdx + Math.floor(Math.random() * (wordQueue.length - wordIdx));
+      const randomIdx = Math.min(
+        2 + wordIdx + Math.floor(Math.random() * (wordQueue.length - wordIdx)),
+        wordIdx + maxDistanceForRandomQueueInsertion,
+      );
       const oldQueue = wordQueue.slice(0, randomIdx);
       const newQueue = wordQueue.slice(randomIdx);
       setWordQueue([...oldQueue, w, ...newQueue]);
@@ -239,6 +243,7 @@ export function IterateWords({
         stepsDone={wordIdx}
         stepsTotal={wordQueue.length}
         specialKeys={specialKeys}
+        isOffline={isOffline}
       />
     </div>
   );

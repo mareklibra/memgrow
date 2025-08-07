@@ -15,6 +15,7 @@ export default async function Page() {
         pathPrefix="/learn"
         showPriority={false}
         showFastEntry={false}
+        showForOffline={true}
       />
     </>
   );

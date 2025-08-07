@@ -11,17 +11,27 @@ const Course = ({
   pathPrefix,
   showPriority,
   showFastEntry,
+  showForOffline,
 }: {
   course: CourseType;
   pathPrefix: string;
   showPriority: boolean;
   showFastEntry: boolean;
+  showForOffline: boolean;
 }) => {
   const [isPriorityFirst, setIsPriorityFirst] = useState(false);
+  const [isOffline, setIsOffline] = useState(false);
 
   let link = `${pathPrefix}/${course.id}`;
   if (showPriority) {
     link += `?priorityFirst=${isPriorityFirst}`;
+  }
+  if (showForOffline) {
+    if (link.includes('?')) {
+      link += `&offline=${isOffline}`;
+    } else {
+      link += `?offline=${isOffline}`;
+    }
   }
 
   return (
@@ -63,6 +73,17 @@ const Course = ({
           </div>
         )}
 
+        {showForOffline && (
+          <div className="flex justify-end mt-2">
+            <Switch
+              crossOrigin={undefined}
+              label="For offline"
+              checked={isOffline}
+              onChange={() => setIsOffline(!isOffline)}
+            />
+          </div>
+        )}
+
         {showFastEntry && (
           <div className="flex justify-end mt-2">
             <Link href={`/edit/fastentry/${course.id}`}>&gt;&gt; Fast entry</Link>
@@ -78,11 +99,13 @@ export const ChooseCourse = ({
   pathPrefix,
   showPriority,
   showFastEntry,
+  showForOffline,
 }: {
   courses: CourseType[];
   pathPrefix: string;
   showPriority: boolean;
   showFastEntry: boolean;
+  showForOffline: boolean;
 }) => {
   return (
     <div className="flex w-10/12 flex-wrap" id="choose-course">
@@ -93,6 +116,7 @@ export const ChooseCourse = ({
           pathPrefix={pathPrefix}
           showPriority={showPriority}
           showFastEntry={showFastEntry}
+          showForOffline={showForOffline}
         />
       ))}
     </div>

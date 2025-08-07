@@ -22,6 +22,7 @@ interface TeachWordProps {
   handlePriority: (word: Word) => void;
   onChange: EditWordsProps['onChange'];
   specialKeys: TypeTranslationProps['specialKeys'];
+  isOffline: boolean;
 }
 
 const delay = async (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -34,6 +35,7 @@ export function TeachWord({
   repeatSooner,
   handlePriority,
   specialKeys,
+  isOffline,
 }: Readonly<TeachWordProps>) {
   const [status, setStatus] = useState<FieldStatus>('normal');
   const [isAnyText, setIsAnyText] = useState<boolean>(false);
@@ -206,11 +208,15 @@ export function TeachWord({
           <WordProgress word={word} />
         </div>
         <div className="py-[20px] flex justify-between">
-          <Button onClick={editWord} type="button">
+          <Button onClick={editWord} type="button" disabled={isOffline}>
             Edit
           </Button>
 
-          <Button onClick={playPronunciation} type="button" disabled={isPlaying}>
+          <Button
+            onClick={playPronunciation}
+            type="button"
+            disabled={isPlaying || isOffline}
+          >
             <SpeakerWaveIcon className="w-5" />
           </Button>
 

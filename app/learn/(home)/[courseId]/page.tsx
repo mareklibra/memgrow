@@ -1,6 +1,7 @@
 import {
   learnRepetitionLimit,
   learnWordsCountLimit,
+  learnWordsCountLimitOffline,
   maxSimilarWords,
 } from '@/app/constants';
 import { fetchSimilarWords, fetchWordsToLearn } from '@/app/lib/data';
@@ -9,11 +10,18 @@ import { IterateWords } from '@/app/ui/IterateWords';
 
 export default async function Page({
   params,
+  searchParams,
 }: {
   params: Promise<{ courseId: string }>;
+  searchParams: Promise<{ offline?: string }>;
 }) {
   const { courseId } = await params;
-  const wordsToLearn = await fetchWordsToLearn(courseId, learnWordsCountLimit);
+  const { offline } = await searchParams;
+  const isOffline = offline === 'true';
+  const wordsToLearn = await fetchWordsToLearn(
+    courseId,
+    isOffline ? learnWordsCountLimitOffline : learnWordsCountLimit,
+  );
   const words = await fetchSimilarWords(courseId, wordsToLearn, maxSimilarWords);
 
   return (
@@ -23,6 +31,7 @@ export default async function Page({
       isLearning
       title="Learn "
       specialKeys={getSpecialKeys([...words, ...wordsToLearn])}
+      isOffline={isOffline}
     />
   );
 }

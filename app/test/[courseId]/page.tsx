@@ -4,6 +4,7 @@ import {
   maxSimilarWords,
   testRepetitionLimit,
   testWordsCountLimit,
+  testWordsCountLimitOffline,
 } from '@/app/constants';
 import { getSpecialKeys } from '@/app/lib/utils';
 
@@ -12,13 +13,14 @@ export default async function Page({
   searchParams,
 }: {
   params: Promise<{ courseId: string }>;
-  searchParams: Promise<{ priorityFirst: string }>;
+  searchParams: Promise<{ priorityFirst?: string; offline?: string }>;
 }) {
   const { courseId } = await params;
-  const { priorityFirst } = await searchParams;
+  const { priorityFirst, offline } = await searchParams;
+  const isOffline = offline === 'true';
   const wordsToTest = await fetchWordsToTest(
     courseId,
-    testWordsCountLimit,
+    isOffline ? testWordsCountLimitOffline : testWordsCountLimit,
     priorityFirst === 'true',
   );
 
@@ -31,6 +33,7 @@ export default async function Page({
       repetitionLimit={testRepetitionLimit}
       title="Strengthen memory with "
       specialKeys={getSpecialKeys([...words, ...wordsToTest])}
+      isOffline={isOffline}
     />
   );
 }

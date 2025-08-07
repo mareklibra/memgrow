@@ -27,6 +27,7 @@ export default async function Page() {
         pathPrefix="/edit"
         showPriority={false}
         showFastEntry={true}
+        showForOffline={false}
       />
       <hr className="w-full m-4 border-t-2 border-gray-400" />
       <CreateCourse onSave={handleSave} />

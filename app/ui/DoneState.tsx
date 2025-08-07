@@ -92,7 +92,7 @@ export function DoneState({
       }
     };
     runAsync();
-  }, [wordsToPersist, isRetrigger]);
+  }, [wordsToPersist, isRetrigger, storeProgress]);
 
   return (
     <div className="flex flex-col">
