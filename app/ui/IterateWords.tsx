@@ -15,7 +15,11 @@ import { DoneState } from './DoneState';
 import Link from 'next/link';
 import { Button } from '@material-tailwind/react';
 import { TypeTranslationProps } from './TypeTranslation';
-import { learnBatchLimit, maxDistanceForRandomQueueInsertion } from '../constants';
+import {
+  learnBatchLimit,
+  learnBatchLimitOffline,
+  maxDistanceForRandomQueueInsertion,
+} from '../constants';
 
 interface IterateWordsProps {
   words: Word[];
@@ -47,6 +51,8 @@ export function IterateWords({
   const [wordIdx, setWordIdx] = useState<number>(-1);
   const [isDone, setIsDone] = useState<boolean>(false);
 
+  const maxWordsInBatch = isOffline ? learnBatchLimitOffline : learnBatchLimit;
+
   useEffect(
     () => {
       window.onbeforeunload = confirmExit;
@@ -77,7 +83,7 @@ export function IterateWords({
   }, [words, wordQueue]);
 
   useEffect(() => {
-    if (wordIdx >= wordQueue.length || wordIdx >= learnBatchLimit) {
+    if (wordIdx >= wordQueue.length || wordIdx >= maxWordsInBatch) {
       setIsDone(true);
     }
   }, [wordIdx, wordQueue.length]);
@@ -226,7 +232,7 @@ export function IterateWords({
   const word = wordQueue[wordIdx];
 
   const progress = Math.round(
-    (wordIdx / Math.min(wordQueue.length, learnBatchLimit)) * 100,
+    (wordIdx / Math.min(wordQueue.length, maxWordsInBatch)) * 100,
   );
 
   return (
