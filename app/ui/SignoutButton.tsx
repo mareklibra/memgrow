@@ -16,7 +16,7 @@ export default function SignoutButton({
 }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   return (
-    <div>
+    <>
       <button
         className={clsx(className, {
           'hover:bg-sky-100 hover:text-blue-600': isLoggedIn,
@@ -25,7 +25,7 @@ export default function SignoutButton({
         onClick={() => setIsDialogOpen(true)}
       >
         <PowerIcon className="w-6" />
-        <div className="hidden md:block">Sign Out</div>
+        <div /*className="hidden md:block"*/>Sign Out</div>
       </button>
       <ConfirmationDialog
         isOpen={isDialogOpen}
@@ -37,6 +37,6 @@ export default function SignoutButton({
         cancelText="Cancel"
         variant="danger"
       />
-    </div>
+    </>
   );
 }

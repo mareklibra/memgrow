@@ -11,6 +11,7 @@ import { ChooseTranslation } from './ChooseTranslation';
 import { EditWords, EditWordsProps } from './EditWords';
 import { useWithSound } from '../lib/useWithSound';
 import { DELAY_CORRECT_MS, DELAY_MISTAKE_MS } from '../constants';
+import { WordExamples, WordExamplesProps } from './WordExamples';
 
 interface TeachWordProps {
   word: WordWithMeta;
@@ -23,6 +24,8 @@ interface TeachWordProps {
   onChange: EditWordsProps['onChange'];
   specialKeys: TypeTranslationProps['specialKeys'];
   isOffline: boolean;
+  queryExamples: WordExamplesProps['queryExamples'];
+  deleteExample: WordExamplesProps['deleteExample'];
 }
 
 const delay = async (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -36,6 +39,8 @@ export function TeachWord({
   handlePriority,
   specialKeys,
   isOffline,
+  queryExamples,
+  deleteExample,
 }: Readonly<TeachWordProps>) {
   const [status, setStatus] = useState<FieldStatus>('normal');
   const [isAnyText, setIsAnyText] = useState<boolean>(false);
@@ -204,9 +209,19 @@ export function TeachWord({
     <form>
       <div className="flex flex-col" id="teach-word">
         <div>{component}</div>
+
+        <div className="py-[20px] w-full">
+          <WordExamples
+            word={word}
+            queryExamples={queryExamples}
+            deleteExample={deleteExample}
+          />
+        </div>
+
         <div className="py-[20px]">
           <WordProgress word={word} />
         </div>
+
         <div className="py-[20px] flex justify-between">
           <Button onClick={editWord} type="button" disabled={isOffline}>
             Edit

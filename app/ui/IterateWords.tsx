@@ -20,6 +20,7 @@ import {
   learnBatchLimitOffline,
   maxDistanceForRandomQueueInsertion,
 } from '../constants';
+import { WordExamplesProps } from './WordExamples';
 
 interface IterateWordsProps {
   words: Word[];
@@ -28,6 +29,8 @@ interface IterateWordsProps {
   title: string;
   specialKeys: TypeTranslationProps['specialKeys'];
   isOffline: boolean;
+  queryExamples: WordExamplesProps['queryExamples'];
+  deleteExample: WordExamplesProps['deleteExample'];
 }
 
 const storeProgress = async (word: Word): Promise<UpdateWordResult> => {
@@ -46,6 +49,8 @@ export function IterateWords({
   title,
   specialKeys,
   isOffline,
+  queryExamples,
+  deleteExample,
 }: Readonly<IterateWordsProps>) {
   const [wordQueue, setWordQueue] = useState<WordWithMeta[]>([]);
   const [wordIdx, setWordIdx] = useState<number>(-1);
@@ -59,6 +64,9 @@ export function IterateWords({
       function confirmExit() {
         return 'By closing this page you will lose your progress.';
       }
+      return () => {
+        window.onbeforeunload = null;
+      };
     },
     [
       /* just once*/
@@ -86,7 +94,7 @@ export function IterateWords({
     if (wordIdx >= wordQueue.length || wordIdx >= maxWordsInBatch) {
       setIsDone(true);
     }
-  }, [wordIdx, wordQueue.length]);
+  }, [wordIdx, wordQueue.length, maxWordsInBatch]);
 
   const correct = (word: WordWithMeta) => {
     // learning show
@@ -262,6 +270,8 @@ export function IterateWords({
         stepsTotal={wordQueue.length}
         specialKeys={specialKeys}
         isOffline={isOffline}
+        queryExamples={queryExamples}
+        deleteExample={deleteExample}
       />
     </div>
   );

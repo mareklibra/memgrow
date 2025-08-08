@@ -49,6 +49,10 @@ export type WordPronunciation = Pick<Word, 'id' | 'word' | 'definition'> & {
   audioSourceB64?: string;
 };
 
+export type WordExamples = Pick<Word, 'id' | 'word' | 'definition' | 'courseId'> & {
+  examples: string[];
+};
+
 const omDbPronunciation = (
   dbWord: Pick<DbWord, 'id' | 'course_id' | 'word' | 'definition'> & {
     audio_source_base64?: string;
@@ -58,6 +62,18 @@ const omDbPronunciation = (
   word: dbWord.word,
   definition: dbWord.definition,
   audioSourceB64: dbWord.audio_source_base64,
+});
+
+const omDbExamples = (
+  dbExamples: (Pick<DbWord, 'id' | 'course_id' | 'word' | 'definition'> & {
+    example?: string;
+  })[],
+): WordExamples => ({
+  id: dbExamples[0]['id'],
+  courseId: dbExamples[0].course_id,
+  word: dbExamples[0].word,
+  definition: dbExamples[0].definition,
+  examples: (dbExamples.map((e) => e.example).filter((e) => !!e) ?? []) as string[],
 });
 
 export async function fetchSimilarWords(
@@ -95,7 +111,7 @@ export async function fetchWordsToLearn(
     console.log('Fetching words to learn by user: ', myAuth?.user?.name);
 
     const result = await sql<DbWordProgress>`
-        SELECT words.id, words.word, words.course_id, words.definition,
+        SELECT words.course_id, words.id, words.word, words.course_id, words.definition,
                user_progress.form, user_progress.memlevel, user_progress.repeat_again, user_progress.is_priority
         FROM words
         LEFT OUTER JOIN
@@ -125,7 +141,7 @@ export async function fetchWordsToTest(
     const myAuth = await auth();
 
     const query = `
-    SELECT words.id, words.word, words.course_id, words.definition,
+    SELECT words.course_id, words.id, words.word, words.course_id, words.definition,
            user_progress.form, user_progress.memlevel, user_progress.repeat_again, user_progress.is_priority
     FROM words
     LEFT OUTER JOIN
@@ -166,7 +182,7 @@ export async function fetchAllWords(courseId: string): Promise<Word[]> {
 
     const result = await sql<DbWordProgress>`
         SELECT
-          words.id, words.word, words.definition,
+          words.course_id, words.id, words.word, words.definition,
           user_progress.form, user_progress.memlevel, user_progress.repeat_again, user_progress.is_priority
         FROM words
         LEFT OUTER JOIN
@@ -183,6 +199,33 @@ export async function fetchAllWords(courseId: string): Promise<Word[]> {
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch all words.');
+  }
+}
+
+export async function fetchWord(wordId: string): Promise<Word> {
+  try {
+    const myAuth = await auth();
+    console.log('Fetching a single word for the user ', myAuth?.user?.name, ': ', wordId);
+
+    const result = await sql<DbWordProgress>`
+        SELECT
+          words.course_id, words.id, words.word, words.definition,
+          user_progress.form, user_progress.memlevel, user_progress.repeat_again, user_progress.is_priority
+        FROM words
+        LEFT OUTER JOIN
+          (SELECT * FROM user_progress
+           WHERE
+           user_id = ${myAuth?.user?.id}
+         ) AS user_progress ON words.id = user_progress.word_id
+        WHERE
+          words.id = ${wordId}
+        `;
+
+    const data: Word[] = result.rows.map(fromDbWordProgress);
+    return data?.[0];
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch a single word.');
   }
 }
 
@@ -282,7 +325,6 @@ export async function fetchPronunciation({
   courseId,
 }: Pick<Word, 'id' | 'courseId'>): Promise<WordPronunciation | undefined> {
   try {
-    // TODO: add LEFT OUTER JOIN for binary data
     const result = await sql<DbWord>`
       SELECT words.id, words.word, words.course_id, words.definition, sounds.audio_source_base64
       FROM words
@@ -302,6 +344,32 @@ export async function fetchPronunciation({
     return omDbPronunciation(result.rows[0]);
   } catch (error) {
     console.error('Database Error:', error);
-    throw new Error('Failed to fetch all courses.');
+    throw new Error('Failed to fetch pronunciation.');
+  }
+}
+
+export async function fetchExamples({
+  wordId,
+}: {
+  wordId: Word['id'];
+}): Promise<WordExamples | undefined> {
+  try {
+    const result = await sql<DbWord>`
+      SELECT words.id AS id, words.word, words.course_id, words.definition, examples.id AS examples_id, examples.example
+      FROM words
+      LEFT OUTER JOIN examples ON words.id = examples.word_id
+      WHERE words.id = ${wordId}
+      ORDER BY examples.created_at ASC
+      `;
+
+    if (result.rows.length < 1) {
+      console.info(`fetchExamples, word not found, id: ${wordId}`);
+      return undefined;
+    }
+
+    return omDbExamples(result.rows);
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch examples.');
   }
 }
