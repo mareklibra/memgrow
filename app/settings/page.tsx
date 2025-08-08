@@ -20,18 +20,18 @@ export default async function Page() {
   return (
     <div className="flex flex-col">
       <div className="flex flex-row">
-        <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
+        <h1 className={`${lusitana.className} text-xl md:text-2xl`}>
           Settings for {myAuth?.user?.name}
         </h1>
         <div className="grow"></div>
         <SignoutButton
-          className="flex items-center justify-left rounded-md text-sm font-medium"
+          className="flex items-center justify-left rounded-md text-sm font-medium pr-8"
           isLoggedIn={isLoggedIn}
           handleSignOut={handleSignOut}
         />
       </div>
 
-      <div className="flex flex-row space-x-4">
+      <div className="flex flex-col space-y-4">
         <div className="flex">
           <ChangePasswordCard userId={myAuth?.user?.id} />
         </div>
