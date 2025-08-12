@@ -27,11 +27,7 @@ export async function updateWordProgress(word: Word): Promise<UpdateWordResult> 
         AND word_id = ${word.id}
     `;
 
-    if (result.rowCount > 1) {
-      throw new Error(`Update rowCount is higher than 1 (${result.rowCount})`);
-    }
-
-    if (result.rowCount === 0) {
+    if (result.rowCount === 0 || result.rowCount === null) {
       await sql.query(
         `
         INSERT INTO user_progress (word_id, user_id, memlevel, form, repeat_again, is_priority)
@@ -46,6 +42,12 @@ export async function updateWordProgress(word: Word): Promise<UpdateWordResult> 
           word.isPriority,
         ],
       );
+
+      return { id: word.id };
+    }
+
+    if (result.rowCount > 1) {
+      throw new Error(`Update rowCount is higher than 1 (${result.rowCount})`);
     }
   } catch (error) {
     console.error(error);

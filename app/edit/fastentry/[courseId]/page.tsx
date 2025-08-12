@@ -5,6 +5,7 @@ import { lusitana } from '@/app/ui/fonts';
 import { FastEntryForm } from '@/app/ui/FastEntryForm';
 import { WordToAdd } from '@/app/lib/definitions';
 import { addWord, UpdateWordResult } from '@/app/lib/actions';
+import { queryTranslations } from '@/app/lib/examples';
 
 export default async function Page({
   params,
@@ -50,7 +51,11 @@ export default async function Page({
         Fast entry for course {course.name}
       </h1>
       <div className="flex flex-col gap-2">
-        <FastEntryForm course={course} addWord={handleAdd} />
+        <FastEntryForm
+          course={course}
+          addWord={handleAdd}
+          queryTranslations={queryTranslations}
+        />
       </div>
       <p>
         For full features, go to the{' '}
