@@ -46,7 +46,7 @@ export function getSpecialKeys(words: Word[]): string[] {
   const result = new Set<string>();
   words.forEach((word) => {
     extractSpecialKeys(word.word).forEach((c) => result.add(c));
-    extractSpecialKeys(word.definition).forEach((c) => result.add(c));
+    // extractSpecialKeys(word.definition).forEach((c) => result.add(c));
   });
   return [...result];
 }
