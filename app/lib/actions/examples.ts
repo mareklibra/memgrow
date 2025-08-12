@@ -18,6 +18,11 @@ try {
   console.error('Error initializing OpenAI: ', e);
 }
 
+const DEFAULT_OPENAI_OPTIONS: OpenAI.RequestOptions = {
+  timeout: 15 * 1000,
+  maxRetries: 3,
+};
+
 export async function insertExamples(
   wordId: string,
   examples: string[],
@@ -118,16 +123,19 @@ export async function getWordExamples(wordId: string): Promise<GetWordExamplesRe
         Put every example on a new line.
         `;
 
-  const response = await client.chat.completions.create({
-    model: OPENAI_MODEL,
-    messages: [
-      { role: 'system', content: 'You are a language teacher.' },
-      {
-        role: 'user',
-        content: prompt,
-      },
-    ],
-  });
+  const response = await client.chat.completions.create(
+    {
+      model: OPENAI_MODEL,
+      messages: [
+        { role: 'system', content: 'You are a language teacher.' },
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
+    },
+    DEFAULT_OPENAI_OPTIONS,
+  );
   const content = response.choices[0].message.content?.trim();
   if (!content) {
     return {
@@ -166,16 +174,19 @@ export async function suggestTranslation({
   const prompt = `
   Translate "${word}" from ${course.learningLang} to ${course.knownLang}, each meaning on new line, no extra text or symbols.
   `;
-  const response = await client.chat.completions.create({
-    model: OPENAI_MODEL,
-    messages: [
-      { role: 'system', content: 'You are a dictionary.' },
-      {
-        role: 'user',
-        content: prompt,
-      },
-    ],
-  });
+  const response = await client.chat.completions.create(
+    {
+      model: OPENAI_MODEL,
+      messages: [
+        { role: 'system', content: 'You are a dictionary.' },
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
+    },
+    DEFAULT_OPENAI_OPTIONS,
+  );
 
   const content = response.choices[0].message.content?.trim();
   console.log('Received translation content: ', content);
