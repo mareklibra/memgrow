@@ -22,6 +22,7 @@ export function FastEntryForm({
   const [isLoading, setIsLoading] = useState(false);
 
   const handleAdd = async () => {
+    setError(undefined);
     const result = await addWord({
       word,
       definition,
@@ -41,6 +42,7 @@ export function FastEntryForm({
   };
 
   const handleSuggestTranslation = async () => {
+    setError(undefined);
     setIsLoading(true);
     try {
       const result = await queryTranslations({ word, courseId: course.id });
@@ -49,6 +51,8 @@ export function FastEntryForm({
       } else {
         setDefinition(result?.translations?.join(', ') || '');
       }
+    } catch (e) {
+      setError(`Error in queryTranslations: ${JSON.stringify(e)}`);
     } finally {
       setIsLoading(false);
     }

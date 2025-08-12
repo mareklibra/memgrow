@@ -209,5 +209,12 @@ export const deleteExample = async (wordId: string, example: string) => {
 
 export const queryTranslations = async (args: SuggestTranslationProps) => {
   'use server';
-  return await suggestTranslation(args);
+  try {
+    return await suggestTranslation(args);
+  } catch (e) {
+    console.error('Error in queryTranslations: ', e);
+    return {
+      message: `Error in queryTranslations: ${JSON.stringify(e)}`,
+    };
+  }
 };
