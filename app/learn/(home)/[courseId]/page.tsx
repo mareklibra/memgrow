@@ -5,7 +5,7 @@ import {
   maxSimilarWords,
 } from '@/app/constants';
 import { fetchSimilarWords, fetchWordsToLearn } from '@/app/lib/data';
-import { queryExamples, deleteExample } from '@/app/lib/examples';
+import { queryExamples, deleteExample } from '@/app/lib/actions';
 import { getSpecialKeys } from '@/app/lib/utils';
 import { IterateWords } from '@/app/ui/IterateWords';
 

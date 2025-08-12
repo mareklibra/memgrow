@@ -4,7 +4,7 @@ import { Input } from '@material-tailwind/react';
 import { Button } from './button';
 import { useState } from 'react';
 import { Course, WordToAdd } from '../lib/definitions';
-import { UpdateWordResult } from '../lib/actions';
+import { UpdateWordResult } from '@/app/lib/types';
 import { SuggestTranslationProps, SuggestTranslationResult } from '../lib/types';
 
 export function FastEntryForm({

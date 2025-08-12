@@ -1,7 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { lusitana } from '@/app/ui/fonts';
-
+import Link from 'next/link';
+import { Button } from '@material-tailwind/react';
 import {
   decreaseMemLevel,
   getNextForm,
@@ -9,11 +10,10 @@ import {
   increaseMemLevel,
 } from '@/app/lib/word-transitions';
 import { TeachingForm, Word, WordWithMeta } from '@/app/lib/definitions';
-import { updateWordProgress, UpdateWordResult } from '@/app/lib/actions';
+import { updateWordProgress } from '@/app/lib/actions';
+import { UpdateWordResult } from '@/app/lib/types';
 import { TeachWord } from './TeachWord';
 import { DoneState } from './DoneState';
-import Link from 'next/link';
-import { Button } from '@material-tailwind/react';
 import { TypeTranslationProps } from './TypeTranslation';
 import {
   learnBatchLimit,
