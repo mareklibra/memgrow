@@ -38,6 +38,7 @@ export function FastEntryForm({
         value={word}
         onChange={(e) => setWord(e.target.value)}
         crossOrigin={undefined}
+        autoCapitalize="none"
       />
       <Input
         label={`Definition (${course.knownLang})`}
@@ -45,6 +46,7 @@ export function FastEntryForm({
         value={definition}
         onChange={(e) => setDefinition(e.target.value)}
         crossOrigin={undefined}
+        autoCapitalize="none"
       />
       {error && <p className="text-red-500">{error}</p>}
       <Button className="w-fit" disabled={!word || !definition} onClick={handleAdd}>

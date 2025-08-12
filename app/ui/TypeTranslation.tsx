@@ -83,6 +83,7 @@ export function TypeTranslation({
           autoFocus
           disabled={status !== 'normal'}
           required
+          autoCapitalize="none"
         />
         {status === 'mistake' && (
           <WordDefinition
