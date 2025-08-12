@@ -178,6 +178,7 @@ export async function suggestTranslation({
   });
 
   const content = response.choices[0].message.content?.trim();
+  console.log('Received translation content: ', content);
   if (!content) {
     return {
       message: 'No content returned from OpenAI',
