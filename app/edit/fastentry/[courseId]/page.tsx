@@ -4,8 +4,8 @@ import { fetchCourse } from '@/app/lib/data';
 import { lusitana } from '@/app/ui/fonts';
 import { FastEntryForm } from '@/app/ui/FastEntryForm';
 import { WordToAdd } from '@/app/lib/definitions';
-import { addWord, UpdateWordResult } from '@/app/lib/actions';
-import { queryTranslations } from '@/app/lib/examples';
+import { addWord, queryTranslations } from '@/app/lib/actions';
+import { UpdateWordResult } from '@/app/lib/types';
 
 export default async function Page({
   params,

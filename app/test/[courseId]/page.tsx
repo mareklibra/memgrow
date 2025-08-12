@@ -7,7 +7,7 @@ import {
   testWordsCountLimitOffline,
 } from '@/app/constants';
 import { getSpecialKeys } from '@/app/lib/utils';
-import { queryExamples, deleteExample } from '@/app/lib/examples';
+import { queryExamples, deleteExample } from '@/app/lib/actions';
 
 export default async function Page({
   params,

@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import { Word } from '@/app/lib/definitions';
+import { UpdateWordResult } from '@/app/lib/types';
 import Link from 'next/link';
 import { Button, Spinner } from '@material-tailwind/react';
 import { WordTeachingStatus } from './WordTeachingStatus';
-import { UpdateWordResult } from '../lib/actions';
 
 const thClass =
   'px-3 py-3 text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500';

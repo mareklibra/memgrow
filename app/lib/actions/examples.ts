@@ -1,14 +1,15 @@
 'use server';
+
 import OpenAI from 'openai';
 import { sql } from '@vercel/postgres';
-import { fetchCourse, fetchExamples } from './data';
+import { fetchCourse, fetchExamples } from '../data';
 import {
   DeleteExampleResult,
   GetWordExamplesResult,
   SuggestTranslationProps,
   SuggestTranslationResult,
-} from './types';
-import { EXAMPLE_AI_REQUEST_COUNT, OPENAI_MODEL } from '../constants';
+} from '../types';
+import { EXAMPLE_AI_REQUEST_COUNT, OPENAI_MODEL } from '../../constants';
 
 let client: OpenAI | undefined;
 try {
