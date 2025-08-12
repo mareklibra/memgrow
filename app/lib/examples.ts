@@ -2,7 +2,12 @@
 import OpenAI from 'openai';
 import { sql } from '@vercel/postgres';
 import { fetchCourse, fetchExamples } from './data';
-import { DeleteExampleResult, GetWordExamplesResult } from './types';
+import {
+  DeleteExampleResult,
+  GetWordExamplesResult,
+  SuggestTranslationProps,
+  SuggestTranslationResult,
+} from './types';
 import { EXAMPLE_AI_REQUEST_COUNT, OPENAI_MODEL } from '../constants';
 
 let client: OpenAI | undefined;
@@ -138,6 +143,58 @@ export async function getWordExamples(wordId: string): Promise<GetWordExamplesRe
   };
 }
 
+export async function suggestTranslation({
+  word,
+  courseId,
+}: SuggestTranslationProps): Promise<SuggestTranslationResult> {
+  if (!client) {
+    return {
+      message: 'OpenAI Client not initialized',
+    };
+  }
+
+  const course = await fetchCourse(courseId);
+  if (!course) {
+    return {
+      message: `Course not found, id: ${courseId}.`,
+    };
+  }
+
+  console.log('Requesting translation for word ', word);
+
+  const prompt = `
+  Translate "${word}" from ${course.learningLang} to ${course.knownLang}, each meaning on new line, no extra text or symbols.
+  `;
+  const response = await client.chat.completions.create({
+    model: OPENAI_MODEL,
+    messages: [
+      { role: 'system', content: 'You are a dictionary.' },
+      {
+        role: 'user',
+        content: prompt,
+      },
+    ],
+  });
+
+  const content = response.choices[0].message.content?.trim();
+  if (!content) {
+    return {
+      message: 'No content returned from OpenAI',
+    };
+  }
+
+  const translations = content.split('\n').map((e) => e.trim());
+  const translationsDeduplicated = Array.from(
+    new Map(
+      translations.filter((t) => t.length > 0).map((t) => [t.toLowerCase(), t]),
+    ).values(),
+  );
+
+  return {
+    translations: translationsDeduplicated,
+  };
+}
+
 export const queryExamples = async (wordId: string) => {
   'use server';
   return await getWordExamples(wordId);
@@ -146,4 +203,9 @@ export const queryExamples = async (wordId: string) => {
 export const deleteExample = async (wordId: string, example: string) => {
   'use server';
   return await deleteWordExample(wordId, example);
+};
+
+export const queryTranslations = async (args: SuggestTranslationProps) => {
+  'use server';
+  return await suggestTranslation(args);
 };
