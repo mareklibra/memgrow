@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { Word } from '@/app/lib/definitions';
 import { UpdateWordResult } from '@/app/lib/types';
@@ -42,8 +42,30 @@ export function DoneState({
 }: Readonly<DoneStateProps>) {
   const [progress, setProgress] = useState<ProgressType[]>([]);
   const [wordsToPersist, setWordsToPersist] = useState<Word[]>([]);
+  const wordsToPersistRef = useRef<Word[]>([]);
   const [isRetrigger, setIsRetrigger] = useState<boolean>(true);
   const courseId = words[0].courseId;
+
+  const doPersist = useCallback(async () => {
+    if (wordsToPersistRef.current.length > 0) {
+      console.log('Persisting words: ', wordsToPersistRef.current);
+
+      const results = await Promise.all(wordsToPersistRef.current.map(storeProgress));
+      console.log('results: ', results);
+
+      const failed = results.filter((r) => r?.message);
+      const failedWords = wordsToPersistRef.current.filter((w) =>
+        failed.find((f) => f?.id === w.id),
+      );
+      if (failedWords.length > 0) {
+        console.error('Failed to persist words: ', failedWords);
+      }
+
+      setIsRetrigger(false);
+      setWordsToPersist(failedWords);
+      wordsToPersistRef.current = failedWords;
+    }
+  }, [storeProgress]);
 
   useEffect(
     () => {
@@ -64,6 +86,18 @@ export function DoneState({
 
       setProgress(progress);
       setWordsToPersist(lastWords);
+      wordsToPersistRef.current = lastWords;
+
+      return () => {
+        console.log('Leaving the DoneState: ', {
+          words,
+          wordQueue,
+          isLearning,
+          progress,
+          wordsToPersist,
+        });
+        doPersist();
+      };
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
@@ -72,27 +106,10 @@ export function DoneState({
   );
 
   useEffect(() => {
-    const runAsync = async () => {
-      if (wordsToPersist.length > 0 && isRetrigger) {
-        console.log('persisting words: ', wordsToPersist);
-
-        const results = await Promise.all(wordsToPersist.map(storeProgress));
-        console.log('results: ', results);
-
-        const failed = results.filter((r) => r?.message);
-        const failedWords = wordsToPersist.filter((w) =>
-          failed.find((f) => f?.id === w.id),
-        );
-        if (failedWords.length > 0) {
-          console.error('Failed to persist words: ', failedWords);
-        }
-
-        setIsRetrigger(false);
-        setWordsToPersist(failedWords);
-      }
-    };
-    runAsync();
-  }, [wordsToPersist, isRetrigger, storeProgress]);
+    if (isRetrigger) {
+      doPersist();
+    }
+  }, [isRetrigger, doPersist]);
 
   return (
     <div className="flex flex-col">
@@ -105,7 +122,7 @@ export function DoneState({
       {!isRetrigger && wordsToPersist.length > 0 && (
         <div className="w-full flex justify-center mt-10">
           <Button
-            variant="text"
+            variant="outlined"
             onClick={() => setIsRetrigger(true)}
             disabled={isRetrigger}
           >

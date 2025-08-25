@@ -33,7 +33,7 @@ export default async function Page({
       words={randomlyShuffledWords}
       repetitionLimit={testRepetitionLimit}
       title="Strengthen memory with "
-      specialKeys={getSpecialKeys([...words, ...wordsToTest])}
+      specialKeys={getSpecialKeys(words)}
       isOffline={isOffline}
       queryExamples={queryExamples}
       deleteExample={deleteExample}
