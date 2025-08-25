@@ -31,7 +31,7 @@ export default async function Page({
       repetitionLimit={learnRepetitionLimit}
       isLearning
       title="Learn "
-      specialKeys={getSpecialKeys([...words, ...wordsToLearn])}
+      specialKeys={getSpecialKeys(words)}
       isOffline={isOffline}
       queryExamples={queryExamples}
       deleteExample={deleteExample}
