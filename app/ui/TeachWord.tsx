@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Word, WordWithMeta } from '@/app/lib/definitions';
 import { BoltIcon, BoltSlashIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline';
@@ -132,12 +132,15 @@ export function TeachWord({
     setIsEdit(!isEdit);
   };
 
-  const handleOnChange = (word: Word) => {
-    if (onChange) {
-      onChange(word);
-    }
-    setIsEdit(false);
-  };
+  const handleOnChange = useCallback(
+    (word: Word) => {
+      if (onChange) {
+        onChange(word);
+      }
+      setIsEdit(false);
+    },
+    [onChange],
+  );
 
   let component;
   switch (word.form) {

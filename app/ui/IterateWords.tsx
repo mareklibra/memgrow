@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { lusitana } from '@/app/ui/fonts';
 import Link from 'next/link';
 import { Button } from '@material-tailwind/react';
@@ -188,18 +188,21 @@ export function IterateWords({
     setWordIdx(wordIdx + 1);
   };
 
-  const onChange = (word: Word) => {
-    const updated = wordQueue.map((w) => {
-      if (w.id === word.id) {
-        w.word = word.word;
-        w.definition = word.definition;
-        w.memLevel = word.memLevel;
-        w.isPriority = word.isPriority;
-      }
-      return w;
-    });
-    setWordQueue(updated);
-  };
+  const onChange = useCallback(
+    (word: Word) => {
+      const updated = wordQueue.map((w) => {
+        if (w.id === word.id) {
+          w.word = word.word;
+          w.definition = word.definition;
+          w.memLevel = word.memLevel;
+          w.isPriority = word.isPriority;
+        }
+        return w;
+      });
+      setWordQueue(updated);
+    },
+    [wordQueue],
+  );
 
   const onLeave = () => {
     // Subsequently, the DoneState will save the progress
