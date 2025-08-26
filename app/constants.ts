@@ -23,7 +23,7 @@ export const STRING_SIMILARITY_SUBSTRING_LENGTH = 2;
 export const SUCCESS_INCREASE = 1.5;
 export const MAX_MEM_LEVEL = 4 * 30; // 4 months
 
-export const SEARCH_DELAY_MS = 2000;
+export const SEARCH_DELAY_MS = 500;
 
 // export const OPENAI_MODEL = 'gpt-5-nano'; // 'gpt-4.1-nano';
 export const OPENAI_MODEL = 'gpt-4.1-nano'; // 'gpt-4.1-nano';

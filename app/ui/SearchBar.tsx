@@ -12,7 +12,6 @@ export const SearchBar = ({
       <Input
         label="Type word or definition to search for"
         onChange={(e) => {
-          console.log('-- onChange');
           setSearch(e.target.value);
         }}
         crossOrigin={undefined}
