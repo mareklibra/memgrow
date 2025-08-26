@@ -19,6 +19,7 @@ export async function updateWordProgress(word: Word): Promise<UpdateWordResult> 
       `;
 
     if (result.rowCount === 0 || result.rowCount === null) {
+      console.log('Insert new word progress (update failed): ', word.id);
       await sql.query(
         `
           INSERT INTO user_progress (word_id, user_id, memlevel, form, repeat_again, is_priority)
