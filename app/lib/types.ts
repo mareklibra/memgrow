@@ -27,3 +27,10 @@ export type UpdateWordResult =
       message?: string;
       id?: Word['id'];
     };
+
+export type UpdateWordsResult =
+  | undefined
+  | {
+      message?: string;
+      failedWordIds?: Word['id'][];
+    };

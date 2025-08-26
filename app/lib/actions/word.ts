@@ -5,7 +5,7 @@ import { auth } from '@/auth';
 import { revalidatePath } from 'next/cache';
 
 import { Word, WordToAdd } from '../definitions';
-import { UpdateWordResult } from '../types';
+import { UpdateWordResult, UpdateWordsResult } from '../types';
 
 export async function updateWordProgress(word: Word): Promise<UpdateWordResult> {
   const myAuth = await auth();
@@ -19,6 +19,7 @@ export async function updateWordProgress(word: Word): Promise<UpdateWordResult> 
       `;
 
     if (result.rowCount === 0 || result.rowCount === null) {
+      console.log('Insert new word progress (update failed): ', word.id);
       await sql.query(
         `
           INSERT INTO user_progress (word_id, user_id, memlevel, form, repeat_again, is_priority)
@@ -48,6 +49,19 @@ export async function updateWordProgress(word: Word): Promise<UpdateWordResult> 
     };
   }
 }
+
+export const updateWordsProgress = async (words: Word[]): Promise<UpdateWordsResult> => {
+  const result = await Promise.all(words.map(updateWordProgress));
+  const failedWordIds = result
+    .filter((r) => r?.message)
+    .map((r) => r?.id)
+    .filter((id): id is string => id !== undefined);
+
+  return {
+    message: `Failed to update ${failedWordIds.length} words.`,
+    failedWordIds,
+  };
+};
 
 export async function addWord(word: WordToAdd): Promise<UpdateWordResult> {
   try {

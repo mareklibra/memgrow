@@ -10,8 +10,8 @@ import {
   increaseMemLevel,
 } from '@/app/lib/word-transitions';
 import { TeachingForm, Word, WordWithMeta } from '@/app/lib/definitions';
-import { updateWordProgress } from '@/app/lib/actions';
-import { UpdateWordResult } from '@/app/lib/types';
+import { updateWordsProgress } from '@/app/lib/actions';
+import { UpdateWordsResult } from '@/app/lib/types';
 import { TeachWord } from './TeachWord';
 import { DoneState } from './DoneState';
 import { TypeTranslationProps } from './TypeTranslation';
@@ -33,12 +33,15 @@ interface IterateWordsProps {
   deleteExample: WordExamplesProps['deleteExample'];
 }
 
-const storeProgress = async (word: Word): Promise<UpdateWordResult> => {
+const storeProgress = async (words: Word[]): Promise<UpdateWordsResult> => {
   try {
-    return await updateWordProgress(word);
+    return await updateWordsProgress(words);
   } catch (error) {
-    console.error('Failed to call updateWordProgress action: ', error);
-    return { message: 'Failed to call updateWordProgress action', id: word.id };
+    console.error('Failed to call updateWordsProgress action: ', error);
+    return {
+      message: 'Failed to call updateWordProgress action',
+      failedWordIds: words.map((w) => w.id),
+    };
   }
 };
 

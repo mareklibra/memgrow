@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { Word } from '@/app/lib/definitions';
-import { UpdateWordResult } from '@/app/lib/types';
+import { UpdateWordsResult } from '@/app/lib/types';
 import Link from 'next/link';
 import { Button, Spinner } from '@material-tailwind/react';
 import { WordTeachingStatus } from './WordTeachingStatus';
@@ -13,7 +13,7 @@ const tdClass = 'px-3 py-4 text-sm font-medium text-gray-800 dark:text-neutral-2
 interface DoneStateProps {
   words: Word[];
   wordQueue: Word[];
-  storeProgress: (word: Word) => Promise<UpdateWordResult>;
+  storeProgress: (words: Word[]) => Promise<UpdateWordsResult>;
   isLearning?: boolean;
 }
 
@@ -50,20 +50,27 @@ export function DoneState({
     if (wordsToPersistRef.current.length > 0) {
       console.log('Persisting words: ', wordsToPersistRef.current);
 
-      const results = await Promise.all(wordsToPersistRef.current.map(storeProgress));
-      console.log('results: ', results);
+      try {
+        const result = await storeProgress(wordsToPersistRef.current);
 
-      const failed = results.filter((r) => r?.message);
-      const failedWords = wordsToPersistRef.current.filter((w) =>
-        failed.find((f) => f?.id === w.id),
-      );
-      if (failedWords.length > 0) {
-        console.error('Failed to persist words: ', failedWords);
+        const failedWords: Word[] = [];
+        if (result?.failedWordIds?.length && result.failedWordIds.length > 0) {
+          failedWords.push(
+            ...wordsToPersistRef.current.filter((w) =>
+              result.failedWordIds?.includes(w.id),
+            ),
+          );
+        }
+
+        if (failedWords.length > 0) {
+          console.error('Failed to persist words: ', failedWords);
+        }
+
+        setWordsToPersist(failedWords);
+        wordsToPersistRef.current = failedWords;
+      } finally {
+        setIsRetrigger(false);
       }
-
-      setIsRetrigger(false);
-      setWordsToPersist(failedWords);
-      wordsToPersistRef.current = failedWords;
     }
   }, [storeProgress]);
 
