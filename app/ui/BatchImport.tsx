@@ -96,6 +96,7 @@ export const BatchImport = ({
             word: 'not_relevant',
             definition: 'not_relevant',
             isPriority: false,
+            isSkipped: false,
           });
         }
       }

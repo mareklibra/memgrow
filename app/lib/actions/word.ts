@@ -12,7 +12,7 @@ export async function updateWordProgress(word: Word): Promise<UpdateWordResult> 
   try {
     const result = await sql`
         UPDATE user_progress
-        SET memlevel = ${word.memLevel}, form = ${word.form}, repeat_again = ${word.repeatAgain?.toISOString() || 'NULL'}, is_priority = ${word.isPriority}
+        SET memlevel = ${word.memLevel}, form = ${word.form}, repeat_again = ${word.repeatAgain?.toISOString() || 'NULL'}, is_priority = ${word.isPriority}, is_skipped = ${!!word.isSkipped}
         WHERE
           user_id = ${myAuth?.user?.id}
           AND word_id = ${word.id}
