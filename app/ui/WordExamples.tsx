@@ -53,7 +53,7 @@ export const WordExamples = ({
 
   return (
     <div className="flex flex-col">
-      <Card onClick={toggleOpen}>
+      <Card onClick={toggleOpen} className="cursor-pointer" variant="filled">
         <CardBody>
           {open && examples.length === 0 && (
             <Typography>Generating examples...</Typography>
@@ -73,7 +73,7 @@ export const WordExamples = ({
             </List>
           )}
 
-          {!open && <Typography>Show examples</Typography>}
+          {!open && <Typography>&gt;&nbsp;Show examples</Typography>}
 
           {error && <Typography>Error: {error}</Typography>}
         </CardBody>

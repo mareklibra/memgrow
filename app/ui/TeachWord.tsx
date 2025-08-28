@@ -21,6 +21,7 @@ interface TeachWordProps {
   mistake: (word: WordWithMeta) => void;
   repeatSooner: (word: Word) => void;
   handlePriority: (word: Word) => void;
+  skipWord: (word: Word) => void;
   onChange: EditWordsProps['onChange'];
   specialKeys: TypeTranslationProps['specialKeys'];
   isOffline: boolean;
@@ -41,6 +42,7 @@ export function TeachWord({
   isOffline,
   queryExamples,
   deleteExample,
+  skipWord,
 }: Readonly<TeachWordProps>) {
   const [status, setStatus] = useState<FieldStatus>('normal');
   const [isAnyText, setIsAnyText] = useState<boolean>(false);
@@ -49,6 +51,7 @@ export function TeachWord({
   const { playSound } = useWithSound(audioSource);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [reply, setReply] = useState<number>(0);
+  const [isSkipped, setIsSkipped] = useState<boolean>(word.isSkipped);
 
   const otherWordOptions = useMemo(
     () => (word.similarWords || []).map((w) => w.word),
@@ -115,6 +118,12 @@ export function TeachWord({
   };
 
   const forceCheck = async () => {
+    if (isSkipped) {
+      await delay(DELAY_CORRECT_MS);
+      skipWord(word);
+      return;
+    }
+
     if (word.form === 'show') {
       setStatus('correct');
       await delay(DELAY_CORRECT_MS);
@@ -198,7 +207,7 @@ export function TeachWord({
 
   const isCheckButtonDisabled = !(
     status === 'normal' &&
-    (isAnyText || word.form === 'show')
+    (isAnyText || word.form === 'show' || isSkipped)
   );
 
   const isLearning = word.memLevel === 0;
@@ -211,7 +220,12 @@ export function TeachWord({
   return (
     <form>
       <div className="flex flex-col" id="teach-word">
-        <div>{component}</div>
+        {!isSkipped && <div>{component}</div>}
+        {isSkipped && (
+          <div className="text-center">
+            The word will be skipped from your further learning.
+          </div>
+        )}
 
         <div className="py-[20px] w-full">
           <WordExamples
@@ -221,11 +235,48 @@ export function TeachWord({
           />
         </div>
 
+        <div className="flex flex-row justify-between">
+          <Button onClick={() => handlePriority(word)} type="button">
+            {word.isPriority ? (
+              <>
+                <BoltSlashIcon className="w-5" />
+                &nbsp;Remove priority
+              </>
+            ) : (
+              <>
+                <BoltIcon className="w-5" />
+                &nbsp;Set priority
+              </>
+            )}
+          </Button>
+
+          {!isSkipped && (
+            <Button
+              onClick={() => {
+                setIsSkipped(true);
+              }}
+              type="button"
+            >
+              Skip from learning
+            </Button>
+          )}
+          {isSkipped && (
+            <Button
+              onClick={() => {
+                setIsSkipped(false);
+              }}
+              type="button"
+            >
+              Keep learning it
+            </Button>
+          )}
+        </div>
+
         <div className="py-[20px]">
           <WordProgress word={word} />
         </div>
 
-        <div className="py-[20px] flex justify-between">
+        <div className="flex justify-between">
           <Button onClick={editWord} type="button" disabled={isOffline}>
             Edit
           </Button>
@@ -244,24 +295,11 @@ export function TeachWord({
             </Button>
           )}
 
-          <Button onClick={() => handlePriority(word)} type="button">
-            {word.isPriority ? (
-              <>
-                <BoltSlashIcon className="w-5" />
-                &nbsp;Remove priority
-              </>
-            ) : (
-              <>
-                <BoltIcon className="w-5" />
-                &nbsp;Set priority
-              </>
-            )}
-          </Button>
-
-          <Button onClick={forceCheck} disabled={isCheckButtonDisabled} type="submit">
+          <Button onClick={forceCheck} disabled={isCheckButtonDisabled} type="button">
             {word.form === 'show' ? 'Next' : 'Check'}
           </Button>
         </div>
+
         {isEdit && (
           <EditWords
             words={[word]}

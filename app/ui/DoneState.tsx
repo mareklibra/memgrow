@@ -178,8 +178,14 @@ export function DoneState({
         </thead>
         <tbody className="divide-y divide-gray-200 dark:divide-neutral-700">
           {progress.map((p) => {
+            console.log('Progress: ', p);
+            const isSkipped = p.end.isSkipped;
             return (
-              <tr id={p.start.id} key={p.start.id}>
+              <tr
+                id={p.start.id}
+                key={p.start.id}
+                className={isSkipped ? 'line-through' : ''}
+              >
                 <td className={tdClass}>{p.start.word}</td>
                 <td className={tdClass}>{p.start.definition}</td>
                 <td className={clsx(tdClass, 'w-2')}>

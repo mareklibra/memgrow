@@ -207,6 +207,35 @@ export function IterateWords({
     [wordQueue],
   );
 
+  const skipWord = useCallback(
+    (word: Word) => {
+      console.log('skipWord', word);
+
+      const newQueue = wordQueue
+        .map((w, index) => {
+          if (index < wordIdx) {
+            return w;
+          }
+
+          if (index === wordIdx) {
+            w.isSkipped = true;
+            return w;
+          }
+
+          if (w.id === word.id) {
+            return undefined;
+          }
+
+          return w;
+        })
+        .filter((w) => w !== undefined) as WordWithMeta[];
+
+      setWordQueue(newQueue);
+      setWordIdx(wordIdx + 1);
+    },
+    [wordIdx, wordQueue],
+  );
+
   const onLeave = () => {
     // Subsequently, the DoneState will save the progress
     setIsDone(true);
@@ -278,6 +307,7 @@ export function IterateWords({
         isOffline={isOffline}
         queryExamples={queryExamples}
         deleteExample={deleteExample}
+        skipWord={skipWord}
       />
     </div>
   );

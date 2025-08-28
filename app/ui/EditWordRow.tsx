@@ -43,6 +43,7 @@ export function WordRow({
   const [old, setOld] = useState<Word>(word);
   const [changed, setChanged] = useState<Word>(word);
   const [error, setError] = useState<string>();
+  const [isSkipped, setIsSkipped] = useState<boolean>(word.isSkipped);
 
   const handleReset = useCallback(
     (e: MouseEvent) => {
@@ -89,6 +90,23 @@ export function WordRow({
       if (result?.message) {
         console.error(result);
         setError(result?.message);
+      }
+    },
+    [word],
+  );
+
+  const handleSkip = useCallback(
+    async (e: MouseEvent) => {
+      e.preventDefault();
+
+      const wordToUpdate = { ...word, isSkipped: false };
+      const result = await updateWord(wordToUpdate);
+
+      if (result?.message) {
+        console.error(result);
+        setError(result?.message);
+      } else {
+        setIsSkipped(false);
       }
     },
     [word],
@@ -154,6 +172,7 @@ export function WordRow({
           </Button>
           {!fastEntry && (
             <>
+              {isSkipped && <Button onClick={handleSkip}>Keep learning it</Button>}
               <Button disabled={isEqual(old, changed)} onClick={handleReset}>
                 <ArrowPathIcon className="w-5" />
               </Button>
@@ -181,6 +200,7 @@ export function NewWordRow({
         form: 'show',
         repeatAgain: new Date(Date.now()),
         isPriority: false,
+        isSkipped: false,
       }}
       fastEntry={fastEntry}
     />
