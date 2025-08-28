@@ -124,7 +124,7 @@ export async function fetchWordsToLearn(
         WHERE
           words.course_id = ${courseId}
           AND (user_progress.memlevel = 0 OR user_progress.memlevel is NULL)
-          AND (user_progress.is_skipped = FALSE)
+          AND (user_progress.is_skipped = FALSE OR user_progress.memlevel is NULL)
         LIMIT ${limit}
         `;
     const data: Word[] = result.rows.map(fromDbWordProgress);
@@ -159,7 +159,7 @@ export async function fetchWordsToTest(
         user_progress.repeat_again < NOW()
         OR (${priorityFirst} AND user_progress.is_priority = TRUE)
       )
-      AND (user_progress.is_skipped = FALSE)
+      AND (user_progress.is_skipped = FALSE OR user_progress.memlevel is NULL)
     ORDER BY
       ${priorityFirst ? 'user_progress.is_priority DESC,' : ''}
       user_progress.repeat_again
@@ -266,7 +266,7 @@ export async function fetchCourses(): Promise<Course[]> {
         WHERE
           words.course_id IN (SELECT id FROM courses)
           AND (user_progress.memlevel = 0 OR user_progress.memlevel is NULL)
-          AND (user_progress.is_skipped = FALSE)
+          AND (user_progress.is_skipped = FALSE OR user_progress.memlevel is NULL)
         GROUP BY
           words.course_id
     `;
@@ -285,7 +285,7 @@ export async function fetchCourses(): Promise<Course[]> {
         WHERE
           words.course_id IN (SELECT id FROM courses)
           AND (user_progress.memlevel > 0)
-          AND (user_progress.is_skipped = FALSE)
+          AND (user_progress.is_skipped = FALSE OR user_progress.memlevel is NULL)
           AND user_progress.repeat_again < NOW()
         GROUP BY
           words.course_id
