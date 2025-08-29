@@ -90,7 +90,9 @@ export function EditWords({
 
   return (
     <div className="flex flex-col mr-4">
-      <SearchBar setSearch={setSearchThrottled} matches={sortedWords.length} />
+      {!reduced && (
+        <SearchBar setSearch={setSearchThrottled} matches={sortedWords.length} />
+      )}
       <table className="divide-y divide-gray-200 dark:divide-neutral-700">
         <EditWordHeader isEnriched={isEnriched} switchEnrichment={switchEnrichment} />
         <tbody className="divide-y divide-gray-200 dark:divide-neutral-700">
