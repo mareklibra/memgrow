@@ -18,7 +18,7 @@ export default async function Page() {
   };
 
   return (
-    <>
+    <div className="pt-4 pr-4">
       <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
         Choose course to edit
       </h1>
@@ -31,6 +31,6 @@ export default async function Page() {
       />
       <hr className="w-full m-4 border-t-2 border-gray-400" />
       <CreateCourse onSave={handleSave} />
-    </>
+    </div>
   );
 }

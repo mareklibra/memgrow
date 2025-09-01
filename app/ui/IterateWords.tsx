@@ -21,6 +21,7 @@ import {
   maxDistanceForRandomQueueInsertion,
 } from '../constants';
 import { WordExamplesProps } from './WordExamples';
+import { DonutProgressChart } from './DonutProgressChart';
 
 interface IterateWordsProps {
   words: Word[];
@@ -283,10 +284,11 @@ export function IterateWords({
       <h1
         className={`${lusitana.className} mb-4 text-xl md:text-2xl flex justify-between`}
       >
-        <div>
-          {title} up to {words.length} words ({progress}% done)
+        <div className="flex items-center">
+          {title} up to {words.length} words
         </div>
-        <div>
+        <div className="flex gap-2 items-center">
+          <DonutProgressChart progress={progress} width={70} valueSize="12px" />
           <Button variant="outlined" onClick={onLeave}>
             X
           </Button>

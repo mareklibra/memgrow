@@ -6,7 +6,7 @@ export default async function Page() {
   const courses = await fetchCourses();
 
   return (
-    <>
+    <div className="pt-4 pr-4">
       <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
         Choose course to learn new words from
       </h1>
@@ -17,6 +17,6 @@ export default async function Page() {
         showFastEntry={false}
         showForOffline={true}
       />
-    </>
+    </div>
   );
 }
