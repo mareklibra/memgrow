@@ -1,5 +1,6 @@
 import {
   learnRepetitionLimit,
+  learnRepetitionLimitOffline,
   learnWordsCountLimit,
   learnWordsCountLimitOffline,
   maxSimilarWords,
@@ -28,7 +29,7 @@ export default async function Page({
   return (
     <IterateWords
       words={words}
-      repetitionLimit={learnRepetitionLimit}
+      repetitionLimit={isOffline ? learnRepetitionLimitOffline : learnRepetitionLimit}
       isLearning
       title="Learn "
       specialKeys={getSpecialKeys(words)}
