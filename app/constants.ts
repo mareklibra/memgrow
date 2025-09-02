@@ -1,14 +1,16 @@
-export const testWordsCountLimit = 10; // keep at 10
+export const testWordsCountLimit = 25; // keep at 10
 export const testWordsCountLimitOffline = 500; // Keep at 500 for testing
 export const testRepetitionLimit = 1; // keep at 1
 
 export const maxDistanceForRandomQueueInsertion = 10;
 
 export const learnWordsCountLimit = 7;
-export const learnWordsCountLimitOffline = 25;
+export const learnWordsCountLimitOffline = 30;
 export const learnRepetitionLimit = 3;
+export const learnRepetitionLimitOffline = 4;
 export const learnBatchLimit = 23;
-export const learnBatchLimitOffline = learnWordsCountLimitOffline * 4 + 1;
+export const learnBatchLimitOffline =
+  learnWordsCountLimitOffline * (learnRepetitionLimitOffline + 1) + 1;
 
 export const DELAY_MISTAKE_MS = 3 * 1000;
 export const DELAY_CORRECT_MS = 1 * 700;
