@@ -45,6 +45,7 @@ const omDbCourse = (dbCourse: DbCourse): Course => ({
   total: dbCourse.total ?? 0,
   toLearn: -1,
   toTest: -1,
+  withPriority: -1,
 });
 
 export type WordPronunciation = Pick<Word, 'id' | 'word' | 'definition'> & {
@@ -264,8 +265,7 @@ export async function fetchCourses(): Promise<Course[]> {
              WHERE user_id = ${myAuth?.user?.id}
             ) AS user_progress ON words.id = user_progress.word_id
         WHERE
-          words.course_id IN (SELECT id FROM courses)
-          AND (user_progress.memlevel = 0 OR user_progress.memlevel is NULL)
+          (user_progress.memlevel = 0 OR user_progress.memlevel is NULL)
           AND (user_progress.is_skipped = FALSE OR user_progress.memlevel is NULL)
         GROUP BY
           words.course_id
@@ -283,10 +283,25 @@ export async function fetchCourses(): Promise<Course[]> {
              WHERE user_id = ${myAuth?.user?.id}
             ) AS user_progress ON words.id = user_progress.word_id
         WHERE
-          words.course_id IN (SELECT id FROM courses)
-          AND (user_progress.memlevel > 0)
+          (user_progress.memlevel > 0)
           AND (user_progress.is_skipped = FALSE OR user_progress.memlevel is NULL)
           AND user_progress.repeat_again < NOW()
+        GROUP BY
+          words.course_id
+    `;
+
+    const withPriorityStats = await sql<{
+      total: number;
+      course_id: string;
+    }>`SELECT count(*) as total, words.course_id as course_id
+        FROM
+          words JOIN
+          (SELECT * FROM user_progress
+           WHERE
+             user_id = ${myAuth?.user?.id}
+             AND is_priority = TRUE
+          ) AS user_progress
+          ON words.id = user_progress.word_id
         GROUP BY
           words.course_id
     `;
@@ -295,6 +310,8 @@ export async function fetchCourses(): Promise<Course[]> {
       course.toLearn =
         toLearnStats.rows.find((s) => s.course_id === course.id)?.total ?? 0;
       course.toTest = toTestStats.rows.find((s) => s.course_id === course.id)?.total ?? 0;
+      course.withPriority =
+        withPriorityStats.rows.find((s) => s.course_id === course.id)?.total ?? 0;
     });
 
     return courses;

@@ -19,6 +19,7 @@ const courses: Course[] = [
     total: 0,
     toLearn: 0,
     toTest: 0,
+    withPriority: 0,
   },
 ];
 
