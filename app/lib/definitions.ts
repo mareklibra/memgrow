@@ -60,6 +60,7 @@ export type Course = {
   total: number;
   toLearn: number;
   toTest: number;
+  withPriority: number;
 };
 
 export type UserProgress = {
