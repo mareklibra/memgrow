@@ -1,6 +1,8 @@
 export const testWordsCountLimit = 25; // keep at 10
 export const testWordsCountLimitOffline = 500; // Keep at 500 for testing
 export const testRepetitionLimit = 1; // keep at 1
+export const testBatchLimit = testWordsCountLimit * 2;
+export const testBatchLimitOffline = testWordsCountLimitOffline * 2;
 
 export const maxDistanceForRandomQueueInsertion = 10;
 
