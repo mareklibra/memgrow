@@ -19,6 +19,8 @@ import {
   learnBatchLimit,
   learnBatchLimitOffline,
   maxDistanceForRandomQueueInsertion,
+  testBatchLimit,
+  testBatchLimitOffline,
 } from '../constants';
 import { WordExamplesProps } from './WordExamples';
 import { DonutProgressChart } from './DonutProgressChart';
@@ -60,7 +62,10 @@ export function IterateWords({
   const [wordIdx, setWordIdx] = useState<number>(-1);
   const [isDone, setIsDone] = useState<boolean>(false);
 
-  const maxWordsInBatch = isOffline ? learnBatchLimitOffline : learnBatchLimit;
+  let maxWordsInBatch = isOffline ? testBatchLimitOffline : testBatchLimit;
+  if (isLearning) {
+    maxWordsInBatch = isOffline ? learnBatchLimitOffline : learnBatchLimit;
+  }
 
   useEffect(
     () => {
