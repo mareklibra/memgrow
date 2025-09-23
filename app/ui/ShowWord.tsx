@@ -2,6 +2,7 @@ import clsx from 'clsx';
 import { Word } from '@/app/lib/definitions';
 import { TranslationOption, TranslationOptionState } from './TranslationOption';
 import { FieldStatus } from './types';
+import { useKeyHandler } from './useKeyHandler';
 
 interface ShowWordProps {
   word: Word;
@@ -28,6 +29,7 @@ export function WordStatic({ word, className }: Readonly<WordStaticProps>) {
 }
 
 export function ShowWord({ word, onClick, status }: Readonly<ShowWordProps>) {
+  useKeyHandler(onClick, 'Enter');
   let state: TranslationOptionState = 'disabled';
 
   if (status === 'correct') {

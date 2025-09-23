@@ -1,17 +1,24 @@
 import clsx from 'clsx';
 import { Button } from './button';
+import { useCallback } from 'react';
+import { useKeyHandler } from './useKeyHandler';
 
 export type TranslationOptionState = 'normal' | 'mistake' | 'correct' | 'disabled';
 
 export const TranslationOption = ({
   state,
   option,
+  shortcut,
   handleClick,
 }: {
   state: TranslationOptionState;
   option: string;
+  shortcut?: string;
   handleClick: (option: string) => void;
 }) => {
+  const handleKeyClick = useCallback(() => handleClick(option), [handleClick, option]);
+  useKeyHandler(handleKeyClick, shortcut);
+
   return (
     <div>
       <Button
@@ -25,7 +32,10 @@ export const TranslationOption = ({
           handleClick(option);
         }}
       >
-        <div className="text-black">{option}</div>
+        <>
+          <div className="text-black w-full">{option}</div>
+          {shortcut && <div className="text-gray-500">{shortcut}</div>}
+        </>
       </Button>
     </div>
   );
