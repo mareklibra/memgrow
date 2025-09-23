@@ -6,6 +6,7 @@ import { FieldStatus } from './types';
 import { WordStatic } from './ShowWord';
 import { Button } from './button';
 import { TranslationOption, TranslationOptionState } from './TranslationOption';
+import { useMobile } from './useMobile';
 
 interface ChooseTranslationProps {
   // word: Word;
@@ -24,6 +25,7 @@ export function ChooseTranslation({
   otherOptions,
 }: Readonly<ChooseTranslationProps>) {
   const [value, setValue] = useState<string>();
+  const { isMobile } = useMobile();
   const options = useMemo(() => {
     const array = [...otherOptions, correctResponse];
     shuffleArray(array);
@@ -40,7 +42,7 @@ export function ChooseTranslation({
       <WordStatic word={toGuess} />
       <div className="grid grid-cols-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-3/4 col-span-11 justify-self-center">
-          {options.map((item) => {
+          {options.map((item, index) => {
             let state: TranslationOptionState = 'normal';
             if (status !== 'normal' && item === correctResponse) {
               state = 'correct';
@@ -53,6 +55,7 @@ export function ChooseTranslation({
             return (
               <TranslationOption
                 state={state}
+                shortcut={isMobile ? undefined : (index + 1).toString()}
                 option={item}
                 handleClick={handleClick}
                 key={item}
