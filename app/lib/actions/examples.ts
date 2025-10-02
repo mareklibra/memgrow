@@ -67,6 +67,35 @@ export async function deleteWordExample(
   }
 }
 
+const getLLMResponse = async (prompt: string): Promise<string | { message: string }> => {
+  if (!client) {
+    return {
+      message: 'OpenAI Client not initialized',
+    };
+  }
+
+  const response = await client.chat.completions.create(
+    {
+      model: OPENAI_MODEL,
+      messages: [
+        { role: 'system', content: 'You are a language teacher.' },
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
+    },
+    DEFAULT_OPENAI_OPTIONS,
+  );
+  const content = response.choices[0].message.content?.trim();
+  if (!content) {
+    return {
+      message: 'No content returned from OpenAI',
+    };
+  }
+  return content;
+};
+
 export async function getWordExamples(wordId: string): Promise<GetWordExamplesResult> {
   if (!client) {
     return {
@@ -113,42 +142,43 @@ export async function getWordExamples(wordId: string): Promise<GetWordExamplesRe
     id: wordWithExamples.id,
     languageCode: course.courseCode,
   });
-
-  const prompt = `
+  const examplesResponse = await getLLMResponse(`
         Generate three ${EXAMPLE_AI_REQUEST_COUNT} examples of using the expression "${wordWithExamples.word}"
         in ${course.learningLang} language (ISO code ${course.courseCode}).
         The examples should cover the most commonly used meanings of that expression.
         Do not produce any other text, just the three sentences.
         Avoid using numbers at the beginning of the rows.
         Put every example on a new line.
-        `;
-
-  const response = await client.chat.completions.create(
-    {
-      model: OPENAI_MODEL,
-      messages: [
-        { role: 'system', content: 'You are a language teacher.' },
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-    },
-    DEFAULT_OPENAI_OPTIONS,
-  );
-  const content = response.choices[0].message.content?.trim();
-  if (!content) {
-    return {
-      message: 'No content returned from OpenAI',
-    };
+        `);
+  if (typeof examplesResponse === 'object') {
+    return examplesResponse;
   }
-  const examples = content.split('\n').map((e) => e.trim());
+  const examples = examplesResponse.split('\n').map((e) => e.trim());
   console.log('examples: ', examples);
 
-  await insertExamples(wordId, examples);
+  console.log('Fetching synonyms for word: ', {
+    word: wordWithExamples.word,
+    id: wordWithExamples.id,
+    languageCode: course.courseCode,
+  });
+  const synonymsResponse = await getLLMResponse(`
+        Give me up to three synonyms of the expression "${wordWithExamples.word}"
+        in ${course.learningLang} language (ISO code ${course.courseCode}).
+        Do not produce any other text, just the synonyms.
+        Avoid using numbers at the beginning of the rows.
+        Put every synonym on a new line.
+        `);
+  let synonyms: string[] = [];
+  if (typeof synonymsResponse !== 'object') {
+    synonyms = synonymsResponse.split('\n').map((e) => e.trim());
+    console.log('synonyms: ', synonyms);
+  }
+
+  const allExamples = [...examples, ...synonyms];
+  await insertExamples(wordId, allExamples);
 
   return {
-    examples,
+    examples: allExamples,
   };
 }
 
