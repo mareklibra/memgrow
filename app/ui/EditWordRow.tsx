@@ -14,6 +14,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 import { Button } from './button';
+import { Button as ButtonTailwind } from '@material-tailwind/react';
 import { DeleteButton } from './DeleteButton';
 
 const UNUSED = '__not_used__';
@@ -79,6 +80,14 @@ export function WordRow({
       }
     },
     [changed, handleReset, onChange],
+  );
+
+  const handleRepeatAgain = useCallback(
+    async (e: MouseEvent) => {
+      e.preventDefault();
+      setChanged({ ...changed, repeatAgain: new Date(Date.now()) });
+    },
+    [changed],
   );
 
   const handleDelete = useCallback(
@@ -162,7 +171,11 @@ export function WordRow({
             />
           </td>
           <td className={tdClass}>{changed.form}</td>
-          <td className={tdClass}>{changed.repeatAgain?.toLocaleDateString()}</td>
+          <td className={tdClass}>
+            <ButtonTailwind variant="text" onClick={handleRepeatAgain}>
+              {changed.repeatAgain?.toLocaleDateString()}
+            </ButtonTailwind>
+          </td>
         </>
       )}
       <td className={tdClass}>
