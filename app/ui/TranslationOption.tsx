@@ -8,11 +8,13 @@ export type TranslationOptionState = 'normal' | 'mistake' | 'correct' | 'disable
 export const TranslationOption = ({
   state,
   option,
+  optionTwin,
   shortcut,
   handleClick,
 }: {
   state: TranslationOptionState;
   option: string;
+  optionTwin: string;
   shortcut?: string;
   handleClick: (option: string) => void;
 }) => {
@@ -32,10 +34,21 @@ export const TranslationOption = ({
           handleClick(option);
         }}
       >
-        <>
-          <div className="text-black w-full">{option}</div>
-          {shortcut && <div className="text-gray-500">{shortcut}</div>}
-        </>
+        {state === 'mistake' && (
+          <div className="grid grid-flow-col grid-rows-2 gap-2 w-full">
+            <div className="col-span-11 text-black">{option}</div>
+            <div className="col-span-11 text-black">({optionTwin})</div>
+            {shortcut && (
+              <div className="row-span-2 self-center text-gray-500">{shortcut}</div>
+            )}
+          </div>
+        )}
+        {state !== 'mistake' && (
+          <div className="grid grid-flow-col grid-rows-1 gap-2 w-full">
+            <div className="col-span-11 text-black">{option}</div>
+            {shortcut && <div className="self-center text-gray-500">{shortcut}</div>}
+          </div>
+        )}
       </Button>
     </div>
   );

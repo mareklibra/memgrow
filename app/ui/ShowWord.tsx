@@ -39,7 +39,12 @@ export function ShowWord({ word, onClick, status }: Readonly<ShowWordProps>) {
   return (
     <>
       <WordStatic word={word.word} />
-      <TranslationOption state={state} option={word.definition} handleClick={onClick} />
+      <TranslationOption
+        state={state}
+        option={word.definition}
+        optionTwin={word.word}
+        handleClick={onClick}
+      />
     </>
   );
 }

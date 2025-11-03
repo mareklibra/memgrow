@@ -57,6 +57,7 @@ export function ChooseTranslation({
                 state={state}
                 shortcut={isMobile ? undefined : (index + 1).toString()}
                 option={item}
+                optionTwin={correctResponse}
                 handleClick={handleClick}
                 key={item}
               />
