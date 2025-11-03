@@ -31,7 +31,12 @@ export const getProgressInPercents = (form: TeachingForm) =>
 
 export function increaseMemLevel(level: number): number {
   // Amount of days until retested again
-  const next = 1 + Math.ceil(level * SUCCESS_INCREASE);
+  let next: number;
+  if (level < TeachingFormCount * 2) {
+    next = level + 1;
+  } else {
+    next = 1 + Math.ceil(level * SUCCESS_INCREASE);
+  }
   return Math.min(next, MAX_MEM_LEVEL);
 }
 
