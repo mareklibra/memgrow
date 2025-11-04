@@ -6,7 +6,6 @@ import { TypeTranslation, TypeTranslationProps } from './TypeTranslation';
 import { ShowWord } from './ShowWord';
 import { Button } from './button';
 import { FieldStatus } from './types';
-import { WordProgress } from './WordProgress';
 import { ChooseTranslation } from './ChooseTranslation';
 import { EditWords, EditWordsProps } from './EditWords';
 import { useWithSound } from '../lib/useWithSound';
@@ -263,9 +262,7 @@ export function TeachWord({
           )}
         </div>
 
-        <div className="py-[20px]">
-          <WordProgress word={word} />
-        </div>
+        <hr className="h-px my-8 bg-gray-200 border-0 dark:bg-gray-700"></hr>
 
         <div className="flex justify-between">
           <Button onClick={editWord} type="button" disabled={isOffline}>

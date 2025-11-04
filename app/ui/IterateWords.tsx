@@ -18,6 +18,7 @@ import { TypeTranslationProps } from './TypeTranslation';
 import {
   learnBatchLimit,
   learnBatchLimitOffline,
+  MAX_MEM_LEVEL,
   maxDistanceForRandomQueueInsertion,
   testBatchLimit,
   testBatchLimitOffline,
@@ -293,7 +294,20 @@ export function IterateWords({
           {title} up to {words.length} words
         </div>
         <div className="flex gap-2 items-center">
-          <DonutProgressChart progress={progress} width={70} valueSize="12px" />
+          <DonutProgressChart
+            label="Level"
+            max={MAX_MEM_LEVEL}
+            suffix=""
+            progress={word.memLevel}
+            width={70}
+            valueSize="12px"
+          />
+          <DonutProgressChart
+            label="Batch"
+            progress={progress}
+            width={70}
+            valueSize="12px"
+          />
           <Button variant="outlined" onClick={onLeave}>
             X
           </Button>
