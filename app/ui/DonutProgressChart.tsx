@@ -5,11 +5,15 @@ export const DonutProgressChart = ({
   label = '',
   width,
   valueSize = '13px',
+  max = 100,
+  suffix = '%',
 }: {
   progress: number;
   label?: string;
   width: number;
   valueSize: string;
+  max?: number;
+  suffix?: string;
 }) => {
   return (
     <div>
@@ -59,7 +63,7 @@ export const DonutProgressChart = ({
                   fontSize: valueSize,
                 },
                 value: {
-                  formatter: (v: number): string => `${v}%`,
+                  formatter: (v: number): string => `${v}${suffix}`,
                   fontSize: valueSize,
                   offsetY: -12,
                   show: true,
@@ -77,7 +81,7 @@ export const DonutProgressChart = ({
               inverseColors: true,
               opacityFrom: 1,
               opacityTo: 1,
-              stops: [0, 100],
+              stops: [0, max],
             },
           },
           stroke: {
