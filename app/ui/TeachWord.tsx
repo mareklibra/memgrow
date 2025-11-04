@@ -53,25 +53,13 @@ export function TeachWord({
   const [reply, setReply] = useState<number>(0);
   const [isSkipped, setIsSkipped] = useState<boolean>(word.isSkipped);
 
-  const otherWordOptions = useMemo(
-    () => (word.similarWords || []).map((w) => w.word),
+  const threeSimilarWords = useMemo(
+    () => word.similarWords?.slice(0, 3) || [],
     [word.similarWords],
   );
-  const otherDefinitionOptions = useMemo(
-    () => (word.similarWords || []).map((w) => w.definition),
+  const sevenSimilarWords = useMemo(
+    () => word.similarWords?.slice(0, 7) || [],
     [word.similarWords],
-  );
-  const threeWordOptions = useMemo(
-    () => otherWordOptions.slice(0, 3),
-    [otherWordOptions],
-  );
-  const threeDefinitionOptions = useMemo(
-    () => otherDefinitionOptions.slice(0, 3),
-    [otherDefinitionOptions],
-  );
-  const sevenDefinitionOptions = useMemo(
-    () => otherDefinitionOptions.slice(0, 7),
-    [otherDefinitionOptions],
   );
 
   useEffect(() => {
@@ -160,9 +148,10 @@ export function TeachWord({
       component = (
         <ChooseTranslation
           key={word.id}
+          guessing="definition"
           toGuess={word.word}
           correctResponse={word.definition}
-          otherOptions={threeDefinitionOptions}
+          similarWords={threeSimilarWords}
           onValue={onValue}
           status={status}
         />
@@ -172,9 +161,10 @@ export function TeachWord({
       component = (
         <ChooseTranslation
           key={word.id}
+          guessing="word"
           toGuess={word.definition}
           correctResponse={word.word}
-          otherOptions={threeWordOptions}
+          similarWords={threeSimilarWords}
           onValue={onValue}
           status={status}
         />
@@ -184,9 +174,10 @@ export function TeachWord({
       component = (
         <ChooseTranslation
           key={word.id}
+          guessing="definition"
           toGuess={word.word}
           correctResponse={word.definition}
-          otherOptions={sevenDefinitionOptions}
+          similarWords={sevenSimilarWords}
           onValue={onValue}
           status={status}
         />

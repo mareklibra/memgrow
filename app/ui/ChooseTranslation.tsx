@@ -7,30 +7,40 @@ import { WordStatic } from './ShowWord';
 import { Button } from './button';
 import { TranslationOption, TranslationOptionState } from './TranslationOption';
 import { useMobile } from './useMobile';
+import { Word } from '../lib/definitions';
 
 interface ChooseTranslationProps {
-  // word: Word;
+  guessing: 'word' | 'definition';
   toGuess: string;
   correctResponse: string;
+  similarWords: Word[];
   status: FieldStatus;
   onValue: (value: string, oneChanceOnly: boolean) => void;
-  otherOptions: string[];
 }
 
 export function ChooseTranslation({
+  guessing,
   toGuess,
   correctResponse,
   onValue,
   status,
-  otherOptions,
+  similarWords,
 }: Readonly<ChooseTranslationProps>) {
   const [value, setValue] = useState<string>();
   const { isMobile } = useMobile();
-  const options = useMemo(() => {
-    const array = [...otherOptions, correctResponse];
+
+  const options: { word: string; definition: string }[] = useMemo(() => {
+    const array = similarWords.map((word) => ({
+      word: word.word,
+      definition: word.definition,
+    }));
+    array.push({
+      word: correctResponse,
+      definition: correctResponse,
+    });
     shuffleArray(array);
     return array;
-  }, [otherOptions, correctResponse]);
+  }, [similarWords, correctResponse]);
 
   const handleClick = (value: string) => {
     setValue(value);
@@ -42,9 +52,12 @@ export function ChooseTranslation({
       <WordStatic word={toGuess} />
       <div className="grid grid-cols-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-3/4 col-span-11 justify-self-center">
-          {options.map((item, index) => {
+          {options.map((option, index) => {
             let state: TranslationOptionState = 'normal';
-            if (status !== 'normal' && item === correctResponse) {
+            const item = guessing === 'word' ? option.word : option.definition;
+            const optionTwin = guessing === 'word' ? option.definition : option.word;
+
+            if (status !== 'normal' && option.definition === correctResponse) {
               state = 'correct';
             } else if (status === 'mistake' && item === value) {
               state = 'mistake';
@@ -57,7 +70,7 @@ export function ChooseTranslation({
                 state={state}
                 shortcut={isMobile ? undefined : (index + 1).toString()}
                 option={item}
-                optionTwin={correctResponse}
+                optionTwin={optionTwin}
                 handleClick={handleClick}
                 key={item}
               />
