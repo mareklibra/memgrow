@@ -286,22 +286,22 @@ export function IterateWords({
   );
 
   return (
-    <div className="w-full p-5">
+    <div className="w-full p-2 md:pt-5">
       <h1
         className={`${lusitana.className} mb-4 text-xl md:text-2xl flex justify-between`}
       >
+        <DonutProgressChart
+          label="Level"
+          max={MAX_MEM_LEVEL}
+          suffix=""
+          progress={word.memLevel}
+          width={70}
+          valueSize="12px"
+        />
         <div className="flex items-center">
-          {title} up to {words.length} words
+          {title}&nbsp;{words.length} words
         </div>
         <div className="flex gap-2 items-center">
-          <DonutProgressChart
-            label="Level"
-            max={MAX_MEM_LEVEL}
-            suffix=""
-            progress={word.memLevel}
-            width={70}
-            valueSize="12px"
-          />
           <DonutProgressChart
             label="Batch"
             progress={progress}

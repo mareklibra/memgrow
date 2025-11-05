@@ -32,7 +32,7 @@ export default async function Page({
     <IterateWords
       words={randomlyShuffledWords}
       repetitionLimit={testRepetitionLimit}
-      title="Strengthen memory with "
+      title="Recall"
       specialKeys={getSpecialKeys(words)}
       isOffline={isOffline}
       queryExamples={queryExamples}
