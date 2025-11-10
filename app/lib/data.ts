@@ -240,60 +240,61 @@ export async function fetchCourses(): Promise<Course[]> {
     console.log('Fetching all courses for user: ', myAuth?.user?.name);
 
     // TODO: filter based on user permissions
-
-    const result =
-      await sql<DbCourse>`SELECT id, name, known_lang, learning_lang, course_code, total
+    const fetchResults = await Promise.all([
+      // generic
+      sql<DbCourse>`SELECT id, name, known_lang, learning_lang, course_code, total
       FROM
         courses
         LEFT OUTER JOIN
         (SELECT course_id, count(*) as total FROM words GROUP BY course_id) as total ON total.course_id = courses.id
       ORDER BY
         courses.name
-      `;
+      `,
 
-    const courses: Course[] = result.rows.map(omDbCourse);
+      // to learn
+      sql<{
+        total: number;
+        course_id: string;
+      }>`SELECT count(words.id) as total, words.course_id as course_id
+          FROM
+            words
+            LEFT OUTER JOIN
+              (SELECT *
+               FROM user_progress
+               WHERE user_id = ${myAuth?.user?.id}
+              ) AS user_progress ON words.id = user_progress.word_id
+          WHERE
+            (user_progress.memlevel = 0 OR user_progress.memlevel is NULL)
+            AND (user_progress.is_skipped = FALSE OR user_progress.memlevel is NULL)
+          GROUP BY
+            words.course_id
+      `,
 
-    const toLearnStats = await sql<{
-      total: number;
-      course_id: string;
-    }>`SELECT count(words.id) as total, words.course_id as course_id
-        FROM
-          words
-          LEFT OUTER JOIN
-            (SELECT *
-             FROM user_progress
-             WHERE user_id = ${myAuth?.user?.id}
-            ) AS user_progress ON words.id = user_progress.word_id
-        WHERE
-          (user_progress.memlevel = 0 OR user_progress.memlevel is NULL)
-          AND (user_progress.is_skipped = FALSE OR user_progress.memlevel is NULL)
-        GROUP BY
-          words.course_id
-    `;
+      // to test
+      sql<{
+        total: number;
+        course_id: string;
+      }>`SELECT count(words.id) as total, words.course_id as course_id
+          FROM
+            words
+            LEFT OUTER JOIN
+              (SELECT *
+               FROM user_progress
+               WHERE user_id = ${myAuth?.user?.id}
+              ) AS user_progress ON words.id = user_progress.word_id
+          WHERE
+            (user_progress.memlevel > 0)
+            AND (user_progress.is_skipped = FALSE OR user_progress.memlevel is NULL)
+            AND user_progress.repeat_again < NOW()
+          GROUP BY
+            words.course_id
+      `,
 
-    const toTestStats = await sql<{
-      total: number;
-      course_id: string;
-    }>`SELECT count(words.id) as total, words.course_id as course_id
-        FROM
-          words
-          LEFT OUTER JOIN
-            (SELECT *
-             FROM user_progress
-             WHERE user_id = ${myAuth?.user?.id}
-            ) AS user_progress ON words.id = user_progress.word_id
-        WHERE
-          (user_progress.memlevel > 0)
-          AND (user_progress.is_skipped = FALSE OR user_progress.memlevel is NULL)
-          AND user_progress.repeat_again < NOW()
-        GROUP BY
-          words.course_id
-    `;
-
-    const withPriorityStats = await sql<{
-      total: number;
-      course_id: string;
-    }>`SELECT count(*) as total, words.course_id as course_id
+      // with priority
+      sql<{
+        total: number;
+        course_id: string;
+      }>`SELECT count(*) as total, words.course_id as course_id
         FROM
           words JOIN
           (SELECT * FROM user_progress
@@ -304,7 +305,11 @@ export async function fetchCourses(): Promise<Course[]> {
           ON words.id = user_progress.word_id
         GROUP BY
           words.course_id
-    `;
+    `,
+    ]);
+
+    const [result, toLearnStats, toTestStats, withPriorityStats] = fetchResults;
+    const courses: Course[] = result.rows.map(omDbCourse);
 
     courses.forEach((course) => {
       course.toLearn =
