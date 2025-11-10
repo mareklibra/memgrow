@@ -163,7 +163,7 @@ export async function fetchWordsToTest(
       AND (user_progress.is_skipped = FALSE OR user_progress.memlevel is NULL)
     ORDER BY
       ${priorityFirst ? 'user_progress.is_priority DESC,' : ''}
-      user_progress.repeat_again
+      user_progress.memlevel
     LIMIT ${limit}
     `;
     const result = await sql.query<DbWordProgress>(query);
