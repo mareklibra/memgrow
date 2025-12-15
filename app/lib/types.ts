@@ -41,3 +41,5 @@ export type UpdateWordsResult =
       message?: string;
       failedWordIds?: Word['id'][];
     };
+
+export type WordWithSimilarity = Word & { similarity: number };

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import { fetchCourse } from '@/app/lib/data';
+import { fetchAllWords, fetchCourse } from '@/app/lib/data';
 import { lusitana } from '@/app/ui/fonts';
 import { FastEntryForm } from '@/app/ui/FastEntryForm';
 import { WordToAdd } from '@/app/lib/definitions';
@@ -40,6 +40,8 @@ export default async function Page({
     );
   }
 
+  const allWords = await fetchAllWords(courseId);
+
   const handleAdd = async (word: WordToAdd): Promise<UpdateWordResult | undefined> => {
     'use server';
     return await addWord(word);
@@ -51,7 +53,7 @@ export default async function Page({
         Fast entry for course {course.name}
       </h1>
       <div className="flex flex-col gap-2">
-        <FastEntryForm course={course} addWord={handleAdd} />
+        <FastEntryForm course={course} addWord={handleAdd} allWords={allWords} />
       </div>
       <p>
         For full features, go to the{' '}
