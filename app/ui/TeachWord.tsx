@@ -17,7 +17,7 @@ interface TeachWordProps {
   stepsDone: number;
   stepsTotal: number;
   correct: (word: WordWithMeta) => void;
-  mistake: (word: WordWithMeta) => void;
+  mistake: (word: WordWithMeta, isShortenOnly: boolean) => void;
   repeatSooner: (word: Word) => void;
   handlePriority: (word: Word) => void;
   skipWord: (word: Word) => void;
@@ -100,11 +100,11 @@ export function TeachWord({
     }
 
     if (oneChanceOnly) {
-      await forceCheck();
+      await forceCheck(value === '');
     }
   };
 
-  const forceCheck = async () => {
+  const forceCheck = async (isShortenOnly?: boolean) => {
     if (isSkipped) {
       await delay(DELAY_CORRECT_MS);
       skipWord(word);
@@ -121,7 +121,8 @@ export function TeachWord({
     // the value has been checked in onValue(), no need to repeat
     setStatus('mistake');
     await delay(DELAY_MISTAKE_MS);
-    mistake(word);
+
+    mistake(word, !!isShortenOnly);
   };
 
   const editWord = () => {
@@ -283,7 +284,11 @@ export function TeachWord({
             </Button>
           )}
 
-          <Button onClick={forceCheck} disabled={isCheckButtonDisabled} type="button">
+          <Button
+            onClick={() => forceCheck()}
+            disabled={isCheckButtonDisabled}
+            type="button"
+          >
             {word.form === 'show' ? 'Next' : 'Check'}
           </Button>
         </div>

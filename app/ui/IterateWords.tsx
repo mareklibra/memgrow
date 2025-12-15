@@ -170,12 +170,12 @@ export function IterateWords({
     setWordIdx(wordIdx + 1);
   };
 
-  const mistake = (word: WordWithMeta) => {
+  const mistake = (word: WordWithMeta, isShortenOnly: boolean) => {
     // Move learning backward
     const newForm: TeachingForm = 'show';
     let newMemLevel = word.memLevel;
     if (!isLearning) {
-      newMemLevel = decreaseMemLevel(word.memLevel);
+      newMemLevel = decreaseMemLevel(word.memLevel, isShortenOnly);
     }
 
     const newWord: WordWithMeta = {
@@ -249,7 +249,7 @@ export function IterateWords({
   };
 
   const repeatSooner = (word: Word) => {
-    onChange({ ...word, memLevel: decreaseMemLevel(word.memLevel) });
+    onChange({ ...word, memLevel: decreaseMemLevel(word.memLevel, false) });
   };
 
   const handlePriority = (word: Word) => {
