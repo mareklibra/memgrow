@@ -46,7 +46,8 @@ export function decreaseMemLevel(
   isShortenOnly: boolean,
 ): number {
   if (isShortenOnly) {
-    return Math.round(existingMemLevel / 2);
+    // Give time to remember the word
+    return 8;
   }
   return 1;
 }
