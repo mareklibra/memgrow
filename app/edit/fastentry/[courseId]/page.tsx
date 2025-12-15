@@ -4,7 +4,7 @@ import { fetchCourse } from '@/app/lib/data';
 import { lusitana } from '@/app/ui/fonts';
 import { FastEntryForm } from '@/app/ui/FastEntryForm';
 import { WordToAdd } from '@/app/lib/definitions';
-import { addWord, queryTranslations } from '@/app/lib/actions';
+import { addWord } from '@/app/lib/actions';
 import { UpdateWordResult } from '@/app/lib/types';
 
 export default async function Page({
@@ -51,16 +51,12 @@ export default async function Page({
         Fast entry for course {course.name}
       </h1>
       <div className="flex flex-col gap-2">
-        <FastEntryForm
-          course={course}
-          addWord={handleAdd}
-          queryTranslations={queryTranslations}
-        />
+        <FastEntryForm course={course} addWord={handleAdd} />
       </div>
       <p>
         For full features, go to the{' '}
-        <Link color="" href={`/edit/${courseId}`}>
-          Edit
+        <Link href={`/edit/${courseId}`}>
+          <strong>Edit</strong>
         </Link>
         &nbsp; page.
       </p>

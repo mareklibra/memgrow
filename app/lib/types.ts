@@ -5,6 +5,13 @@ export type GetWordExamplesResult = {
   message?: string;
 };
 
+export type GetWordExamplesRawResult = GetWordExamplesResult;
+
+export type GetWordExamplesRawProps = {
+  word: string;
+  courseId: string;
+};
+
 export type DeleteExampleResult =
   | {
       message?: string;

@@ -1,8 +1,17 @@
 'use client';
 
-import { Input } from '@material-tailwind/react';
-import { Button } from './button';
 import { useState } from 'react';
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  Input,
+  List,
+  ListItem,
+  Typography,
+} from '@material-tailwind/react';
+import { queryTranslations, queryExamplesRaw } from '@/app/lib/actions';
+import { Button } from './button';
 import { Course, WordToAdd } from '../lib/definitions';
 import { UpdateWordResult } from '@/app/lib/types';
 import { SuggestTranslationProps, SuggestTranslationResult } from '../lib/types';
@@ -10,16 +19,15 @@ import { SuggestTranslationProps, SuggestTranslationResult } from '../lib/types'
 export function FastEntryForm({
   addWord,
   course,
-  queryTranslations,
 }: {
   addWord: (word: WordToAdd) => Promise<UpdateWordResult | undefined>;
   course: Course;
-  queryTranslations: (args: SuggestTranslationProps) => Promise<SuggestTranslationResult>;
 }) {
   const [word, setWord] = useState('');
   const [definition, setDefinition] = useState('');
   const [error, setError] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
+  const [examples, setExamples] = useState<string[]>([]);
 
   const handleAdd = async () => {
     setError(undefined);
@@ -39,6 +47,8 @@ export function FastEntryForm({
   const handleClear = () => {
     setWord('');
     setDefinition('');
+    setExamples([]);
+    setError(undefined);
   };
 
   const handleSuggestTranslation = async () => {
@@ -55,6 +65,15 @@ export function FastEntryForm({
       setError(`Error in queryTranslations: ${JSON.stringify(e)}`);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGenerateExamples = async () => {
+    const result = await queryExamplesRaw({ word, courseId: course.id });
+    if (result?.message) {
+      setError(result.message);
+    } else {
+      setExamples(result?.examples || []);
     }
   };
 
@@ -88,10 +107,31 @@ export function FastEntryForm({
         >
           Suggest translation
         </Button>
+        <Button onClick={handleGenerateExamples} disabled={!word}>
+          Generate examples
+        </Button>
         <Button className="w-fit" disabled={!word && !definition} onClick={handleClear}>
           Clear
         </Button>
       </div>
+      {examples?.length > 0 && (
+        <div className="py-[20px] w-full">
+          <Card>
+            <CardBody>
+              <Typography variant="h5" color="blue-gray" className="mb-2">
+                Examples
+              </Typography>
+              <Typography>
+                <List>
+                  {examples.map((e) => (
+                    <ListItem key={e}>{e}</ListItem>
+                  ))}
+                </List>
+              </Typography>
+            </CardBody>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

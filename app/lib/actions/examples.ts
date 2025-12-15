@@ -5,6 +5,8 @@ import { sql } from '@vercel/postgres';
 import { fetchCourse, fetchExamples } from '../data';
 import {
   DeleteExampleResult,
+  GetWordExamplesRawProps,
+  GetWordExamplesRawResult,
   GetWordExamplesResult,
   SuggestTranslationProps,
   SuggestTranslationResult,
@@ -143,10 +145,10 @@ export async function getWordExamples(wordId: string): Promise<GetWordExamplesRe
     languageCode: course.courseCode,
   });
   const examplesResponse = await getLLMResponse(`
-        Generate three ${EXAMPLE_AI_REQUEST_COUNT} examples of using the expression "${wordWithExamples.word}"
+        Generate ${EXAMPLE_AI_REQUEST_COUNT} examples of using the expression "${wordWithExamples.word}"
         in ${course.learningLang} language (ISO code ${course.courseCode}).
         The examples should cover the most commonly used meanings of that expression.
-        Do not produce any other text, just the three sentences.
+        Do not produce any other text, just the ${EXAMPLE_AI_REQUEST_COUNT} sentences.
         Avoid using numbers at the beginning of the rows.
         Put every example on a new line.
         `);
@@ -182,6 +184,70 @@ export async function getWordExamples(wordId: string): Promise<GetWordExamplesRe
   };
 }
 
+export async function getWordExamplesRaw({
+  word,
+  courseId,
+}: GetWordExamplesRawProps): Promise<GetWordExamplesRawResult> {
+  if (!client) {
+    return {
+      message: 'OpenAI Client not initialized',
+    };
+  }
+
+  if (!word) {
+    return {
+      message: 'word is required',
+    };
+  }
+
+  const course = await fetchCourse(courseId);
+  if (!course) {
+    return {
+      message: `Course not found, id: ${courseId}`,
+    };
+  }
+
+  console.log('Fetching examples for word: ', {
+    word,
+    languageCode: course.courseCode,
+  });
+  const examplesResponse = await getLLMResponse(`
+        Generate ${EXAMPLE_AI_REQUEST_COUNT} examples of using the expression "${word}"
+        in ${course.learningLang} language (ISO code ${course.courseCode}).
+        The examples should cover the most commonly used meanings of that expression.
+        Do not produce any other text, just the ${EXAMPLE_AI_REQUEST_COUNT} sentences.
+        Avoid using numbers at the beginning of the rows.
+        Put every example on a new line.
+        `);
+  if (typeof examplesResponse === 'object') {
+    return examplesResponse;
+  }
+  const examples = examplesResponse.split('\n').map((e) => e.trim());
+  console.log('examples: ', examples);
+
+  console.log('Fetching synonyms for word: ', {
+    word,
+    languageCode: course.courseCode,
+  });
+  const synonymsResponse = await getLLMResponse(`
+        Give me up to three synonyms of the expression "${word}"
+        in ${course.learningLang} language (ISO code ${course.courseCode}).
+        Do not produce any other text, just the synonyms.
+        Avoid using numbers at the beginning of the rows.
+        Put every synonym on a new line.
+        `);
+  let synonyms: string[] = [];
+  if (typeof synonymsResponse !== 'object') {
+    synonyms = synonymsResponse.split('\n').map((e) => e.trim());
+    console.log('synonyms: ', synonyms);
+  }
+
+  const allExamples = [...examples, ...synonyms];
+
+  return {
+    examples: allExamples,
+  };
+}
 export async function suggestTranslation({
   word,
   courseId,
@@ -241,6 +307,11 @@ export async function suggestTranslation({
 export const queryExamples = async (wordId: string) => {
   'use server';
   return await getWordExamples(wordId);
+};
+
+export const queryExamplesRaw = async (args: GetWordExamplesRawProps) => {
+  'use server';
+  return await getWordExamplesRaw(args);
 };
 
 export const deleteExample = async (wordId: string, example: string) => {
