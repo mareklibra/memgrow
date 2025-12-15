@@ -42,8 +42,12 @@ export function increaseMemLevel(level: number): number {
 
 export function decreaseMemLevel(
   // eslint-disable-next-line
-  _: number,
+  existingMemLevel: number,
+  isShortenOnly: boolean,
 ): number {
+  if (isShortenOnly) {
+    return Math.round(existingMemLevel / 2);
+  }
   return 1;
 }
 
