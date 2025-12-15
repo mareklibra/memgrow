@@ -1,4 +1,8 @@
+import stringSimilarity from 'string-similarity-js';
+
+import { STRING_SIMILARITY_SUBSTRING_LENGTH } from '../constants';
 import { Word } from './definitions';
+import { WordWithSimilarity } from './types';
 
 export const formatDateToLocal = (dateStr: string, locale: string = 'en-US') => {
   const date = new Date(dateStr);
@@ -49,3 +53,26 @@ export function getSpecialKeys(words: Word[]): string[] {
   });
   return [...result];
 }
+
+export const getWordSimilarities = (
+  allWords: Word[],
+  word: Pick<Word, 'id' | 'word'>,
+): WordWithSimilarity[] =>
+  allWords
+    .map((candidate) => ({
+      ...candidate,
+      similarity:
+        word.id === candidate.id
+          ? 0
+          : stringSimilarity(
+              word.word,
+              candidate.word,
+              STRING_SIMILARITY_SUBSTRING_LENGTH,
+            ),
+    }))
+    .sort((a, b) => b.similarity - a.similarity);
+
+export const getWordSimilarity = (
+  allWords: Word[],
+  word: Pick<Word, 'id' | 'word'>,
+): number => getWordSimilarities(allWords, word)?.[0]?.similarity;

@@ -1,10 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Card,
   CardBody,
-  CardHeader,
   Input,
   List,
   ListItem,
@@ -12,14 +11,16 @@ import {
 } from '@material-tailwind/react';
 import { queryTranslations, queryExamplesRaw } from '@/app/lib/actions';
 import { Button } from './button';
-import { Course, WordToAdd } from '../lib/definitions';
-import { UpdateWordResult } from '@/app/lib/types';
-import { SuggestTranslationProps, SuggestTranslationResult } from '../lib/types';
+import { Course, Word, WordToAdd } from '../lib/definitions';
+import { UpdateWordResult, WordWithSimilarity } from '@/app/lib/types';
+import { getWordSimilarities } from '../lib/utils';
 
 export function FastEntryForm({
+  allWords,
   addWord,
   course,
 }: {
+  allWords: Word[];
   addWord: (word: WordToAdd) => Promise<UpdateWordResult | undefined>;
   course: Course;
 }) {
@@ -28,6 +29,16 @@ export function FastEntryForm({
   const [error, setError] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
   const [examples, setExamples] = useState<string[]>([]);
+  const [similarities, setSimilarities] = useState<WordWithSimilarity[]>([]);
+
+  useEffect(() => {
+    setSimilarities(
+      getWordSimilarities(allWords, {
+        id: 'unknownId',
+        word,
+      }),
+    );
+  }, [allWords, word]);
 
   const handleAdd = async () => {
     setError(undefined);
@@ -48,6 +59,7 @@ export function FastEntryForm({
     setWord('');
     setDefinition('');
     setExamples([]);
+    setSimilarities([]);
     setError(undefined);
   };
 
@@ -96,6 +108,15 @@ export function FastEntryForm({
         autoCapitalize="none"
       />
       {error && <p className="text-red-500">{error}</p>}
+      {word && (
+        <div className="flex flex-row gap-2">
+          Similarity:{' '}
+          {similarities
+            .slice(0, 3)
+            .map((s) => `${s.word} (${s.similarity.toFixed(2)})`)
+            .join(', ')}
+        </div>
+      )}
       <div className="flex flex-row gap-2">
         <Button className="w-fit" disabled={!word || !definition} onClick={handleAdd}>
           Add
@@ -115,7 +136,7 @@ export function FastEntryForm({
         </Button>
       </div>
       {examples?.length > 0 && (
-        <div className="py-[20px] w-full">
+        <div className="flex flex-row gap-2">
           <Card>
             <CardBody>
               <Typography variant="h5" color="blue-gray" className="mb-2">

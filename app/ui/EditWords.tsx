@@ -2,13 +2,13 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { Word } from '@/app/lib/definitions';
-import stringSimilarity from 'string-similarity-js';
 import { useThrottledCallback } from 'use-debounce';
-import { SEARCH_DELAY_MS, STRING_SIMILARITY_SUBSTRING_LENGTH } from '../constants';
+import { SEARCH_DELAY_MS } from '../constants';
 import { EditWordRowProps, NewWordRow, WordRow } from './EditWordRow';
 import { EditWordHeader } from './EditWordHeader';
 import { BatchImport } from './BatchImport';
 import { SearchBar } from './SearchBar';
+import { getWordSimilarity } from '../lib/utils';
 
 export type EditWordsProps = {
   words: Word[];
@@ -17,15 +17,6 @@ export type EditWordsProps = {
   onChange?: EditWordRowProps['onChange'];
   forceDbReload?: () => Promise<void>;
 };
-
-const getWordSimilarity = (allWords: Word[], word: Word): number =>
-  allWords
-    .map((candidate) =>
-      word.id === candidate.id
-        ? 0
-        : stringSimilarity(word.word, candidate.word, STRING_SIMILARITY_SUBSTRING_LENGTH),
-    )
-    .sort((a, b) => b - a)?.[0];
 
 type EnrichedWord = { similarity: number; word: Word };
 
