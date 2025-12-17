@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Word, WordWithMeta } from '@/app/lib/definitions';
 import { BoltIcon, BoltSlashIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline';
@@ -51,6 +51,7 @@ export function TeachWord({
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [reply, setReply] = useState<number>(0);
   const [isSkipped, setIsSkipped] = useState<boolean>(word.isSkipped);
+  const skipMistakeRef = useRef<boolean>(false);
 
   const threeSimilarWords = useMemo(
     () => word.similarWords?.slice(0, 3) || [],
@@ -120,9 +121,14 @@ export function TeachWord({
 
     // the value has been checked in onValue(), no need to repeat
     setStatus('mistake');
+    skipMistakeRef.current = false;
     await delay(DELAY_MISTAKE_MS);
 
-    mistake(word, !!isShortenOnly);
+    if (skipMistakeRef.current) {
+      mistake(word, true);
+    } else {
+      mistake(word, !!isShortenOnly);
+    }
   };
 
   const editWord = () => {
@@ -139,6 +145,10 @@ export function TeachWord({
     [onChange],
   );
 
+  const onRevertMistake = () => {
+    skipMistakeRef.current = true;
+  };
+
   let component;
   switch (word.form) {
     case 'show':
@@ -153,6 +163,7 @@ export function TeachWord({
           correctResponse={word.definition}
           similarWords={threeSimilarWords}
           onValue={onValue}
+          onRevertMistake={onRevertMistake}
           status={status}
         />
       );
@@ -166,6 +177,7 @@ export function TeachWord({
           correctResponse={word.word}
           similarWords={threeSimilarWords}
           onValue={onValue}
+          onRevertMistake={onRevertMistake}
           status={status}
         />
       );
@@ -179,6 +191,7 @@ export function TeachWord({
           correctResponse={word.definition}
           similarWords={sevenSimilarWords}
           onValue={onValue}
+          onRevertMistake={onRevertMistake}
           status={status}
         />
       );

@@ -16,6 +16,7 @@ interface ChooseTranslationProps {
   similarWords: Word[];
   status: FieldStatus;
   onValue: (value: string, oneChanceOnly: boolean) => void;
+  onRevertMistake: () => void;
 }
 
 export function ChooseTranslation({
@@ -23,11 +24,13 @@ export function ChooseTranslation({
   toGuess,
   correctResponse,
   onValue,
+  onRevertMistake,
   status,
   similarWords,
 }: Readonly<ChooseTranslationProps>) {
   const [value, setValue] = useState<string>();
   const { isMobile } = useMobile();
+  const [isRevertClicked, setIsRevertClicked] = useState<boolean>(false);
 
   const options: { word: string; definition: string }[] = useMemo(() => {
     const array = similarWords.map((word) => ({
@@ -47,9 +50,21 @@ export function ChooseTranslation({
     onValue(value, true);
   };
 
+  const handleRevertClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    setIsRevertClicked(true);
+    onRevertMistake();
+  };
+
   return (
     <>
       <WordStatic word={toGuess} />
+
+      {status === 'mistake' && !isRevertClicked && (
+        <Button className="mb-4 w-full" onClick={handleRevertClick}>
+          Soften Mistake
+        </Button>
+      )}
       <div className="grid grid-cols-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-3/4 col-span-11 justify-self-center">
           {options.map((option, index) => {

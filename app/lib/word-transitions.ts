@@ -47,7 +47,7 @@ export function decreaseMemLevel(
 ): number {
   if (isShortenOnly) {
     // Give time to remember the word
-    return 8;
+    return Math.min(8, existingMemLevel);
   }
   return 1;
 }
