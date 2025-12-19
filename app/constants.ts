@@ -14,7 +14,7 @@ export const learnBatchLimit = 23;
 export const learnBatchLimitOffline =
   learnWordsCountLimitOffline * (learnRepetitionLimitOffline + 1) + 1;
 
-export const DELAY_MISTAKE_MS = 3 * 1000;
+export const DELAY_MISTAKE_MS = 4 * 1000;
 export const DELAY_CORRECT_MS = 1 * 700;
 
 export const maxSimilarWords = 7;
