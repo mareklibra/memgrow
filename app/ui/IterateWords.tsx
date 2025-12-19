@@ -326,7 +326,6 @@ export function IterateWords({
         stepsDone={wordIdx}
         stepsTotal={wordQueue.length}
         specialKeys={specialKeys}
-        isOffline={isOffline}
         queryExamples={queryExamples}
         deleteExample={deleteExample}
         skipWord={skipWord}

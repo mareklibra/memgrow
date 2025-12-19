@@ -76,7 +76,7 @@ const Course = ({
           {showForOffline && (
             <Switch
               crossOrigin={undefined}
-              label="For offline"
+              label="Batch mode"
               checked={isOffline}
               onChange={() => setIsOffline(!isOffline)}
             />

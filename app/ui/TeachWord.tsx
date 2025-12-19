@@ -23,7 +23,6 @@ interface TeachWordProps {
   skipWord: (word: Word) => void;
   onChange: EditWordsProps['onChange'];
   specialKeys: TypeTranslationProps['specialKeys'];
-  isOffline: boolean;
   queryExamples: WordExamplesProps['queryExamples'];
   deleteExample: WordExamplesProps['deleteExample'];
 }
@@ -38,7 +37,6 @@ export function TeachWord({
   repeatSooner,
   handlePriority,
   specialKeys,
-  isOffline,
   queryExamples,
   deleteExample,
   skipWord,
@@ -279,15 +277,11 @@ export function TeachWord({
         <hr className="h-px my-8 bg-gray-200 border-0 dark:bg-gray-700"></hr>
 
         <div className="flex justify-between">
-          <Button onClick={editWord} type="button" disabled={isOffline}>
+          <Button onClick={editWord} type="button">
             Edit
           </Button>
 
-          <Button
-            onClick={playPronunciation}
-            type="button"
-            disabled={isPlaying || isOffline}
-          >
+          <Button onClick={playPronunciation} type="button" disabled={isPlaying}>
             <SpeakerWaveIcon className="w-5" />
           </Button>
 
