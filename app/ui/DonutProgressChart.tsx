@@ -5,20 +5,23 @@ export const DonutProgressChart = ({
   label = '',
   width,
   valueSize = '13px',
-  max = 100,
+  max,
   suffix = '%',
 }: {
   progress: number;
   label?: string;
   width: number;
   valueSize: string;
-  max?: number;
+  max: number;
   suffix?: string;
 }) => {
   return (
     <div>
       <Chart
-        series={[progress]}
+        series={
+          // in percents
+          [(progress / max) * 100]
+        }
         type="radialBar"
         width={width}
         options={{
@@ -63,7 +66,11 @@ export const DonutProgressChart = ({
                   fontSize: valueSize,
                 },
                 value: {
-                  formatter: (v: number): string => `${v}${suffix}`,
+                  formatter: (v: number): string => {
+                    // Receiving percents, calculate back the original value
+                    // Effectively means the "progress" value
+                    return `${Math.round((v * max) / 100)}${suffix}`;
+                  },
                   fontSize: valueSize,
                   offsetY: -12,
                   show: true,
