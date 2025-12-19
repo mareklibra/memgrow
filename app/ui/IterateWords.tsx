@@ -292,9 +292,9 @@ export function IterateWords({
       >
         <DonutProgressChart
           label="Level"
+          progress={word.memLevel}
           max={MAX_MEM_LEVEL}
           suffix=""
-          progress={word.memLevel}
           width={70}
           valueSize="12px"
         />
@@ -305,6 +305,7 @@ export function IterateWords({
           <DonutProgressChart
             label="Batch"
             progress={progress}
+            max={100}
             width={70}
             valueSize="12px"
           />
