@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Button, Input } from '@material-tailwind/react';
+import { Button, Input } from '@/app/lib/material-tailwind-compat';
 
 export function CreateCourse({
   onSave,
@@ -39,7 +39,6 @@ export function CreateCourse({
         label="Name"
         value={name}
         size="lg"
-        crossOrigin={undefined}
         onChange={(e) => setName(e.target.value)}
         minLength={2}
       />
@@ -49,7 +48,6 @@ export function CreateCourse({
         label="Learning language"
         value={learningLang}
         size="lg"
-        crossOrigin={undefined}
         onChange={(e) => setLearningLang(e.target.value)}
         minLength={2}
       />
@@ -59,7 +57,6 @@ export function CreateCourse({
         label="From language"
         value={knownLang}
         size="lg"
-        crossOrigin={undefined}
         onChange={(e) => setKnownLang(e.target.value)}
         minLength={2}
       />
@@ -69,7 +66,6 @@ export function CreateCourse({
         label="ISO-631 course code"
         value={courseCode}
         size="lg"
-        crossOrigin={undefined}
         onChange={(e) => setCourseCode(e.target.value)}
         minLength={2}
       />

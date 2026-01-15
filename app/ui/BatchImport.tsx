@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import clsx from 'clsx';
-import { Textarea, Typography } from '@material-tailwind/react';
+import { Textarea, Typography } from '@/app/lib/material-tailwind-compat';
 import { parse } from 'csv-parse/sync';
 
 import { Button } from './button';

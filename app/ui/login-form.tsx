@@ -1,7 +1,6 @@
 'use client';
 
 import {
-  // @ts-expect-error Part of React 19, react/types are v18 due to tailwind/react compatibility
   useActionState,
   useEffect,
 } from 'react';

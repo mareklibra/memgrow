@@ -1,5 +1,5 @@
 import { Word } from '@/app/lib/definitions';
-import { Progress, Typography } from '@material-tailwind/react';
+import { Progress, Typography } from '@/app/lib/material-tailwind-compat';
 import { getProgressInPercents } from '@/app/lib/word-transitions';
 interface WordProgressProps {
   word: Word;

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Word } from '@/app/lib/definitions';
 import { TrashIcon } from '@heroicons/react/24/outline';
 import { DeleteExampleResult, GetWordExamplesResult } from '../lib/types';
-import { Card, CardBody, List, ListItem, Typography } from '@material-tailwind/react';
+import { Card, CardBody, List, ListItem, Typography } from '@/app/lib/material-tailwind-compat';
 
 export type WordExamplesProps = {
   word: Word;

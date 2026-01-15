@@ -8,7 +8,7 @@ import {
   List,
   ListItem,
   Typography,
-} from '@material-tailwind/react';
+} from '@/app/lib/material-tailwind-compat';
 import { queryTranslations, queryExamplesRaw } from '@/app/lib/actions';
 import { Button } from './button';
 import { Course, Word, WordToAdd } from '../lib/definitions';
@@ -96,7 +96,6 @@ export function FastEntryForm({
         size="lg"
         value={word}
         onChange={(e) => setWord(e.target.value)}
-        crossOrigin={undefined}
         autoCapitalize="none"
       />
       <Input
@@ -104,7 +103,6 @@ export function FastEntryForm({
         size="lg"
         value={definition}
         onChange={(e) => setDefinition(e.target.value)}
-        crossOrigin={undefined}
         autoCapitalize="none"
       />
       {error && <p className="text-red-500">{error}</p>}

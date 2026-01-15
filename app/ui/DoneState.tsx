@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import { Word } from '@/app/lib/definitions';
 import { UpdateWordsResult } from '@/app/lib/types';
 import Link from 'next/link';
-import { Button, Spinner } from '@material-tailwind/react';
+import { Button, Spinner } from '@/app/lib/material-tailwind-compat';
 import { WordTeachingStatus } from './WordTeachingStatus';
 
 const thClass =

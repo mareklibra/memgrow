@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { lusitana } from '@/app/ui/fonts';
 import Link from 'next/link';
-import { Button } from '@material-tailwind/react';
+import { Button } from '@/app/lib/material-tailwind-compat';
 import {
   decreaseMemLevel,
   getNextForm,

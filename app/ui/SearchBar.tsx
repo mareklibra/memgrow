@@ -1,4 +1,4 @@
-import { Input, Typography } from '@material-tailwind/react';
+import { Input, Typography } from '@/app/lib/material-tailwind-compat';
 
 export const SearchBar = ({
   setSearch,
@@ -14,7 +14,6 @@ export const SearchBar = ({
         onChange={(e) => {
           setSearch(e.target.value);
         }}
-        crossOrigin={undefined}
       />
       <Typography variant="small" color="gray" className="ml-2">
         Found {matches} {matches === 1 ? 'word' : 'words'}

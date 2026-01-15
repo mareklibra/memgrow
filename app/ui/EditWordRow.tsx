@@ -14,7 +14,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 import { Button } from './button';
-import { Button as ButtonTailwind } from '@material-tailwind/react';
+import { Button as ButtonTailwind } from '@/app/lib/material-tailwind-compat';
 import { DeleteButton } from './DeleteButton';
 
 const UNUSED = '__not_used__';

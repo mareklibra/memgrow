@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Button, Input } from '@material-tailwind/react';
+import { Button, Input } from '@/app/lib/material-tailwind-compat';
 import { Course } from '../lib/definitions';
 
 export function EditCourse({
@@ -32,7 +32,6 @@ export function EditCourse({
           label="ISO-631 course code"
           value={courseCode}
           size="lg"
-          crossOrigin={undefined}
           onChange={(e) => setCourseCode(e.target.value)}
           minLength={2}
         />
