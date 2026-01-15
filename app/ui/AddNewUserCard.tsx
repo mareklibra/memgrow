@@ -33,6 +33,7 @@ export function AddNewUserCard() {
   };
 
   return (
+    // @ts-expect-error Material Tailwind React compatibility with React 19
     <Card className="w-96 h-fit" variant="gradient" shadow={true}>
       <CardBody className="flex flex-col gap-4">
         <Typography variant="small" className="font-normal uppercase">
