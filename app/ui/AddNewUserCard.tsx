@@ -7,7 +7,7 @@ import {
   Typography,
   Input,
   Button,
-} from '@material-tailwind/react';
+} from '@/app/lib/material-tailwind-compat';
 import { useState } from 'react';
 import { addNewUser } from '../lib/actions';
 
@@ -33,7 +33,6 @@ export function AddNewUserCard() {
   };
 
   return (
-    // @ts-expect-error Material Tailwind React compatibility with React 19
     <Card className="w-96 h-fit" variant="gradient" shadow={true}>
       <CardBody className="flex flex-col gap-4">
         <Typography variant="small" className="font-normal uppercase">
@@ -44,7 +43,6 @@ export function AddNewUserCard() {
           label="Name"
           value={name}
           size="lg"
-          crossOrigin={undefined}
           onChange={(e) => setName(e.target.value)}
           minLength={2}
         />
@@ -52,7 +50,6 @@ export function AddNewUserCard() {
           label="Email (will be used for login)"
           value={email}
           size="lg"
-          crossOrigin={undefined}
           onChange={(e) => setEmail(e.target.value)}
           minLength={3}
         />
@@ -61,7 +58,6 @@ export function AddNewUserCard() {
           label="New password"
           value={password}
           size="lg"
-          crossOrigin={undefined}
           onChange={(e) => setPassword(e.target.value)}
           minLength={6}
         />
@@ -70,7 +66,6 @@ export function AddNewUserCard() {
           value={retypePassword}
           size="lg"
           error={password !== retypePassword}
-          crossOrigin={undefined}
           onChange={(e) => setRetypePassword(e.target.value)}
         />
 

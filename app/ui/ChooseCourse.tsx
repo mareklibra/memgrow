@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Course as CourseType } from '@/app/lib/definitions';
 import { ChevronDoubleRightIcon } from '@heroicons/react/24/outline';
-import { Switch } from '@material-tailwind/react';
+import { Switch } from '@/app/lib/material-tailwind-compat';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -65,7 +65,6 @@ const Course = ({
         <div className="flex justify-between mt-3">
           {showPriority && (
             <Switch
-              crossOrigin={undefined}
               label={`Priorities (${course.withPriority})`}
               checked={isPriorityFirst}
               onChange={() => setIsPriorityFirst(!isPriorityFirst)}
@@ -75,7 +74,6 @@ const Course = ({
 
           {showForOffline && (
             <Switch
-              crossOrigin={undefined}
               label="Batch mode"
               checked={isOffline}
               onChange={() => setIsOffline(!isOffline)}

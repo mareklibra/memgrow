@@ -3,7 +3,7 @@ import clsx from 'clsx';
 
 import { Word } from '@/app/lib/definitions';
 import { longestCommonPrefix } from '@/app/lib/utils';
-import { Button as ButtonTW } from '@material-tailwind/react';
+import { Button as ButtonTW } from '@/app/lib/material-tailwind-compat';
 
 import { WordStatic } from './ShowWord';
 import { Button } from './button';

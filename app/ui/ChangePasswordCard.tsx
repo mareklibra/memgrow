@@ -7,7 +7,7 @@ import {
   Typography,
   Input,
   Button,
-} from '@material-tailwind/react';
+} from '@/app/lib/material-tailwind-compat';
 import { useState } from 'react';
 import { changeUserPassword } from '../lib/actions';
 
@@ -45,7 +45,6 @@ export function ChangePasswordCard({ userId }: { userId?: string }) {
           label="New password"
           value={newPassword}
           size="lg"
-          crossOrigin={undefined}
           onChange={(e) => setNewPassword(e.target.value)}
           minLength={6}
         />
@@ -54,7 +53,6 @@ export function ChangePasswordCard({ userId }: { userId?: string }) {
           value={retypePassword}
           size="lg"
           error={newPassword !== retypePassword}
-          crossOrigin={undefined}
           onChange={(e) => setRetypePassword(e.target.value)}
         />
 
