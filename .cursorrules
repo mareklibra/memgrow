@@ -1,0 +1,54 @@
+# MemGrow - Language Learning App Rules
+
+## Project Context
+This is a Next.js 16.1.2 language learning application with React 19, using Material Tailwind React for UI components and NextAuth for authentication.
+
+## Code Standards
+- Use TypeScript for all files
+- Follow Next.js App Router patterns
+- Use functional components with hooks
+- Implement proper error handling and loading states
+- Use Tailwind CSS classes for styling
+
+## Component Guidelines
+- Import Material Tailwind components from @/app/lib/material-tailwind-compat (never directly from @material-tailwind/react)
+- Use proper TypeScript interfaces for all props
+- Implement proper accessibility attributes
+- Use semantic HTML elements
+
+## File Organization
+- Components go in app/ui/
+- Server actions go in app/lib/actions/
+- Types and interfaces go in app/lib/definitions.ts
+- Utilities go in app/lib/utils.ts
+- Database queries go in app/lib/data.ts
+
+## Authentication & Security
+- Always check authentication status in protected routes
+- Use proper session handling with NextAuth
+- Validate all user inputs
+- Use server actions for data mutations
+
+## Database & API
+- Use proper error handling for database operations
+- Implement proper TypeScript types for database queries
+- Use revalidatePath/revalidateTag for cache invalidation
+- Handle async operations properly with await
+
+## Performance
+- Use Server Components by default, Client Components only when needed
+- Implement proper loading states
+- Use React.memo for expensive computations
+- Optimize images with next/image
+
+## Language Learning Specific
+- Maintain word progress tracking consistency
+- Handle pronunciation audio properly
+- Implement proper course and word management
+- Use consistent memory level calculations
+
+## Testing & Quality
+- Write descriptive commit messages
+- Test both development and production builds
+- Ensure TypeScript compilation passes
+- Validate all forms and user inputs
