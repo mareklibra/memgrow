@@ -19,7 +19,7 @@ export function WordStatic({ word, className }: Readonly<WordStaticProps>) {
     <div
       id="word-static"
       className={clsx(
-        'w-full rounded-md border border-blue-200 text-lg outline-2 mb-8 py-[0.7rem] pl-2 pr-2 bg-light-blue-100 text-center',
+        'w-full rounded-md border border-blue-200 text-lg mb-8 py-[0.7rem] pl-2 pr-2 bg-light-blue-100 text-center',
         className,
       )}
     >

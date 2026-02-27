@@ -68,7 +68,7 @@ export function TypeTranslation({
 
         <input
           className={clsx(
-            'peer block w-full rounded-md border border-gray-200 py-[9px] pl-10 text-sm outline-2 placeholder:text-gray-500',
+            'peer block w-full rounded-md border border-gray-200 py-[9px] pl-10 text-sm placeholder:text-gray-500',
             {
               'bg-green-600': status === 'correct',
               'bg-red-500': status === 'mistake',
