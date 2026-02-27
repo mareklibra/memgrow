@@ -7,7 +7,7 @@ import { insertPronunciation } from '@/app/lib/actions';
 const voiceId = 'Xb7hH8MSUJpSbSDYk0k2';
 let elevenlabs: ElevenLabsClient | null = null;
 try {
-  elevenlabs = new ElevenLabsClient(/* use process.env.ELEVENLABS_API_KEY */);
+  elevenlabs = new ElevenLabsClient({ apiKey: process.env.ELEVENLABS_API_KEY });
 } catch (e) {
   console.error('Error initializing ElevenLabsClient: ', e);
 }
