@@ -1,4 +1,10 @@
-import { DAY_MS, MAX_MEM_LEVEL, SUCCESS_INCREASE_MAX, SUCCESS_INCREASE_MIN } from '../constants';
+import {
+  DAY_MS,
+  MAX_MEM_LEVEL,
+  REPEAT_SOONER_FACTOR,
+  SUCCESS_INCREASE_MAX,
+  SUCCESS_INCREASE_MIN,
+} from '../constants';
 import { TeachingForm, TeachingFormCount } from './definitions';
 
 export function getNextForm(form: TeachingForm): TeachingForm {
@@ -35,7 +41,9 @@ export function increaseMemLevel(level: number): number {
   if (level < TeachingFormCount * 2) {
     next = level + 1;
   } else {
-    const factor = Math.random() * (SUCCESS_INCREASE_MAX - SUCCESS_INCREASE_MIN) + SUCCESS_INCREASE_MIN;
+    const factor =
+      Math.random() * (SUCCESS_INCREASE_MAX - SUCCESS_INCREASE_MIN) +
+      SUCCESS_INCREASE_MIN;
     next = 1 + Math.ceil(level * factor);
   }
   return Math.min(next, MAX_MEM_LEVEL);
@@ -48,7 +56,7 @@ export function decreaseMemLevel(
 ): number {
   if (isShortenOnly) {
     // Give time to remember the word
-    return Math.min(8, existingMemLevel);
+    return Math.min(8, existingMemLevel * REPEAT_SOONER_FACTOR);
   }
   return 1;
 }

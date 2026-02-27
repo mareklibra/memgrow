@@ -249,7 +249,7 @@ export function IterateWords({
   };
 
   const repeatSooner = (word: Word) => {
-    onChange({ ...word, memLevel: decreaseMemLevel(word.memLevel, false) });
+    onChange({ ...word, memLevel: decreaseMemLevel(word.memLevel, true) });
   };
 
   const handlePriority = (word: Word) => {

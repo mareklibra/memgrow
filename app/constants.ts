@@ -28,6 +28,8 @@ export const SUCCESS_INCREASE_MIN = 1.3;
 export const SUCCESS_INCREASE_MAX = 1.6;
 export const MAX_MEM_LEVEL = 5 * 30; // 5 months
 
+export const REPEAT_SOONER_FACTOR = 0.5;
+
 export const SEARCH_DELAY_MS = 500;
 
 // export const OPENAI_MODEL = 'gpt-5-nano'; // 'gpt-4.1-nano';

@@ -1,9 +1,6 @@
 'use client';
 
-import {
-  useActionState,
-  useEffect,
-} from 'react';
+import { useActionState, useEffect } from 'react';
 import {
   AtSymbolIcon,
   KeyIcon,
