@@ -15,10 +15,7 @@ export const EditWordHeader = ({
   <thead>
     <tr>
       <th scope="col">
-        <Checkbox
-          checked={isEnriched}
-          onChange={switchEnrichment}
-        />
+        <Checkbox checked={isEnriched} onChange={switchEnrichment} />
       </th>
       <th scope="col" className={clsx(thClass, 'min-w-32')}>
         Word
