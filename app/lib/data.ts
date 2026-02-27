@@ -140,6 +140,7 @@ export async function fetchWordsToTest(
   courseId: string,
   limit: number,
   priorityFirst: boolean,
+  deepMemoryCountLimit: number,
 ): Promise<Word[]> {
   try {
     const myAuth = await auth();
@@ -164,11 +165,21 @@ export async function fetchWordsToTest(
     ORDER BY
       ${priorityFirst ? 'user_progress.is_priority DESC,' : ''}
       user_progress.memlevel
-    LIMIT ${limit}
     `;
     const result = await sql.query<DbWordProgress>(query);
-    const data: Word[] = result.rows.map(fromDbWordProgress);
-    return data;
+    const allWords: Word[] = result.rows.map(fromDbWordProgress);
+    const urgentWords = allWords.slice(0, limit);
+
+    let deepMemoryWords: Word[] = [];
+    if (urgentWords.length > 0) {
+      const minMemLevel = urgentWords[urgentWords.length - 1].memLevel;
+      const allDeepMemoryWords = allWords.filter((w) => w.memLevel > minMemLevel);
+      deepMemoryWords = allDeepMemoryWords
+        .sort(() => Math.random() - 0.5)
+        .slice(0, deepMemoryCountLimit);
+    }
+
+    return [...urgentWords, ...deepMemoryWords];
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch words to test.');
