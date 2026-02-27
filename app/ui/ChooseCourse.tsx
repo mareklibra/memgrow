@@ -37,7 +37,7 @@ const Course = ({
   return (
     <div
       id={`course-${course.id}`}
-      className="my-6 bg-white shadow-sm border border-slate-200 rounded-lg m-2 w-96 min-w-64"
+      className="my-6 bg-white shadow-xs border border-gray-300 rounded-lg m-2 w-96 min-w-64"
     >
       <div className="p-4">
         <Link href={link}>

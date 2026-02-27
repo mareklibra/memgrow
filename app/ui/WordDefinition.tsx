@@ -15,10 +15,7 @@ export function WordDefinition({
   return (
     <div
       id="word-definition"
-      className={clsx(
-        'w-full rounded-md border border-gray-200 text-lg outline-2 mb-8',
-        className,
-      )}
+      className={clsx('w-full rounded-md border border-gray-200 text-lg mb-8', className)}
       onClick={onClick}
     >
       {definition}

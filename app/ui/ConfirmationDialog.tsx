@@ -105,7 +105,7 @@ export default function ConfirmationDialog({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" />
+      <div className="fixed inset-0 bg-black/50 transition-opacity" />
 
       {/* Dialog */}
       <div
@@ -120,7 +120,7 @@ export default function ConfirmationDialog({
         <div className="absolute right-0 top-0 pr-4 pt-4">
           <button
             type="button"
-            className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-hidden focus:ring-3 focus:ring-blue-500 focus:ring-offset-2"
             onClick={handleCancel}
             disabled={isLoading}
           >
@@ -132,7 +132,7 @@ export default function ConfirmationDialog({
         {/* Content */}
         <div className="sm:flex sm:items-start">
           {/* Icon */}
-          <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 sm:mx-0 sm:h-10 sm:w-10">
+          <div className="mx-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-100 sm:mx-0 sm:h-10 sm:w-10">
             <span className="text-2xl" aria-hidden="true">
               {styles.icon}
             </span>
@@ -157,7 +157,7 @@ export default function ConfirmationDialog({
             ref={confirmButtonRef}
             type="button"
             className={clsx(
-              'inline-flex w-full justify-center rounded-md border border-transparent px-4 py-2 text-base font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm',
+              'inline-flex w-full justify-center rounded-md border border-transparent px-4 py-2 text-base font-medium text-white shadow-xs focus:outline-hidden focus:ring-3 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm',
               styles.confirmButton,
               {
                 'opacity-50 cursor-not-allowed': isLoading,
@@ -178,7 +178,7 @@ export default function ConfirmationDialog({
           <button
             type="button"
             className={clsx(
-              'mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm',
+              'mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-xs hover:bg-gray-50 focus:outline-hidden focus:ring-3 focus:ring-blue-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm',
               {
                 'opacity-50 cursor-not-allowed': isLoading,
               },
