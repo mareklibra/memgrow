@@ -15,7 +15,7 @@ import { EXAMPLE_AI_REQUEST_COUNT, OPENAI_MODEL } from '../../constants';
 
 let client: OpenAI | undefined;
 try {
-  client = new OpenAI();
+  client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 } catch (e) {
   console.error('Error initializing OpenAI: ', e);
 }

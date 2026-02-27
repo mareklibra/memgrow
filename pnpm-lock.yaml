@@ -57,8 +57,8 @@ importers:
         specifier: 5.0.0-beta.29
         version: 5.0.0-beta.29(next@16.1.2(@babel/core@7.28.6)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1)
       openai:
-        specifier: ^5.12.2
-        version: 5.12.2(ws@8.18.3(bufferutil@4.0.8)(utf-8-validate@6.0.3))(zod@4.3.6)
+        specifier: ^6.25.0
+        version: 6.25.0(ws@8.18.3(bufferutil@4.0.8)(utf-8-validate@6.0.3))(zod@4.3.6)
       postcss:
         specifier: ^8.5.6
         version: 8.5.6
@@ -1941,12 +1941,12 @@ packages:
   obuf@1.1.2:
     resolution: {integrity: sha512-PX1wu0AmAdPqOL1mWhqmlOd8kOIZQwGZw6rh7uby9fTc5lhaOWFLX3I6R1hrF9k3zUY40e6igsLGkDXK92LJNg==}
 
-  openai@5.12.2:
-    resolution: {integrity: sha512-xqzHHQch5Tws5PcKR2xsZGX9xtch+JQFz5zb14dGqlshmmDAFBFEWmeIpf7wVqWV+w7Emj7jRgkNJakyKE0tYQ==}
+  openai@6.25.0:
+    resolution: {integrity: sha512-mEh6VZ2ds2AGGokWARo18aPISI1OhlgdEIC1ewhkZr8pSIT31dec0ecr9Nhxx0JlybyOgoAT1sWeKtwPZzJyww==}
     hasBin: true
     peerDependencies:
       ws: ^8.18.0
-      zod: ^3.23.8
+      zod: ^3.25 || ^4.0
     peerDependenciesMeta:
       ws:
         optional: true
@@ -4363,7 +4363,7 @@ snapshots:
 
   obuf@1.1.2: {}
 
-  openai@5.12.2(ws@8.18.3(bufferutil@4.0.8)(utf-8-validate@6.0.3))(zod@4.3.6):
+  openai@6.25.0(ws@8.18.3(bufferutil@4.0.8)(utf-8-validate@6.0.3))(zod@4.3.6):
     optionalDependencies:
       ws: 8.18.3(bufferutil@4.0.8)(utf-8-validate@6.0.3)
       zod: 4.3.6
