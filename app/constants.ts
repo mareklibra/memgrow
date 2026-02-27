@@ -24,7 +24,8 @@ export const DAY_MS = 60 * 60 * 24 * 1000;
 
 export const STRING_SIMILARITY_SUBSTRING_LENGTH = 2;
 
-export const SUCCESS_INCREASE = 1.5;
+export const SUCCESS_INCREASE_MIN = 1.3;
+export const SUCCESS_INCREASE_MAX = 1.6;
 export const MAX_MEM_LEVEL = 5 * 30; // 5 months
 
 export const SEARCH_DELAY_MS = 500;
