@@ -5,6 +5,7 @@ import {
   testRepetitionLimit,
   testWordsCountLimit,
   testWordsCountLimitOffline,
+  testWordsDeepMemoryCountLimit,
 } from '@/app/constants';
 import { getSpecialKeys } from '@/app/lib/utils';
 import { queryExamples, deleteExample } from '@/app/lib/actions';
@@ -23,6 +24,7 @@ export default async function Page({
     courseId,
     isOffline ? testWordsCountLimitOffline : testWordsCountLimit,
     priorityFirst === 'true',
+    isOffline ? 0 : testWordsDeepMemoryCountLimit,
   );
 
   const words = await fetchSimilarWords(courseId, wordsToTest, maxSimilarWords);
