@@ -1,6 +1,7 @@
 import { Word } from '@/app/lib/definitions';
 import { Progress, Typography } from '@/app/lib/material-tailwind-compat';
 import { getProgressInPercents } from '@/app/lib/word-transitions';
+import { formatMemLevel } from '../lib/utils';
 interface WordProgressProps {
   word: Word;
 }
@@ -15,7 +16,7 @@ export function WordProgress({ word }: Readonly<WordProgressProps>) {
           Memorized
         </Typography>
         <Typography color="blue-gray" variant="h6">
-          Level {word.memLevel}
+          Level {formatMemLevel(word.memLevel)}
         </Typography>
         <Typography color="blue-gray" variant="h6">
           {value}%
