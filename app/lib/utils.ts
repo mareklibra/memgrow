@@ -76,3 +76,7 @@ export const getWordSimilarity = (
   allWords: Word[],
   word: Pick<Word, 'id' | 'word'>,
 ): number => getWordSimilarities(allWords, word)?.[0]?.similarity;
+
+export const formatMemLevel = (memLevel: number) => {
+  return memLevel.toFixed(1);
+};
