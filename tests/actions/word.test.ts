@@ -119,7 +119,7 @@ describe('actions/word', () => {
 
   describe('updateWordProgress', () => {
     it('inserts progress when none exists', async () => {
-      const user = await createTestUser();
+      await createTestUser();
       const course = await createTestCourse();
       const word = await createTestWord(course.id);
 
@@ -169,7 +169,7 @@ describe('actions/word', () => {
 
   describe('updateWordsProgress', () => {
     it('updates multiple words progress', async () => {
-      const user = await createTestUser();
+      await createTestUser();
       const course = await createTestCourse();
       const w1 = await createTestWord(course.id, { word: 'a' });
       const w2 = await createTestWord(course.id, { word: 'b' });

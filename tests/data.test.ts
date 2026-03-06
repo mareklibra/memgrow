@@ -136,7 +136,7 @@ describe('data', () => {
       const user = await createTestUser();
       const course = await createTestCourse();
       const w1 = await createTestWord(course.id, { word: 'one' });
-      const w2 = await createTestWord(course.id, { word: 'two' });
+      await createTestWord(course.id, { word: 'two' });
       await createTestUserProgress(user.id, w1.id, { memlevel: 1 });
 
       const words = await fetchAllWords(course.id);
