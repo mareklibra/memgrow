@@ -23,8 +23,11 @@ const tdClass =
   'px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-neutral-200';
 const tdClassFirst =
   'w-2 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-neutral-200';
-const inputClass =
-  'bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500';
+
+const commonInputClass =
+  'bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500';
+const memInputClass = `${commonInputClass} max-w-15`;
+const inputClass = `${memInputClass} min-w-sm`;
 
 export type EditWordRowProps = {
   word: Word;
@@ -139,6 +142,7 @@ export function WordRow({
           type="text"
           className={inputClass}
           required
+          autoCapitalize="none"
           value={changed.word}
           onChange={(e) => {
             setChanged({ ...changed, word: e.currentTarget.value });
@@ -150,6 +154,7 @@ export function WordRow({
           type="text"
           className={inputClass}
           required
+          autoCapitalize="none"
           value={changed.definition}
           onChange={(e) => {
             setChanged({ ...changed, definition: e.currentTarget.value });
@@ -161,7 +166,7 @@ export function WordRow({
           <td className={clsx(tdClass, 'w-2')}>
             <input
               type="number"
-              className={inputClass}
+              className={memInputClass}
               required
               value={changed.memLevel}
               onChange={(e) => {

@@ -88,7 +88,7 @@ export function AddNewUserCard() {
           disabled={!name || !email || !password || password !== retypePassword}
           onClick={handleAddNewUser}
         >
-          Change
+          Create
         </Button>
       </CardFooter>
     </Card>
