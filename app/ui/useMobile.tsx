@@ -24,7 +24,7 @@ export const useMobile = () => {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    setIsMobile(isMobileDevice());
+    queueMicrotask(() => setIsMobile(isMobileDevice()));
   }, []);
 
   return { isMobile };

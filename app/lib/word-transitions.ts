@@ -50,7 +50,6 @@ export function increaseMemLevel(level: number): number {
 }
 
 export function decreaseMemLevel(
-   
   existingMemLevel: number,
   isShortenOnly: boolean,
 ): number {

@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import { omit } from 'lodash';
 import {
   Card as MTCard,
   CardBody as MTCardBody,
@@ -72,8 +73,9 @@ export const Switch: React.FC<SwitchProps> = (props) => (
   <MTSwitch {...defaultMTProps} {...props} />
 );
 
-export const Textarea: React.FC<TextareaProps> = ({ ref, ...props }) => (
-  <MTTextarea {...defaultMTProps} {...props} />
+// ref omitted: TextareaProps expects HTMLTextAreaElement but MTTextarea uses HTMLDivElement
+export const Textarea: React.FC<TextareaProps> = (props) => (
+  <MTTextarea {...defaultMTProps} {...omit(props, 'ref')} />
 );
 
 export const List: React.FC<ListProps> = (props) => (

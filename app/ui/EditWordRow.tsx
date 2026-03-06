@@ -216,7 +216,7 @@ export function NewWordRow({
         definition: '',
         memLevel: 0,
         form: 'show',
-        repeatAgain: new Date(Date.now()),
+        repeatAgain: new Date(),
         isPriority: false,
         isSkipped: false,
       }}

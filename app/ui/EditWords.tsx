@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { Word } from '@/app/lib/definitions';
 import { useThrottledCallback } from 'use-debounce';
@@ -28,23 +28,20 @@ export function EditWords({
   forceDbReload,
 }: Readonly<EditWordsProps>) {
   const [isEnriched, setIsEnriched] = useState(false);
-  const [enriched, setEnriched] = useState<Record<string, EnrichedWord>>({});
   const [search, setSearch] = useState('');
   const setSearchThrottled = useThrottledCallback(setSearch, SEARCH_DELAY_MS);
-  const [sortedWords, setSortedWords] = useState<Word[]>([]);
 
-  useEffect(() => {
-    if (isEnriched) {
-      const result: Record<string, EnrichedWord> = {};
-      words.forEach((w) => {
-        result[w.id] = { similarity: getWordSimilarity(words, w), word: w };
-      });
-      setEnriched(result);
-    }
+  const enriched = useMemo(() => {
+    if (!isEnriched) return {};
+    const result: Record<string, EnrichedWord> = {};
+    words.forEach((w) => {
+      result[w.id] = { similarity: getWordSimilarity(words, w), word: w };
+    });
+    return result;
   }, [words, isEnriched]);
 
-  useEffect(() => {
-    const sorted = words
+  const sortedWords = useMemo(() => {
+    return words
       .filter((w) => w.word.includes(search) || w.definition.includes(search))
       .sort((a, b) => {
         let diff = 0;
@@ -54,13 +51,10 @@ export function EditWords({
 
         return diff === 0 ? a.word.localeCompare(b.word) : diff;
       });
-
-    setSortedWords(sorted);
   }, [words, enriched, search]);
 
   const switchEnrichment = () => {
     setIsEnriched(!isEnriched);
-    setEnriched({});
   };
 
   const wordRows = useMemo(() => {

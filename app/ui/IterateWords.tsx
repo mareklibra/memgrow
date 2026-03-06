@@ -90,19 +90,21 @@ export function IterateWords({
     }
 
     if (wordQueue.length === 0) {
-      setWordQueue(words.map((w) => ({ ...w, repeated: 0 })));
+      queueMicrotask(() => {
+        setWordQueue(words.map((w) => ({ ...w, repeated: 0 })));
 
-      if (words?.length > 0) {
-        setWordIdx(0);
-      } else {
-        setWordIdx(-1);
-      }
+        if (words?.length > 0) {
+          setWordIdx(0);
+        } else {
+          setWordIdx(-1);
+        }
+      });
     }
   }, [words, wordQueue]);
 
   useEffect(() => {
     if (wordIdx >= wordQueue.length || wordIdx >= maxWordsInBatch) {
-      setIsDone(true);
+      queueMicrotask(() => setIsDone(true));
     }
   }, [wordIdx, wordQueue.length, maxWordsInBatch]);
 
