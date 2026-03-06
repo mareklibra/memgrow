@@ -1,8 +1,8 @@
 {
   "private": true,
   "scripts": {
-    "build": "next build",
-    "dev": "next dev",
+    "build": "NEXT_PUBLIC_BUILD_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo 'unknown') NEXT_PUBLIC_BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ) next build",
+    "dev": "NEXT_PUBLIC_BUILD_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo 'unknown') NEXT_PUBLIC_BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ) next dev",
     "start": "next start",
     "test": "vitest run",
     "test:watch": "vitest",

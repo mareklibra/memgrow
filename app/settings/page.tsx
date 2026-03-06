@@ -1,9 +1,6 @@
 import { lusitana } from '@/app/ui/fonts';
 import { signOut, auth } from '@/auth';
 
-// import {  } from '@/app/lib/data';
-// import { getSpecialKeys } from '@/app/lib/utils';
-// import { IterateWords } from '@/app/ui/IterateWords';
 import SignoutButton from '../ui/SignoutButton';
 import { ChangePasswordCard } from '../ui/ChangePasswordCard';
 import { AddNewUserCard } from '../ui/AddNewUserCard';
@@ -38,6 +35,13 @@ export default async function Page() {
 
         <div className="flex">
           <AddNewUserCard />
+        </div>
+
+        <div className="flex flex-col gap-1 text-sm text-gray-500">
+          <span>
+            Build commit: {process.env.NEXT_PUBLIC_BUILD_COMMIT ?? 'development'}
+          </span>
+          <span>Build time: {process.env.NEXT_PUBLIC_BUILD_TIME ?? '—'}</span>
         </div>
       </div>
     </div>
