@@ -9,7 +9,9 @@
     "test:local": "./scripts/test-local.sh",
     "prettier": "prettier --check './**/*.{js,jsx,ts,tsx,css,md,json}' --config ./.prettierrc",
     "prettier:fix": "prettier --write './**/*.{js,jsx,ts,tsx,css,md,json}' --config ./.prettierrc",
-    "chores": "pnpm prettier:fix && pnpm tsc && pnpm test"
+    "eslint": "eslint .",
+    "eslint:fix": "eslint . --fix",
+    "chores": "pnpm prettier:fix && pnpm eslint:fix && pnpm prettier:fix &&pnpm tsc && pnpm test"
   },
   "dependencies": {
     "@elevenlabs/elevenlabs-js": "^2.36.0",

@@ -50,7 +50,7 @@ export function increaseMemLevel(level: number): number {
 }
 
 export function decreaseMemLevel(
-  // eslint-disable-next-line
+   
   existingMemLevel: number,
   isShortenOnly: boolean,
 ): number {
