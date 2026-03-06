@@ -145,28 +145,40 @@ export async function fetchWordsToTest(
   try {
     const myAuth = await auth();
 
-    const query = `
-    SELECT words.course_id, words.id, words.word, words.course_id, words.definition,
-           user_progress.form, user_progress.memlevel, user_progress.repeat_again, user_progress.is_priority, user_progress.is_skipped
-    FROM words
-    LEFT OUTER JOIN
-      (SELECT * FROM user_progress
-       WHERE
-       user_id = '${myAuth?.user?.id}'
-     ) AS user_progress ON words.id = user_progress.word_id
-    WHERE
-      words.course_id = '${courseId}'
-      AND (user_progress.memlevel > 0)
-      AND (
-        user_progress.repeat_again < NOW()
-        OR (${priorityFirst} AND user_progress.is_priority = TRUE)
-      )
-      AND (user_progress.is_skipped = FALSE OR user_progress.memlevel is NULL)
-    ORDER BY
-      ${priorityFirst ? 'user_progress.is_priority DESC,' : ''}
-      user_progress.memlevel
-    `;
-    const result = await sql.query<DbWordProgress>(query);
+    const result = priorityFirst
+      ? await sql<DbWordProgress>`
+          SELECT words.course_id, words.id, words.word, words.course_id, words.definition,
+                 user_progress.form, user_progress.memlevel, user_progress.repeat_again, user_progress.is_priority, user_progress.is_skipped
+          FROM words
+          LEFT OUTER JOIN
+            (SELECT * FROM user_progress
+             WHERE user_id = ${myAuth?.user?.id}
+            ) AS user_progress ON words.id = user_progress.word_id
+          WHERE
+            words.course_id = ${courseId}
+            AND (user_progress.memlevel > 0)
+            AND (
+              user_progress.repeat_again < NOW()
+              OR user_progress.is_priority = TRUE
+            )
+            AND (user_progress.is_skipped = FALSE OR user_progress.memlevel is NULL)
+          ORDER BY user_progress.is_priority DESC, user_progress.memlevel
+        `
+      : await sql<DbWordProgress>`
+          SELECT words.course_id, words.id, words.word, words.course_id, words.definition,
+                 user_progress.form, user_progress.memlevel, user_progress.repeat_again, user_progress.is_priority, user_progress.is_skipped
+          FROM words
+          LEFT OUTER JOIN
+            (SELECT * FROM user_progress
+             WHERE user_id = ${myAuth?.user?.id}
+            ) AS user_progress ON words.id = user_progress.word_id
+          WHERE
+            words.course_id = ${courseId}
+            AND (user_progress.memlevel > 0)
+            AND (user_progress.repeat_again < NOW())
+            AND (user_progress.is_skipped = FALSE OR user_progress.memlevel is NULL)
+          ORDER BY user_progress.memlevel
+        `;
     const allWords: Word[] = result.rows.map(fromDbWordProgress);
     const urgentWords = allWords.slice(0, limit);
 
