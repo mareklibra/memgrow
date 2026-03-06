@@ -13,11 +13,13 @@ export const useWithSound = (audioSource?: string): UseWithSound => {
     if (audioSource && currentAudioSrc !== audioSource) {
       console.log('Changing audio to: ', audioSource, ', from: ', currentAudioSrc);
       const audio = new Audio(audioSource);
-      setSound({
-        playSound: () => audio.play(),
-        pauseSound: () => audio.pause(),
+      queueMicrotask(() => {
+        setSound({
+          playSound: () => audio.play(),
+          pauseSound: () => audio.pause(),
+        });
+        setCurrentAudioSrc(audioSource);
       });
-      setCurrentAudioSrc(audioSource);
     }
   }, [audioSource, currentAudioSrc]);
 

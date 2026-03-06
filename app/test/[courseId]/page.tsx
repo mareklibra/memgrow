@@ -28,7 +28,9 @@ export default async function Page({
   );
 
   const words = await fetchSimilarWords(courseId, wordsToTest, maxSimilarWords);
-  const randomlyShuffledWords = words.sort(() => Math.random() - 0.5);
+  const randomlyShuffledWords = [...words].sort(
+    () => crypto.getRandomValues(new Uint32Array(1))[0]! / 2 ** 32 - 0.5,
+  );
 
   return (
     <IterateWords

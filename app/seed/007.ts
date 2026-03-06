@@ -4,7 +4,7 @@ async function alterMemLevelUserProgressTable() {
   console.info('Alter table user_progress to change memlevel to float');
 
   try {
-    const result = await client.sql`
+    await client.sql`
     ALTER TABLE user_progress
     ALTER COLUMN memlevel TYPE float;
   `;
