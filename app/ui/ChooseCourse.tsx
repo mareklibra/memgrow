@@ -12,12 +12,14 @@ const Course = ({
   showPriority,
   showFastEntry,
   showForOffline,
+  showSimulate,
 }: {
   course: CourseType;
   pathPrefix: string;
   showPriority: boolean;
   showFastEntry: boolean;
   showForOffline: boolean;
+  showSimulate: boolean;
 }) => {
   const [isPriorityFirst, setIsPriorityFirst] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
@@ -86,6 +88,17 @@ const Course = ({
             <Link href={`/edit/fastentry/${course.id}`}>&gt;&gt; Fast entry</Link>
           </div>
         )}
+
+        {showSimulate && (
+          <div className="flex justify-end mt-2">
+            <Link
+              href={`/test/simulate/${course.id}`}
+              className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              Simulate progress &raquo;
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -97,12 +110,14 @@ export const ChooseCourse = ({
   showPriority,
   showFastEntry,
   showForOffline,
+  showSimulate = false,
 }: {
   courses: CourseType[];
   pathPrefix: string;
   showPriority: boolean;
   showFastEntry: boolean;
   showForOffline: boolean;
+  showSimulate?: boolean;
 }) => {
   return (
     <div className="flex w-10/12 flex-wrap" id="choose-course">
@@ -114,6 +129,7 @@ export const ChooseCourse = ({
           showPriority={showPriority}
           showFastEntry={showFastEntry}
           showForOffline={showForOffline}
+          showSimulate={showSimulate}
         />
       ))}
     </div>

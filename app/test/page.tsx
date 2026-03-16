@@ -16,6 +16,7 @@ export default async function Page() {
         showPriority={true}
         showFastEntry={false}
         showForOffline={true}
+        showSimulate={true}
       />
     </div>
   );
