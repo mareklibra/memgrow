@@ -16,18 +16,12 @@ import {
 import { Button } from './button';
 import { Button as ButtonTailwind } from '@/app/lib/material-tailwind-compat';
 import { DeleteButton } from './DeleteButton';
+import { s } from '@/app/ui/styles';
 
 const UNUSED = '__not_used__';
 
-const tdClass =
-  'px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-neutral-200';
-const tdClassFirst =
+const tdFirst =
   'w-2 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-neutral-200';
-
-const commonInputClass =
-  'bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500';
-const memInputClass = `${commonInputClass} max-w-15`;
-const inputClass = `${memInputClass} min-w-sm`;
 
 export type EditWordRowProps = {
   word: Word;
@@ -128,8 +122,8 @@ export function WordRow({
 
   return (
     <tr id={word.id}>
-      <td className={tdClassFirst}>
-        {error && <ExclamationTriangleIcon className="text-red-500 w-8" />}
+      <td className={tdFirst}>
+        {error && <ExclamationTriangleIcon className="text-danger w-8" />}
         {word.id === UNUSED && <PlusCircleIcon className="text-blue-500 w-8" />}
         {similarity && similarity >= 0.8 ? (
           <div>{parseFloat(similarity.toFixed(2))}</div>
@@ -137,10 +131,10 @@ export function WordRow({
           ''
         )}
       </td>
-      <td className={tdClass}>
+      <td className={clsx(s.td, 'whitespace-nowrap')}>
         <input
           type="text"
-          className={inputClass}
+          className={`${s.input} max-w-15 min-w-sm`}
           required
           autoCapitalize="none"
           value={changed.word}
@@ -149,10 +143,10 @@ export function WordRow({
           }}
         />
       </td>
-      <td className={tdClass}>
+      <td className={clsx(s.td, 'whitespace-nowrap')}>
         <input
           type="text"
-          className={inputClass}
+          className={`${s.input} max-w-15 min-w-sm`}
           required
           autoCapitalize="none"
           value={changed.definition}
@@ -163,10 +157,10 @@ export function WordRow({
       </td>
       {!fastEntry && (
         <>
-          <td className={clsx(tdClass, 'w-2')}>
+          <td className={clsx(s.td, 'w-2 whitespace-nowrap')}>
             <input
               type="number"
-              className={memInputClass}
+              className={`${s.input} max-w-15`}
               required
               value={changed.memLevel}
               onChange={(e) => {
@@ -175,15 +169,15 @@ export function WordRow({
               disabled={reduced}
             />
           </td>
-          <td className={tdClass}>{changed.form}</td>
-          <td className={tdClass}>
+          <td className={clsx(s.td, 'whitespace-nowrap')}>{changed.form}</td>
+          <td className={clsx(s.td, 'whitespace-nowrap')}>
             <ButtonTailwind variant="text" onClick={handleRepeatAgain}>
               {changed.repeatAgain?.toLocaleDateString()}
             </ButtonTailwind>
           </td>
         </>
       )}
-      <td className={tdClass}>
+      <td className={clsx(s.td, 'whitespace-nowrap')}>
         <div className="flex flex-row gap-1 items-center">
           <Button disabled={!canSave} onClick={handleSave}>
             <ArrowDownCircleIcon className="w-5" />

@@ -1,6 +1,7 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import { lusitana } from '@/app/ui/fonts';
+import { s } from '@/app/ui/styles';
 import Link from 'next/link';
 import { Button } from '@/app/lib/material-tailwind-compat';
 import {
@@ -289,9 +290,7 @@ export function IterateWords({
 
   return (
     <div className="w-full p-2 md:pt-5">
-      <h1
-        className={`${lusitana.className} mb-4 text-xl md:text-2xl flex justify-between`}
-      >
+      <h1 className={`${lusitana.className} ${s.pageTitle} flex justify-between`}>
         <DonutProgressChart
           label="Level"
           progress={word.memLevel}

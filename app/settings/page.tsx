@@ -1,4 +1,5 @@
 import { lusitana } from '@/app/ui/fonts';
+import { s } from '@/app/ui/styles';
 import { signOut, auth } from '@/auth';
 
 import SignoutButton from '../ui/SignoutButton';
@@ -17,7 +18,7 @@ export default async function Page() {
   return (
     <div className="flex flex-col">
       <div className="flex flex-row">
-        <h1 className={`${lusitana.className} text-xl md:text-2xl`}>
+        <h1 className={`${lusitana.className} ${s.pageTitle}`}>
           Settings for {myAuth?.user?.name}
         </h1>
         <div className="grow"></div>

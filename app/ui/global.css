@@ -2,6 +2,14 @@
 @config '../../tailwind.config.ts';
 @plugin '@tailwindcss/forms';
 
+@theme {
+  --color-success: #16a34a;
+  --color-danger: #ef4444;
+
+  --spacing-input-y: 9px;
+  --spacing-word-y: 0.7rem;
+}
+
 input[type='number'] {
   -moz-appearance: textfield;
   appearance: textfield;

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { s } from '@/app/ui/styles';
 import { Button, Input } from '@/app/lib/material-tailwind-compat';
 
 export function CreateCourse({
@@ -74,7 +75,7 @@ export function CreateCourse({
         <Button className="h-fit" onClick={handleSave}>
           Create
         </Button>
-        {error && <p className="text-red-500">{error}</p>}
+        {error && <p className={s.errorText}>{error}</p>}
       </div>
     </div>
   );

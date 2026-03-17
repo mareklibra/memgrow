@@ -4,11 +4,8 @@ import { Word } from '@/app/lib/definitions';
 import { UpdateWordsResult } from '@/app/lib/types';
 import Link from 'next/link';
 import { Button, Spinner } from '@/app/lib/material-tailwind-compat';
+import { s } from '@/app/ui/styles';
 import { WordTeachingStatus } from './WordTeachingStatus';
-
-const thClass =
-  'px-3 py-3 text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500';
-const tdClass = 'px-3 py-4 text-sm font-medium text-gray-800 dark:text-neutral-200';
 
 interface DoneStateProps {
   words: Word[];
@@ -28,7 +25,7 @@ type ProgressType = {
 function RepeatCell({ date }: Readonly<{ date: Date }>) {
   const [isDetail, setIsDetail] = useState<boolean>(false);
   return (
-    <td className={tdClass} onClick={() => setIsDetail(!isDetail)}>
+    <td className={s.td} onClick={() => setIsDetail(!isDetail)}>
       {isDetail ? date.toLocaleString() : date.toLocaleDateString()}
     </td>
   );
@@ -121,13 +118,13 @@ export function DoneState({
   return (
     <div className="flex flex-col">
       {isRetrigger && (
-        <div className="w-full flex justify-center mt-10 mb-10">
+        <div className={clsx(s.centered, 'mb-10')}>
           <Spinner className="h-6 w-6" />
           &nbsp;Persisting...
         </div>
       )}
       {!isRetrigger && wordsToPersist.length > 0 && (
-        <div className="w-full flex justify-center mt-10">
+        <div className={s.centered}>
           <Button
             variant="outlined"
             onClick={() => setIsRetrigger(true)}
@@ -139,44 +136,38 @@ export function DoneState({
       )}
 
       {wordsToPersist.length === 0 && (
-        <div className="w-full flex justify-center mt-10">
-          All words have been persisted.
-        </div>
+        <div className={s.centered}>All words have been persisted.</div>
       )}
 
       {wordsToPersist.length === 0 && (
-        <div className="w-full flex justify-center mt-10">
-          <Link
-            className=""
-            href={`/${isLearning ? 'learn' : 'test'}/${courseId ?? ''}/next`}
-            replace
-          >
+        <div className={s.centered}>
+          <Link href={`/${isLearning ? 'learn' : 'test'}/${courseId ?? ''}/next`} replace>
             <Button variant="outlined">{isLearning ? 'Learn' : 'Test'} more...</Button>
           </Link>
         </div>
       )}
 
-      <table className="divide-y divide-gray-200 dark:divide-neutral-700 w-3/4">
+      <table className={clsx(s.tableDivider, 'w-3/4')}>
         <thead>
           <tr>
-            <th scope="col" className={thClass}>
+            <th scope="col" className={s.th}>
               Word
             </th>
-            <th scope="col" className={thClass}>
+            <th scope="col" className={s.th}>
               Definition
             </th>
-            <th scope="col" className={thClass}>
+            <th scope="col" className={s.th}>
               Status
             </th>
-            <th scope="col" className={thClass}>
+            <th scope="col" className={s.th}>
               Next
             </th>
-            <th scope="col" className={thClass}>
+            <th scope="col" className={s.th}>
               Level
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-200 dark:divide-neutral-700">
+        <tbody className={s.tableDivider}>
           {progress.map((p) => {
             console.log('Progress: ', p);
             const isSkipped = p.end.isSkipped;
@@ -186,13 +177,13 @@ export function DoneState({
                 key={p.start.id}
                 className={isSkipped ? 'line-through' : ''}
               >
-                <td className={tdClass}>{p.start.word}</td>
-                <td className={tdClass}>{p.start.definition}</td>
-                <td className={clsx(tdClass, 'w-2')}>
+                <td className={s.td}>{p.start.word}</td>
+                <td className={s.td}>{p.start.definition}</td>
+                <td className={clsx(s.td, 'w-2')}>
                   <WordTeachingStatus word={p.end} />
                 </td>
                 <RepeatCell date={p.end.repeatAgain} />
-                <td className={tdClass}>{p.end.memLevel}</td>
+                <td className={s.td}>{p.end.memLevel}</td>
               </tr>
             );
           })}

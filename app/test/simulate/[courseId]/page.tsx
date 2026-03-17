@@ -1,5 +1,6 @@
 import { fetchAllWords, fetchCourse } from '@/app/lib/data';
 import { lusitana } from '@/app/ui/fonts';
+import { s } from '@/app/ui/styles';
 import { SimulateProgress } from '@/app/ui/SimulateProgress';
 import Link from 'next/link';
 
@@ -27,11 +28,11 @@ export default async function Page({
     }));
 
   return (
-    <div className="pt-4 pr-4">
+    <div className={s.pageContainer}>
       <Link href="/test" className="text-sm text-blue-600 hover:underline">
         &laquo; Back to courses
       </Link>
-      <h1 className={`${lusitana.className} mt-2 mb-4 text-xl md:text-2xl`}>
+      <h1 className={`${lusitana.className} mt-2 ${s.pageTitle}`}>
         Simulate progress: {course?.name}
       </h1>
       <SimulateProgress words={wordsForSimulation} />

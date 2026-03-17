@@ -2,6 +2,7 @@ import Link from 'next/link';
 
 import { fetchAllWords, fetchCourse } from '@/app/lib/data';
 import { lusitana } from '@/app/ui/fonts';
+import { s } from '@/app/ui/styles';
 import { FastEntryForm } from '@/app/ui/FastEntryForm';
 import { WordToAdd } from '@/app/lib/definitions';
 import { addWord } from '@/app/lib/actions';
@@ -16,9 +17,7 @@ export default async function Page({
   if (!courseId) {
     return (
       <>
-        <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
-          Missing course
-        </h1>
+        <h1 className={`${lusitana.className} ${s.pageTitle}`}>Missing course</h1>
         <p>
           Go to <Link href="/edit">edit</Link> to choose and edit a course.
         </p>
@@ -30,9 +29,7 @@ export default async function Page({
   if (!course) {
     return (
       <>
-        <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
-          Missing course
-        </h1>
+        <h1 className={`${lusitana.className} ${s.pageTitle}`}>Missing course</h1>
         <p>
           Go to <Link href="/edit">edit</Link> to choose and edit a course.
         </p>
@@ -49,7 +46,7 @@ export default async function Page({
 
   return (
     <>
-      <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
+      <h1 className={`${lusitana.className} ${s.pageTitle}`}>
         Fast entry for course {course.name}
       </h1>
       <div className="flex flex-col gap-2">

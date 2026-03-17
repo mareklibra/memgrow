@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
 import { Fragment } from 'react';
+import { s } from '@/app/ui/styles';
 
 export default function NavLinks({
   isLoggedIn,
@@ -46,19 +47,16 @@ export default function NavLinks({
         const LinkIcon = link.icon;
         let space;
         if (index === links.length - 1) {
-          space = (
-            <div className="hidden h-auto w-full grow rounded-md bg-gray-50 md:block"></div>
-          );
+          space = <div className={s.navSpacer}></div>;
         }
 
         const clz = clsx(
-          'flex h-[48px] grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium md:flex-none md:justify-start md:p-2 md:px-3',
+          s.navLink,
           {
-            'bg-sky-100 text-blue-600':
-              pathname.startsWith(`${link.href}`) && link.href.length > 1,
+            [s.navActive]: pathname.startsWith(`${link.href}`) && link.href.length > 1,
           },
           {
-            'hover:bg-sky-100 hover:text-blue-600': !link.disabled,
+            [s.navHover]: !link.disabled,
           },
         );
 

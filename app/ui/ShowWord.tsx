@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 import { Word } from '@/app/lib/definitions';
+import { s } from '@/app/ui/styles';
 import { TranslationOption, TranslationOptionState } from './TranslationOption';
 import { FieldStatus } from './types';
 import { useKeyHandler } from './useKeyHandler';
@@ -16,13 +17,7 @@ interface WordStaticProps {
 
 export function WordStatic({ word, className }: Readonly<WordStaticProps>) {
   return (
-    <div
-      id="word-static"
-      className={clsx(
-        'w-full rounded-md border border-blue-200 text-lg mb-8 py-[0.7rem] pl-2 pr-2 bg-light-blue-100 text-center',
-        className,
-      )}
-    >
+    <div id="word-static" className={clsx(s.wordStatic, className)}>
       {word}
     </div>
   );

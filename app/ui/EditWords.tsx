@@ -9,6 +9,7 @@ import { EditWordHeader } from './EditWordHeader';
 import { BatchImport } from './BatchImport';
 import { SearchBar } from './SearchBar';
 import { getWordSimilarity } from '../lib/utils';
+import { s } from '@/app/ui/styles';
 
 export type EditWordsProps = {
   words: Word[];
@@ -78,9 +79,9 @@ export function EditWords({
       {!reduced && (
         <SearchBar setSearch={setSearchThrottled} matches={sortedWords.length} />
       )}
-      <table className="divide-y divide-gray-200 dark:divide-neutral-700">
+      <table className={s.tableDivider}>
         <EditWordHeader isEnriched={isEnriched} switchEnrichment={switchEnrichment} />
-        <tbody className="divide-y divide-gray-200 dark:divide-neutral-700">
+        <tbody className={s.tableDivider}>
           {wordRows}
           {!reduced && <NewWordRow key="___new___" courseId={courseId} />}
         </tbody>

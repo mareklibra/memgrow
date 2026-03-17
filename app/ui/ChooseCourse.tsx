@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { Course as CourseType } from '@/app/lib/definitions';
+import { s } from '@/app/ui/styles';
 import { ChevronDoubleRightIcon } from '@heroicons/react/24/outline';
 import { Switch } from '@/app/lib/material-tailwind-compat';
 import Link from 'next/link';
@@ -37,10 +38,7 @@ const Course = ({
   }
 
   return (
-    <div
-      id={`course-${course.id}`}
-      className="my-6 bg-white shadow-xs border border-gray-300 rounded-lg m-2 w-96 min-w-64"
-    >
+    <div id={`course-${course.id}`} className={s.courseCard}>
       <div className="p-4">
         <Link href={link}>
           <h5 className="flex flex-row items-center mb-2 text-slate-800 text-xl font-semibold">

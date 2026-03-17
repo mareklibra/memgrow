@@ -1,5 +1,6 @@
 import { fetchCourses } from '@/app/lib/data';
 import { lusitana } from '@/app/ui/fonts';
+import { s } from '@/app/ui/styles';
 import { ChooseCourse } from '@/app/ui/ChooseCourse';
 import { CreateCourse } from '../ui/CreateCourse';
 import { createCourse } from '../lib/actions';
@@ -18,10 +19,8 @@ export default async function Page() {
   };
 
   return (
-    <div className="pt-4 pr-4">
-      <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
-        Choose course to edit
-      </h1>
+    <div className={s.pageContainer}>
+      <h1 className={`${lusitana.className} ${s.pageTitle}`}>Choose course to edit</h1>
       <ChooseCourse
         courses={courses}
         pathPrefix="/edit"
@@ -29,7 +28,7 @@ export default async function Page() {
         showFastEntry={true}
         showForOffline={false}
       />
-      <hr className="w-full m-4 border-t-2 border-gray-400" />
+      <hr className={s.sectionSeparator} />
       <CreateCourse onSave={handleSave} />
     </div>
   );

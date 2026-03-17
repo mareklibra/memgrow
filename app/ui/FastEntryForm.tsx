@@ -10,6 +10,7 @@ import {
   Typography,
 } from '@/app/lib/material-tailwind-compat';
 import { queryTranslations, queryExamplesRaw } from '@/app/lib/actions';
+import { s } from '@/app/ui/styles';
 import { Button } from './button';
 import { Course, Word, WordToAdd } from '../lib/definitions';
 import { UpdateWordResult, WordWithSimilarity } from '@/app/lib/types';
@@ -105,7 +106,7 @@ export function FastEntryForm({
         onChange={(e) => setDefinition(e.target.value)}
         autoCapitalize="none"
       />
-      {error && <p className="text-red-500">{error}</p>}
+      {error && <p className={s.errorText}>{error}</p>}
       {word && (
         <div className="flex flex-row gap-2">
           Similarity:{' '}
