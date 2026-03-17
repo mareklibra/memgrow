@@ -1,6 +1,6 @@
 import { useState, MouseEvent, useRef } from 'react';
-import clsx from 'clsx';
 
+import { s, cn } from '@/app/ui/styles';
 import { Word } from '@/app/lib/definitions';
 import { longestCommonPrefix } from '@/app/lib/utils';
 import { Button as ButtonTW } from '@/app/lib/material-tailwind-compat';
@@ -67,12 +67,10 @@ export function TypeTranslation({
         </Button>
 
         <input
-          className={clsx(
-            'peer block w-full rounded-md border border-gray-200 py-[9px] pl-10 text-sm placeholder:text-gray-500',
-            {
-              'bg-green-600': status === 'correct',
-              'bg-red-500': status === 'mistake',
-            },
+          className={cn(
+            s.inputSimple,
+            status === 'correct' && 'bg-success',
+            status === 'mistake' && 'bg-danger',
           )}
           id="word-input"
           type="text"
@@ -88,7 +86,7 @@ export function TypeTranslation({
         {status === 'mistake' && (
           <WordDefinition
             definition={correctResponse}
-            className="bg-green-600 py-[9px] pl-10 mt-4"
+            className="bg-success py-input-y pl-10 mt-4"
             onClick={() => {}}
           />
         )}

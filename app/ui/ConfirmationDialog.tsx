@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
+import { s } from '@/app/ui/styles';
 
 interface ConfirmationDialogProps {
   isOpen: boolean;
@@ -100,17 +101,17 @@ export default function ConfirmationDialog({
     }
   };
 
-  const styles = getVariantStyles();
+  const variantStyles = getVariantStyles();
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className={s.dialogOverlay}>
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/50 transition-opacity" />
+      <div className={s.dialogBackdrop} />
 
       {/* Dialog */}
       <div
         ref={dialogRef}
-        className="relative w-full max-w-md transform overflow-hidden rounded-lg bg-white px-6 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:p-6"
+        className={s.dialogPanel}
         role="dialog"
         aria-modal="true"
         aria-labelledby="dialog-title"
@@ -120,7 +121,7 @@ export default function ConfirmationDialog({
         <div className="absolute right-0 top-0 pr-4 pt-4">
           <button
             type="button"
-            className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-hidden focus:ring-3 focus:ring-blue-500 focus:ring-offset-2"
+            className={s.dialogCloseBtn}
             onClick={handleCancel}
             disabled={isLoading}
           >
@@ -134,17 +135,17 @@ export default function ConfirmationDialog({
           {/* Icon */}
           <div className="mx-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-100 sm:mx-0 sm:h-10 sm:w-10">
             <span className="text-2xl" aria-hidden="true">
-              {styles.icon}
+              {variantStyles.icon}
             </span>
           </div>
 
           {/* Text content */}
           <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-            <h3 className="text-lg font-medium leading-6 text-gray-900" id="dialog-title">
+            <h3 className={s.dialogTitle} id="dialog-title">
               {title}
             </h3>
             <div className="mt-2">
-              <p className="text-sm text-gray-500" id="dialog-description">
+              <p className={s.dialogDescription} id="dialog-description">
                 {message}
               </p>
             </div>
@@ -156,13 +157,9 @@ export default function ConfirmationDialog({
           <button
             ref={confirmButtonRef}
             type="button"
-            className={clsx(
-              'inline-flex w-full justify-center rounded-md border border-transparent px-4 py-2 text-base font-medium text-white shadow-xs focus:outline-hidden focus:ring-3 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm',
-              styles.confirmButton,
-              {
-                'opacity-50 cursor-not-allowed': isLoading,
-              },
-            )}
+            className={clsx(s.dialogConfirmBtn, variantStyles.confirmButton, {
+              [s.disabledState]: isLoading,
+            })}
             onClick={handleConfirm}
             disabled={isLoading}
           >
@@ -177,12 +174,9 @@ export default function ConfirmationDialog({
           </button>
           <button
             type="button"
-            className={clsx(
-              'mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-xs hover:bg-gray-50 focus:outline-hidden focus:ring-3 focus:ring-blue-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm',
-              {
-                'opacity-50 cursor-not-allowed': isLoading,
-              },
-            )}
+            className={clsx(s.dialogCancelBtn, {
+              [s.disabledState]: isLoading,
+            })}
             onClick={handleCancel}
             disabled={isLoading}
           >

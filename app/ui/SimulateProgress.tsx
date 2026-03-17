@@ -1,7 +1,9 @@
 'use client';
 
+import clsx from 'clsx';
 import { Fragment, useState, useMemo } from 'react';
 import { Button } from '@/app/lib/material-tailwind-compat';
+import { s } from '@/app/ui/styles';
 import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { increaseMemLevel } from '@/app/lib/word-transitions';
 import { DAY_MS, testWordsCountLimit } from '@/app/constants';
@@ -22,10 +24,7 @@ type DayResult = {
 
 const SIMULATION_DAYS = 14;
 
-function runSimulation(
-  words: SimulationWord[],
-  slots: TimeSlot[],
-): DayResult[] {
+function runSimulation(words: SimulationWord[], slots: TimeSlot[]): DayResult[] {
   const state = words.map((w) => ({
     memLevel: w.memLevel,
     repeatAgain: new Date(w.repeatAgain).getTime(),
@@ -36,11 +35,7 @@ function runSimulation(
   );
 
   const now = new Date();
-  const todayStart = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-  ).getTime();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
 
   const results: DayResult[] = [];
 
@@ -100,10 +95,11 @@ const defaultSlot = (): TimeSlot => ({
 export function SimulateProgress({ words }: { words: SimulationWord[] }) {
   const [slots, setSlots] = useState<TimeSlot[]>([defaultSlot()]);
   const [hasRun, setHasRun] = useState(false);
+  const [mountTime] = useState(() => Date.now());
 
   const dueNow = useMemo(
-    () => words.filter((w) => new Date(w.repeatAgain).getTime() <= Date.now()).length,
-    [words],
+    () => words.filter((w) => new Date(w.repeatAgain).getTime() <= mountTime).length,
+    [words, mountTime],
   );
 
   const results = useMemo(() => {
@@ -125,17 +121,13 @@ export function SimulateProgress({ words }: { words: SimulationWord[] }) {
   };
 
   const updateSlot = (id: number, field: keyof TimeSlot, value: number) => {
-    setSlots((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, [field]: value } : s)),
-    );
+    setSlots((prev) => prev.map((s) => (s.id === id ? { ...s, [field]: value } : s)));
     setHasRun(false);
   };
 
   const updateSlotTime = (id: number, timeStr: string) => {
     const [h, m] = timeStr.split(':').map(Number);
-    setSlots((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, hour: h, minute: m } : s)),
-    );
+    setSlots((prev) => prev.map((s) => (s.id === id ? { ...s, hour: h, minute: m } : s)));
     setHasRun(false);
   };
 
@@ -146,7 +138,7 @@ export function SimulateProgress({ words }: { words: SimulationWord[] }) {
 
   return (
     <div className="max-w-2xl">
-      <p className="text-sm text-gray-600 mb-4">
+      <p className={clsx(s.simLabel, 'mb-4')}>
         {words.length} words in testing pool, {dueNow} currently due for review.
       </p>
 
@@ -155,28 +147,32 @@ export function SimulateProgress({ words }: { words: SimulationWord[] }) {
         <div className="space-y-3">
           {slots.map((slot) => (
             <div key={slot.id} className="flex items-center gap-3">
-              <label className="text-sm text-gray-600 w-10">Time</label>
+              <label className={clsx(s.simLabel, 'w-10')}>Time</label>
               <input
                 type="time"
                 value={`${String(slot.hour).padStart(2, '0')}:${String(slot.minute).padStart(2, '0')}`}
                 onChange={(e) => updateSlotTime(slot.id, e.target.value)}
-                className="border border-gray-300 rounded px-2 py-1 text-sm"
+                className={s.simInput}
               />
-              <label className="text-sm text-gray-600 ml-2">Words</label>
+              <label className={clsx(s.simLabel, 'ml-2')}>Words</label>
               <input
                 type="number"
                 min={1}
                 max={500}
                 value={slot.wordCount}
                 onChange={(e) =>
-                  updateSlot(slot.id, 'wordCount', Math.max(1, parseInt(e.target.value) || 1))
+                  updateSlot(
+                    slot.id,
+                    'wordCount',
+                    Math.max(1, parseInt(e.target.value) || 1),
+                  )
                 }
-                className="border border-gray-300 rounded px-2 py-1 text-sm w-20"
+                className={clsx(s.simInput, 'w-20')}
               />
               {slots.length > 1 && (
                 <button
                   onClick={() => removeSlot(slot.id)}
-                  className="text-red-500 hover:text-red-700 p-1"
+                  className="text-danger hover:text-red-700 p-1"
                 >
                   <TrashIcon className="h-4 w-4" />
                 </button>
@@ -235,12 +231,8 @@ export function SimulateProgress({ words }: { words: SimulationWord[] }) {
                   </td>
                   {day.slots.map((slot, si) => (
                     <Fragment key={si}>
-                      <td className="text-right px-1 text-gray-600">
-                        {slot.dueBefore}
-                      </td>
-                      <td className="text-right px-1">
-                        {slot.processed}
-                      </td>
+                      <td className="text-right px-1 text-gray-600">{slot.dueBefore}</td>
+                      <td className="text-right px-1">{slot.processed}</td>
                     </Fragment>
                   ))}
                   <td

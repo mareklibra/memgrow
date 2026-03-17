@@ -114,7 +114,7 @@ export const BatchImport = ({
   return (
     <div className="flex flex-col">
       {error && (
-        <Typography variant="small" className="font-semibold text-red-500">
+        <Typography variant="small" className="font-semibold text-danger">
           {error}
         </Typography>
       )}

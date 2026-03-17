@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { s } from '@/app/ui/styles';
 import { Word, WordWithMeta } from '@/app/lib/definitions';
 import { BoltIcon, BoltSlashIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline';
 import { TypeTranslation, TypeTranslationProps } from './TypeTranslation';
@@ -229,7 +230,7 @@ export function TeachWord({
           </div>
         )}
 
-        <div className="py-[20px] w-full">
+        <div className="py-5 w-full">
           <WordExamples
             word={word}
             queryExamples={queryExamples}
@@ -274,7 +275,7 @@ export function TeachWord({
           )}
         </div>
 
-        <hr className="h-px my-8 bg-gray-200 border-0 dark:bg-gray-700"></hr>
+        <hr className={s.separator} />
 
         <div className="flex justify-between">
           <Button onClick={editWord} type="button">

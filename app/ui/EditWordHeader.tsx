@@ -1,7 +1,6 @@
 import { Checkbox } from '@/app/lib/material-tailwind-compat';
 import clsx from 'clsx';
-export const thClass =
-  'px-3 py-3 text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500';
+import { s } from '@/app/ui/styles';
 
 export const EditWordHeader = ({
   fastEntry,
@@ -17,26 +16,26 @@ export const EditWordHeader = ({
       <th scope="col">
         <Checkbox checked={isEnriched} onChange={switchEnrichment} />
       </th>
-      <th scope="col" className={clsx(thClass, 'min-w-32')}>
+      <th scope="col" className={clsx(s.th, 'min-w-32')}>
         Word
       </th>
-      <th scope="col" className={clsx(thClass, 'min-w-32')}>
+      <th scope="col" className={clsx(s.th, 'min-w-32')}>
         Definition
       </th>
       {!fastEntry && (
         <>
-          <th scope="col" className={thClass}>
+          <th scope="col" className={s.th}>
             Memory Level
           </th>
-          <th scope="col" className={thClass}>
+          <th scope="col" className={s.th}>
             Next Form
           </th>
-          <th scope="col" className={thClass}>
+          <th scope="col" className={s.th}>
             Repeat
           </th>
         </>
       )}
-      <th scope="col" className={clsx(thClass, 'w-50')}>
+      <th scope="col" className={clsx(s.th, 'w-50')}>
         Action
       </th>
     </tr>

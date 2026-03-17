@@ -2,6 +2,7 @@
 
 import { PowerIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
+import { s } from '@/app/ui/styles';
 import ConfirmationDialog from './ConfirmationDialog';
 import { useState } from 'react';
 
@@ -19,7 +20,7 @@ export default function SignoutButton({
     <>
       <button
         className={clsx(className, {
-          'hover:bg-sky-100 hover:text-blue-600': isLoggedIn,
+          [s.navHover]: isLoggedIn,
         })}
         disabled={!isLoggedIn}
         onClick={() => setIsDialogOpen(true)}

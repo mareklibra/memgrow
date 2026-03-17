@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { s } from '@/app/ui/styles';
 import { Button, Input } from '@/app/lib/material-tailwind-compat';
 import { Course } from '../lib/definitions';
 
@@ -35,7 +36,7 @@ export function EditCourse({
           onChange={(e) => setCourseCode(e.target.value)}
           minLength={2}
         />
-        {error && <p className="text-red-500">{error}</p>}
+        {error && <p className={s.errorText}>{error}</p>}
       </div>
     </div>
   );

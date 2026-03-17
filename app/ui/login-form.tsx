@@ -8,8 +8,10 @@ import {
 } from '@heroicons/react/24/outline';
 import { ArrowRightIcon } from '@heroicons/react/20/solid';
 
+import clsx from 'clsx';
 import { authenticate } from '@/app/lib/actions';
 import { lusitana } from '@/app/ui/fonts';
+import { s } from '@/app/ui/styles';
 import { Button } from './button';
 import { Session } from 'next-auth';
 import { useRouter } from 'next/navigation';
@@ -36,41 +38,35 @@ export default function LoginForm({ auth }: Readonly<{ auth: Session | null }>) 
         </h1>
         <div className="w-full">
           <div>
-            <label
-              className="mb-3 mt-5 block text-xs font-medium text-gray-900"
-              htmlFor="email"
-            >
+            <label className={s.label} htmlFor="email">
               Email
             </label>
             <div className="relative">
               <input
-                className="peer block w-full rounded-md border border-gray-200 py-[9px] pl-10 text-sm  placeholder:text-gray-500"
+                className={s.inputSimple}
                 id="email"
                 type="email"
                 name="email"
                 placeholder="Enter your email address"
                 required
               />
-              <AtSymbolIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+              <AtSymbolIcon className={s.inputIcon} />
             </div>
           </div>
           <div className="mt-4">
-            <label
-              className="mb-3 mt-5 block text-xs font-medium text-gray-900"
-              htmlFor="password"
-            >
+            <label className={s.label} htmlFor="password">
               Password
             </label>
             <div className="relative">
               <input
-                className="peer block w-full rounded-md border border-gray-200 py-[9px] pl-10 text-sm placeholder:text-gray-500"
+                className={s.inputSimple}
                 id="password"
                 type="password"
                 name="password"
                 placeholder="Enter password"
                 required
               />
-              <KeyIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+              <KeyIcon className={s.inputIcon} />
             </div>
           </div>
         </div>
@@ -80,8 +76,8 @@ export default function LoginForm({ auth }: Readonly<{ auth: Session | null }>) 
         <div className="flex h-8 items-end space-x-1">
           {errorMessage && (
             <>
-              <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
-              <p className="text-sm text-red-500">{errorMessage}</p>
+              <ExclamationCircleIcon className={clsx('h-5 w-5', s.errorText)} />
+              <p className={clsx('text-sm', s.errorText)}>{errorMessage}</p>
             </>
           )}
         </div>

@@ -1,9 +1,32 @@
-import clsx from 'clsx';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from '@/app/ui/styles';
 import { Button } from './button';
 import { useCallback } from 'react';
 import { useKeyHandler } from './useKeyHandler';
 
 export type TranslationOptionState = 'normal' | 'mistake' | 'correct' | 'disabled';
+
+export const translationOptionVariants = cva('justify-center w-full h-16', {
+  variants: {
+    state: {
+      normal: '',
+      correct: 'bg-success',
+      mistake: 'bg-danger',
+      disabled: 'bg-gray-200',
+    },
+  },
+  defaultVariants: {
+    state: 'normal',
+  },
+});
+
+interface TranslationOptionProps extends VariantProps<typeof translationOptionVariants> {
+  state: TranslationOptionState;
+  option: string;
+  optionTwin: string;
+  shortcut?: string;
+  handleClick: (option: string) => void;
+}
 
 export const TranslationOption = ({
   state,
@@ -11,24 +34,14 @@ export const TranslationOption = ({
   optionTwin,
   shortcut,
   handleClick,
-}: {
-  state: TranslationOptionState;
-  option: string;
-  optionTwin: string;
-  shortcut?: string;
-  handleClick: (option: string) => void;
-}) => {
+}: TranslationOptionProps) => {
   const handleKeyClick = useCallback(() => handleClick(option), [handleClick, option]);
   useKeyHandler(handleKeyClick, shortcut);
 
   return (
     <div>
       <Button
-        className={clsx('justify-center w-full h-16', {
-          'bg-green-600': state === 'correct',
-          'bg-red-500': state === 'mistake',
-          'bg-gray-200': state === 'disabled',
-        })}
+        className={cn(translationOptionVariants({ state }))}
         onClick={(e) => {
           e.preventDefault();
           handleClick(option);
