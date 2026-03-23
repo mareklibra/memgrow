@@ -4,6 +4,7 @@ import { s } from '@/app/ui/styles';
 import { EditWords } from '@/app/ui/EditWords';
 import Link from 'next/link';
 import { EditCourse } from '@/app/ui/EditCourse';
+import { AutoLearnButton } from '@/app/ui/AutoLearnButton';
 import { updateCourse } from '@/app/lib/actions';
 import { revalidatePath } from 'next/cache';
 
@@ -49,11 +50,13 @@ export default async function Page({
   };
 
   const words = await fetchAllWords(courseId);
+  const toLearnCount = words.filter((w) => w.memLevel === 0).length;
   return (
     <>
       <h1 className={`${lusitana.className} ${s.pageTitle}`}>
         All words ({words.length}) of course {course.name} ({course.courseCode})
       </h1>
+      <AutoLearnButton courseId={courseId} toLearnCount={toLearnCount} className="mr-4" />
       <EditWords words={words} courseId={courseId} forceDbReload={forceDbReload} />
       <hr className={s.sectionSeparator} />
       <EditCourse course={course} onSave={handleSave} />

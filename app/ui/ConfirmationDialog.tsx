@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import { s } from '@/app/ui/styles';
@@ -8,13 +8,12 @@ import { s } from '@/app/ui/styles';
 interface ConfirmationDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: () => void | Promise<void>;
   title: string;
   message: string;
   confirmText?: string;
   cancelText?: string;
   variant?: 'danger' | 'warning' | 'info';
-  isLoading?: boolean;
 }
 
 export default function ConfirmationDialog({
@@ -26,21 +25,25 @@ export default function ConfirmationDialog({
   confirmText = 'Confirm',
   cancelText = 'Cancel',
   variant = 'info',
-  isLoading = false,
 }: ConfirmationDialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const confirmButtonRef = useRef<HTMLButtonElement>(null);
+  const [processing, setProcessing] = useState(false);
+
+  const close = useCallback(() => {
+    if (!processing) onClose();
+  }, [processing, onClose]);
 
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && isOpen) {
-        onClose();
+        close();
       }
     };
 
     const handleClickOutside = (event: MouseEvent) => {
       if (dialogRef.current && !dialogRef.current.contains(event.target as Node)) {
-        onClose();
+        close();
       }
     };
 
@@ -49,7 +52,6 @@ export default function ConfirmationDialog({
       document.addEventListener('mousedown', handleClickOutside);
       document.body.style.overflow = 'hidden';
 
-      // Focus the confirm button when dialog opens
       setTimeout(() => {
         confirmButtonRef.current?.focus();
       }, 100);
@@ -60,19 +62,27 @@ export default function ConfirmationDialog({
       document.removeEventListener('mousedown', handleClickOutside);
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, close]);
+
+  useEffect(() => {
+    if (!isOpen) setProcessing(false);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const handleConfirm = () => {
-    if (!isLoading) {
-      onConfirm();
+  const handleConfirm = async () => {
+    if (processing) return;
+    setProcessing(true);
+    try {
+      await onConfirm();
+    } finally {
+      setProcessing(false);
+      onClose();
     }
-    onClose();
   };
 
   const handleCancel = () => {
-    if (!isLoading) {
+    if (!processing) {
       onClose();
     }
   };
@@ -123,7 +133,7 @@ export default function ConfirmationDialog({
             type="button"
             className={s.dialogCloseBtn}
             onClick={handleCancel}
-            disabled={isLoading}
+            disabled={processing}
           >
             <span className="sr-only">Close</span>
             <XMarkIcon className="h-6 w-6" aria-hidden="true" />
@@ -158,12 +168,12 @@ export default function ConfirmationDialog({
             ref={confirmButtonRef}
             type="button"
             className={clsx(s.dialogConfirmBtn, variantStyles.confirmButton, {
-              [s.disabledState]: isLoading,
+              [s.disabledState]: processing,
             })}
             onClick={handleConfirm}
-            disabled={isLoading}
+            disabled={processing}
           >
-            {isLoading ? (
+            {processing ? (
               <div className="flex items-center">
                 <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                 Loading...
@@ -175,10 +185,10 @@ export default function ConfirmationDialog({
           <button
             type="button"
             className={clsx(s.dialogCancelBtn, {
-              [s.disabledState]: isLoading,
+              [s.disabledState]: processing,
             })}
             onClick={handleCancel}
-            disabled={isLoading}
+            disabled={processing}
           >
             {cancelText}
           </button>
