@@ -82,6 +82,10 @@ export const s = {
     'mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-xs hover:bg-gray-50 focus:outline-hidden focus:ring-3 focus:ring-blue-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm',
   disabledState: 'opacity-50 cursor-not-allowed',
 
+  // ── Feedback ─────────────────────────────────────────────────────
+  successText: 'text-green-600',
+  inlineActions: 'flex items-center justify-end gap-4 my-4',
+
   // ── Simulation ─────────────────────────────────────────────────────
   simInput: 'border border-gray-300 rounded px-2 py-1 text-sm',
   simLabel: 'text-sm text-gray-600',
