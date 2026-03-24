@@ -8,11 +8,12 @@ export type User = {
 export type TeachingForm =
   | 'show'
   | 'write'
+  | 'write_def'
   | 'write_last'
   | 'choose_4_def'
   | 'choose_4_word'
   | 'choose_8_def';
-export const TeachingFormCount = 5;
+export const TeachingFormCount = 6;
 
 export type DbWord = {
   id: string;

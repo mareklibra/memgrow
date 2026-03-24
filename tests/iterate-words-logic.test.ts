@@ -306,6 +306,34 @@ describe('iterate-words-logic', () => {
         const result2 = handleCorrect(state2, word2, testOpts({ repetitionLimit: 1 }));
         expect(result2.wordQueue[0].memLevel).toBe(4);
       });
+
+      it('form progression includes write_def: choose_4_def → write_def → choose_8_def → write → write_last → choose_4_def', () => {
+        const forms = [
+          'choose_4_def',
+          'write_def',
+          'choose_8_def',
+          'write',
+          'write_last',
+        ] as const;
+        const expectedNext = [
+          'write_def',
+          'choose_8_def',
+          'write',
+          'write_last',
+          'choose_4_def',
+        ] as const;
+
+        for (let i = 0; i < forms.length; i++) {
+          const word = makeWordMeta({ form: forms[i], repeated: 0 });
+          const state: IterateState = {
+            wordQueue: [word, makeWordMeta({ id: 'w2' }), makeWordMeta({ id: 'w3' })],
+            wordIdx: 0,
+          };
+          const result = handleCorrect(state, word, testOpts({ repetitionLimit: 10 }));
+          const inserted = result.wordQueue.find((w, idx) => idx > 0 && w.id === 'w1');
+          expect(inserted?.form).toBe(expectedNext[i]);
+        }
+      });
     });
 
     describe('random insertion position', () => {
