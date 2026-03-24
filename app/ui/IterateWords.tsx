@@ -4,15 +4,19 @@ import { lusitana } from '@/app/ui/fonts';
 import { s } from '@/app/ui/styles';
 import Link from 'next/link';
 import { Button } from '@/app/lib/material-tailwind-compat';
-import {
-  decreaseMemLevel,
-  getNextForm,
-  getRepeatAgainDate,
-  increaseMemLevel,
-} from '@/app/lib/word-transitions';
-import { TeachingForm, Word, WordWithMeta } from '@/app/lib/definitions';
+import { decreaseMemLevel } from '@/app/lib/word-transitions';
+import { Word, WordWithMeta } from '@/app/lib/definitions';
 import { updateWordsProgress } from '@/app/lib/actions';
 import { UpdateWordsResult } from '@/app/lib/types';
+import {
+  calculateProgress,
+  checkIsDone,
+  handleCorrect,
+  handleMistake,
+  handleOnChange,
+  handleSkipWord,
+  initializeQueue,
+} from '@/app/lib/iterate-words-logic';
 import { TeachWord } from './TeachWord';
 import { DoneState } from './DoneState';
 import { TypeTranslationProps } from './TypeTranslation';
@@ -85,134 +89,45 @@ export function IterateWords({
   );
 
   useEffect(() => {
-    // Initialize
-    if (words.length === 0) {
-      return;
-    }
+    if (words.length === 0) return;
 
     if (wordQueue.length === 0) {
       queueMicrotask(() => {
-        setWordQueue(words.map((w) => ({ ...w, repeated: 0 })));
-
-        if (words?.length > 0) {
-          setWordIdx(0);
-        } else {
-          setWordIdx(-1);
-        }
+        const initial = initializeQueue(words);
+        setWordQueue(initial.wordQueue);
+        setWordIdx(initial.wordIdx);
       });
     }
   }, [words, wordQueue]);
 
   useEffect(() => {
-    if (wordIdx >= wordQueue.length || wordIdx >= maxWordsInBatch) {
+    if (checkIsDone(wordIdx, wordQueue.length, maxWordsInBatch)) {
       queueMicrotask(() => setIsDone(true));
     }
   }, [wordIdx, wordQueue.length, maxWordsInBatch]);
 
   const correct = (word: WordWithMeta) => {
-    // learning show
-    // learning progress
-    // learning last
-    // test
-    const repeated = word.form === 'show' ? word.repeated : word.repeated + 1;
-
-    const insertNextAtRandomPosition = (w: WordWithMeta) => {
-      const randomIdx = Math.min(
-        2 + wordIdx + Math.floor(Math.random() * (wordQueue.length - wordIdx)),
-        wordIdx + maxDistanceForRandomQueueInsertion,
-      );
-      const oldQueue = wordQueue.slice(0, randomIdx);
-      const newQueue = wordQueue.slice(randomIdx);
-      setWordQueue([...oldQueue, w, ...newQueue]);
-    };
-
-    const updateCurrentWord = (w: WordWithMeta) => {
-      const newQueue = [...wordQueue];
-      newQueue[wordIdx] = w;
-      setWordQueue(newQueue);
-    };
-
-    if (isLearning) {
-      if (repeated < repetitionLimit && word.form !== 'write_last') {
-        insertNextAtRandomPosition({
-          ...word,
-          form: getNextForm(word.form),
-          repeated,
-        });
-      } else {
-        const newMemLevel =
-          word.form === 'write_last' ? increaseMemLevel(word.memLevel) : word.memLevel;
-        updateCurrentWord({
-          ...word,
-          form: getNextForm(word.form),
-          memLevel: newMemLevel,
-          repeatAgain: getRepeatAgainDate(newMemLevel),
-        });
-      }
-    } else {
-      // Test
-      if (repeated < repetitionLimit) {
-        insertNextAtRandomPosition({
-          ...word,
-          form: getNextForm(word.form),
-          memLevel: increaseMemLevel(word.memLevel),
-          repeatAgain: getRepeatAgainDate(word.memLevel),
-          repeated,
-        });
-      } else {
-        updateCurrentWord({
-          ...word,
-          form: getNextForm(word.form),
-          memLevel: increaseMemLevel(word.memLevel),
-          repeatAgain: getRepeatAgainDate(word.memLevel),
-        });
-      }
-    }
-
-    // Move learning forward
-    setWordIdx(wordIdx + 1);
+    const newState = handleCorrect({ wordQueue, wordIdx }, word, {
+      isLearning: !!isLearning,
+      repetitionLimit,
+      maxDistForRandom: maxDistanceForRandomQueueInsertion,
+    });
+    setWordQueue(newState.wordQueue);
+    setWordIdx(newState.wordIdx);
   };
 
   const mistake = (word: WordWithMeta, isShortenOnly: boolean) => {
-    // Move learning backward
-    const newForm: TeachingForm = 'show';
-    let newMemLevel = word.memLevel;
-    if (!isLearning) {
-      newMemLevel = decreaseMemLevel(word.memLevel, isShortenOnly);
-    }
-
-    const newWord: WordWithMeta = {
-      ...word,
-      form: newForm,
-      memLevel: newMemLevel,
-      repeatAgain: getRepeatAgainDate(
-        newMemLevel,
-        // word.repeatAgain
-      ),
-      // keep the "repeated" property untouched
-    };
-
-    // insert right after recent step
-    const idx = wordQueue.findLastIndex((item) => item.id === word.id);
-    const newQueue = [...wordQueue];
-    newQueue.splice(idx + 2, 0, newWord);
-
-    setWordQueue(newQueue);
-    setWordIdx(wordIdx + 1);
+    const newState = handleMistake({ wordQueue, wordIdx }, word, {
+      isLearning: !!isLearning,
+      isShortenOnly,
+    });
+    setWordQueue(newState.wordQueue);
+    setWordIdx(newState.wordIdx);
   };
 
   const onChange = useCallback(
     (word: Word) => {
-      const updated = wordQueue.map((w) => {
-        if (w.id === word.id) {
-          w.word = word.word;
-          w.definition = word.definition;
-          w.memLevel = word.memLevel;
-          w.isPriority = word.isPriority;
-        }
-        return w;
-      });
-      setWordQueue(updated);
+      setWordQueue(handleOnChange(wordQueue, word));
     },
     [wordQueue],
   );
@@ -220,28 +135,9 @@ export function IterateWords({
   const skipWord = useCallback(
     (word: Word) => {
       console.log('skipWord', word);
-
-      const newQueue = wordQueue
-        .map((w, index) => {
-          if (index < wordIdx) {
-            return w;
-          }
-
-          if (index === wordIdx) {
-            w.isSkipped = true;
-            return w;
-          }
-
-          if (w.id === word.id) {
-            return undefined;
-          }
-
-          return w;
-        })
-        .filter((w) => w !== undefined) as WordWithMeta[];
-
-      setWordQueue(newQueue);
-      setWordIdx(wordIdx + 1);
+      const newState = handleSkipWord({ wordQueue, wordIdx }, word);
+      setWordQueue(newState.wordQueue);
+      setWordIdx(newState.wordIdx);
     },
     [wordIdx, wordQueue],
   );
@@ -284,9 +180,7 @@ export function IterateWords({
 
   const word = wordQueue[wordIdx];
 
-  const progress = Math.round(
-    (wordIdx / Math.min(wordQueue.length, maxWordsInBatch)) * 100,
-  );
+  const progress = calculateProgress(wordIdx, wordQueue.length, maxWordsInBatch);
 
   return (
     <div className="w-full p-2 md:pt-5">
