@@ -89,6 +89,16 @@ export function TeachWord({
     }
 
     if (
+      word.form === 'write_def' &&
+      value?.trim().toLowerCase() === word.definition.trim().toLowerCase()
+    ) {
+      setStatus('correct');
+      await delay(DELAY_CORRECT_MS);
+      correct(word);
+      return;
+    }
+
+    if (
       ['choose_4_word', 'write', 'write_last'].includes(word.form) &&
       // TODO: make this configurable (e.g. for german)
       value?.trim().toLowerCase() === word.word.trim().toLowerCase()
@@ -192,6 +202,18 @@ export function TeachWord({
           onValue={onValue}
           onRevertMistake={onRevertMistake}
           status={status}
+        />
+      );
+      break;
+    case 'write_def':
+      component = (
+        <TypeTranslation
+          key={word.id}
+          word={word}
+          guessing="definition"
+          onValue={onValue}
+          status={status}
+          specialKeys={specialKeys}
         />
       );
       break;

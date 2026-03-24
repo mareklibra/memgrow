@@ -94,7 +94,7 @@ export function handleCorrect(
     if (repeated < repetitionLimit) {
       newQueue = insertNextAtRandomPosition({
         ...word,
-        form: getNextForm(word.form),
+        form: getNextForm(word.form, true),
         memLevel: increaseMemLevel(word.memLevel),
         repeatAgain: getRepeatAgainDate(word.memLevel),
         repeated,
@@ -102,7 +102,7 @@ export function handleCorrect(
     } else {
       newQueue = updateCurrentWord({
         ...word,
-        form: getNextForm(word.form),
+        form: getNextForm(word.form, true),
         memLevel: increaseMemLevel(word.memLevel),
         repeatAgain: getRepeatAgainDate(word.memLevel),
       });

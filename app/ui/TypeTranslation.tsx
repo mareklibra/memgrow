@@ -14,6 +14,7 @@ export interface TypeTranslationProps {
   word: Word;
   status: FieldStatus;
   specialKeys: string[];
+  guessing?: 'word' | 'definition';
   onValue: (value: string, oneChanceOnly: boolean) => void;
 }
 
@@ -22,12 +23,13 @@ export function TypeTranslation({
   onValue,
   status,
   specialKeys,
+  guessing = 'word',
 }: Readonly<TypeTranslationProps>) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [value, setValue] = useState<string>('');
 
-  const toGuess = word.definition;
-  const correctResponse = word.word;
+  const toGuess = guessing === 'definition' ? word.word : word.definition;
+  const correctResponse = guessing === 'definition' ? word.definition : word.word;
 
   const handleChange = (newValue: string) => {
     setValue(newValue);
