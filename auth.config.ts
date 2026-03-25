@@ -1,5 +1,20 @@
 import type { NextAuthConfig } from 'next-auth';
 
+declare module 'next-auth' {
+  interface User {
+    is_admin?: boolean;
+  }
+  interface Session {
+    user: {
+      id: string;
+      name?: string | null;
+      email?: string | null;
+      image?: string | null;
+      is_admin?: boolean;
+    };
+  }
+}
+
 export const authConfig: NextAuthConfig = {
   pages: {
     signIn: '/login',
@@ -25,12 +40,13 @@ export const authConfig: NextAuthConfig = {
       if (account) {
         token.accessToken = account.access_token;
         token.id = user?.id;
+        token.is_admin = user?.is_admin ?? false;
       }
       return token;
     },
     session({ session, token }) {
-      // session.accessToken = token.accessToken;
       session.user.id = token.sub as string;
+      session.user.is_admin = (token.is_admin as boolean) ?? false;
       return session;
     },
   },

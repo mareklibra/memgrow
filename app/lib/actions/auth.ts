@@ -4,7 +4,8 @@ import { sql } from '@vercel/postgres';
 import bcrypt from 'bcrypt';
 import { AuthError } from 'next-auth';
 
-import { signIn } from '@/auth';
+import { auth, signIn } from '@/auth';
+import { isUserAdmin } from '@/app/lib/data';
 
 export async function authenticate(_: string | undefined, formData: FormData) {
   try {
@@ -52,5 +53,38 @@ export async function addNewUser(user: {
     return {
       message: `Database Error: Failed to add new user. ${JSON.stringify(e)}`,
     };
+  }
+}
+
+export async function impersonateUser(targetUserId: string) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { message: 'Not authenticated.' };
+  }
+
+  const adminValid = await isUserAdmin(session.user.id);
+  if (!adminValid) {
+    return { message: 'Not authorized: admin privileges required.' };
+  }
+
+  const result = await sql<{ email: string }>`
+    SELECT email FROM users WHERE id = ${targetUserId}
+  `;
+  const targetEmail = result.rows[0]?.email;
+  if (!targetEmail) {
+    return { message: 'Target user not found.' };
+  }
+
+  try {
+    await signIn('credentials', {
+      email: targetEmail,
+      impersonateByAdminId: session.user.id,
+      redirectTo: '/',
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return { message: 'Impersonation failed.' };
+    }
+    throw error;
   }
 }

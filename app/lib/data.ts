@@ -12,7 +12,7 @@ type DbWordProgress = DbWord & {
   is_priority: boolean;
   is_skipped: boolean;
 };
-type UserAuth = User & { password: string };
+type UserAuth = User & { password: string; is_admin: boolean };
 
 export async function getUserForAuth(email: string): Promise<UserAuth | undefined> {
   try {
@@ -21,6 +21,32 @@ export async function getUserForAuth(email: string): Promise<UserAuth | undefine
   } catch (error) {
     console.error('Failed to fetch user:', error);
     throw new Error('Failed to fetch user.');
+  }
+}
+
+export async function isUserAdmin(userId: string): Promise<boolean> {
+  try {
+    const result = await sql<{ is_admin: boolean }>`
+      SELECT is_admin FROM users WHERE id = ${userId}
+    `;
+    return result.rows[0]?.is_admin ?? false;
+  } catch (error) {
+    console.error('Failed to check admin status:', error);
+    return false;
+  }
+}
+
+export type UserListItem = { id: string; name: string; email: string };
+
+export async function fetchAllUsers(): Promise<UserListItem[]> {
+  try {
+    const result = await sql<UserListItem>`
+      SELECT id, name, email FROM users ORDER BY name ASC
+    `;
+    return result.rows;
+  } catch (error) {
+    console.error('Failed to fetch users:', error);
+    throw new Error('Failed to fetch users.');
   }
 }
 

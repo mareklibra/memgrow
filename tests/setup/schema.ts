@@ -88,6 +88,10 @@ export async function runSchema(connectionString: string): Promise<void> {
   `);
 
   await pool.query(`
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN NOT NULL DEFAULT FALSE;
+  `);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS user_course (
       user_id UUID NOT NULL,
       course_id UUID NOT NULL,
