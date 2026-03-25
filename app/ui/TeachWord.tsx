@@ -12,6 +12,8 @@ import { EditWords, EditWordsProps } from './EditWords';
 import { useWithSound } from '../lib/useWithSound';
 import { DELAY_CORRECT_MS, DELAY_MISTAKE_MS } from '../constants';
 import { WordExamples, WordExamplesProps } from './WordExamples';
+import { FORM_CORRECT_ANSWER } from '../lib/form-config';
+import { assertNever } from '../lib/utils';
 
 interface TeachWordProps {
   word: WordWithMeta;
@@ -78,35 +80,15 @@ export function TeachWord({
   const onValue = async (value: string, oneChanceOnly: boolean) => {
     setIsAnyText(!!value);
 
-    if (
-      ['choose_4_def', 'choose_8_def'].includes(word.form) &&
-      value === word.definition
-    ) {
-      setStatus('correct');
-      await delay(DELAY_CORRECT_MS);
-      correct(word);
-      return;
-    }
-
-    if (
-      word.form === 'write_mid' &&
-      value?.trim().toLowerCase() === word.definition.trim().toLowerCase()
-    ) {
-      setStatus('correct');
-      await delay(DELAY_CORRECT_MS);
-      correct(word);
-      return;
-    }
-
-    if (
-      ['choose_4_word', 'write', 'write_mid', 'write_last'].includes(word.form) &&
-      // TODO: make this configurable (e.g. for german)
-      value?.trim().toLowerCase() === word.word.trim().toLowerCase()
-    ) {
-      setStatus('correct');
-      await delay(DELAY_CORRECT_MS);
-      correct(word);
-      return;
+    const answerTarget = FORM_CORRECT_ANSWER[word.form];
+    if (answerTarget) {
+      const expected = answerTarget === 'word' ? word.word : word.definition;
+      if (value?.trim().toLowerCase() === expected.trim().toLowerCase()) {
+        setStatus('correct');
+        await delay(DELAY_CORRECT_MS);
+        correct(word);
+        return;
+      }
     }
 
     if (oneChanceOnly) {
@@ -207,7 +189,7 @@ export function TeachWord({
       break;
     case 'write_mid':
     case 'write':
-    default:
+    case 'write_last':
       component = (
         <TypeTranslation
           key={word.id}
@@ -217,6 +199,9 @@ export function TeachWord({
           specialKeys={specialKeys}
         />
       );
+      break;
+    default:
+      assertNever(word.form);
   }
 
   const isCheckButtonDisabled = !(

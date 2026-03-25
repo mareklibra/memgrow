@@ -9,7 +9,8 @@ import {
   initializeQueue,
   IterateState,
 } from '@/app/lib/iterate-words-logic';
-import { Word, WordWithMeta } from '@/app/lib/definitions';
+import { TEACHING_FORMS, TeachingForm, Word, WordWithMeta } from '@/app/lib/definitions';
+import { getNextForm } from '@/app/lib/word-transitions';
 import { DAY_MS, REPEAT_SOONER_FACTOR } from '@/app/constants';
 
 function makeWord(overrides: Partial<Word> = {}): Word {
@@ -816,6 +817,113 @@ describe('iterate-words-logic', () => {
       const state: IterateState = { wordQueue: words, wordIdx: 3 };
       expect(checkIsDone(state.wordIdx, state.wordQueue.length, 3)).toBe(true);
       expect(checkIsDone(state.wordIdx, state.wordQueue.length, 5)).toBe(false);
+    });
+  });
+
+  // ── regression: write_mid is test-only ──────────────────────────────
+  describe('write_mid is test-flow only', () => {
+    const learnOpts = (overrides: Record<string, unknown> = {}) => ({
+      isLearning: true,
+      repetitionLimit: 3,
+      maxDistForRandom: 10,
+      randomFn: () => 0,
+      ...overrides,
+    });
+
+    const testOpts = (overrides: Record<string, unknown> = {}) => ({
+      isLearning: false,
+      repetitionLimit: 1,
+      maxDistForRandom: 10,
+      randomFn: () => 0,
+      ...overrides,
+    });
+
+    it('learning: no form ever transitions to write_mid (within-session branch)', () => {
+      for (const form of TEACHING_FORMS) {
+        if (form === 'write_last') continue; // write_last goes to update branch
+        const word = makeWordMeta({ form, repeated: 0 });
+        const state: IterateState = {
+          wordQueue: [word, makeWordMeta({ id: 'w2' }), makeWordMeta({ id: 'w3' })],
+          wordIdx: 0,
+        };
+        const result = handleCorrect(state, word, learnOpts({ repetitionLimit: 10 }));
+        const inserted = result.wordQueue.find((w, idx) => idx > 0 && w.id === 'w1');
+        expect(inserted?.form).not.toBe('write_mid');
+      }
+    });
+
+    it('test mode: choose_4_def transitions to write_mid', () => {
+      const word = makeWordMeta({ form: 'choose_4_def', repeated: 0 });
+      const state: IterateState = {
+        wordQueue: [word, makeWordMeta({ id: 'w2' }), makeWordMeta({ id: 'w3' })],
+        wordIdx: 0,
+      };
+      const result = handleCorrect(state, word, testOpts({ repetitionLimit: 10 }));
+      const inserted = result.wordQueue.find((w, idx) => idx > 0 && w.id === 'w1');
+      expect(inserted?.form).toBe('write_mid');
+    });
+
+    it('learning else-branch (persisting): uses test transitions for next-session setup', () => {
+      const word = makeWordMeta({ form: 'choose_4_def', repeated: 5 });
+      const state: IterateState = { wordQueue: [word], wordIdx: 0 };
+      const result = handleCorrect(state, word, learnOpts({ repetitionLimit: 1 }));
+      // The else branch persists for next session (test flow), so write_mid is correct here
+      expect(result.wordQueue[0].form).toBe('write_mid');
+    });
+  });
+
+  // ── regression: getNextForm isTest consistency ────────────────────────
+  describe('getNextForm isTest consistency across all call sites', () => {
+    it('every form produces a valid transition in both learn and test mode', () => {
+      for (const form of TEACHING_FORMS) {
+        const learnNext = getNextForm(form, false);
+        const testNext = getNextForm(form, true);
+        expect(TEACHING_FORMS as readonly string[]).toContain(learnNext);
+        expect(TEACHING_FORMS as readonly string[]).toContain(testNext);
+      }
+    });
+
+    it('handleCorrect produces valid forms for every starting form (test mode)', () => {
+      const testOpts2 = {
+        isLearning: false,
+        repetitionLimit: 10,
+        maxDistForRandom: 10,
+        randomFn: () => 0,
+      };
+      for (const form of TEACHING_FORMS) {
+        const word = makeWordMeta({ form, repeated: 0 });
+        const state: IterateState = {
+          wordQueue: [word, makeWordMeta({ id: 'w2' }), makeWordMeta({ id: 'w3' })],
+          wordIdx: 0,
+        };
+        const result = handleCorrect(state, word, testOpts2);
+        const inserted = result.wordQueue.find((w, idx) => idx > 0 && w.id === 'w1');
+        if (inserted) {
+          expect(TEACHING_FORMS as readonly string[]).toContain(inserted.form);
+        }
+      }
+    });
+
+    it('handleCorrect produces valid forms for every starting form (learn mode)', () => {
+      const learnOpts2 = {
+        isLearning: true,
+        repetitionLimit: 10,
+        maxDistForRandom: 10,
+        randomFn: () => 0,
+      };
+      for (const form of TEACHING_FORMS) {
+        if (form === 'write_last') continue; // different branch
+        const word = makeWordMeta({ form, repeated: 0 });
+        const state: IterateState = {
+          wordQueue: [word, makeWordMeta({ id: 'w2' }), makeWordMeta({ id: 'w3' })],
+          wordIdx: 0,
+        };
+        const result = handleCorrect(state, word, learnOpts2);
+        const inserted = result.wordQueue.find((w, idx) => idx > 0 && w.id === 'w1');
+        if (inserted) {
+          expect(TEACHING_FORMS as readonly string[]).toContain(inserted.form);
+        }
+      }
     });
   });
 });

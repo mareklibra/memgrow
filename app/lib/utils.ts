@@ -4,6 +4,10 @@ import { STRING_SIMILARITY_SUBSTRING_LENGTH } from '../constants';
 import { Word } from './definitions';
 import { WordWithSimilarity } from './types';
 
+export function assertNever(x: never): never {
+  throw new Error(`Unexpected value: ${x}`);
+}
+
 export const formatDateToLocal = (dateStr: string, locale: string = 'en-US') => {
   const date = new Date(dateStr);
   const options: Intl.DateTimeFormatOptions = {

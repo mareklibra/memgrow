@@ -7,31 +7,37 @@ import {
 } from '../constants';
 import { TeachingForm, TeachingFormCount } from './definitions';
 
+const LEARN_TRANSITIONS: Record<TeachingForm, TeachingForm> = {
+  show: 'choose_4_word',
+  choose_4_word: 'choose_4_def',
+  choose_4_def: 'choose_8_def',
+  write_mid: 'choose_8_def',
+  choose_8_def: 'write',
+  write: 'write_last',
+  write_last: 'choose_4_def',
+};
+
+const TEST_TRANSITIONS: Record<TeachingForm, TeachingForm> = {
+  ...LEARN_TRANSITIONS,
+  choose_4_def: 'write_mid',
+};
+
 export function getNextForm(form: TeachingForm, isTest?: boolean): TeachingForm {
-  let newForm: TeachingForm = 'show';
-  if (form === 'show') newForm = 'choose_4_word';
-  if (form === 'choose_4_word') newForm = 'choose_4_def';
-  if (form === 'choose_4_def') newForm = isTest ? 'write_mid' : 'choose_8_def';
-  if (form === 'write_mid') newForm = 'choose_8_def';
-  if (form === 'choose_8_def') newForm = 'write';
-  if (form === 'write') newForm = 'write_last';
-
-  // Used during Test-flow only (not learning)
-  if (form === 'write_last') newForm = 'choose_4_def';
-
-  return newForm;
+  return isTest ? TEST_TRANSITIONS[form] : LEARN_TRANSITIONS[form];
 }
 
+const FORM_ORDER: Record<TeachingForm, number> = {
+  show: 0,
+  choose_4_word: 1,
+  choose_4_def: 2,
+  write_mid: 3,
+  choose_8_def: 4,
+  write: 5,
+  write_last: 6,
+};
+
 export function getNumericForm(form: TeachingForm): number {
-  let value = 0;
-  if (form === 'show') value = 0;
-  if (form === 'choose_4_word') value = 1;
-  if (form === 'choose_4_def') value = 2;
-  if (form === 'write_mid') value = 3;
-  if (form === 'choose_8_def') value = 4;
-  if (form === 'write') value = 5;
-  if (form === 'write_last') value = 6;
-  return value;
+  return FORM_ORDER[form];
 }
 
 export const getProgressInPercents = (form: TeachingForm) =>
