@@ -89,7 +89,7 @@ export function TeachWord({
     }
 
     if (
-      word.form === 'write_def' &&
+      word.form === 'write_mid' &&
       value?.trim().toLowerCase() === word.definition.trim().toLowerCase()
     ) {
       setStatus('correct');
@@ -205,18 +205,7 @@ export function TeachWord({
         />
       );
       break;
-    case 'write_def':
-      component = (
-        <TypeTranslation
-          key={word.id}
-          word={word}
-          guessing="definition"
-          onValue={onValue}
-          status={status}
-          specialKeys={specialKeys}
-        />
-      );
-      break;
+    case 'write_mid':
     case 'write':
     default:
       component = (

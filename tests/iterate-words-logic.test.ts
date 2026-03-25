@@ -189,7 +189,7 @@ describe('iterate-words-logic', () => {
       });
 
       it('does NOT increase memLevel for non-write_last forms even when repeated >= limit', () => {
-        const word = makeWordMeta({ form: 'choose_4_def', repeated: 2, memLevel: 5 });
+        const word = makeWordMeta({ form: 'write_mid', repeated: 2, memLevel: 5 });
         const state: IterateState = { wordQueue: [word], wordIdx: 0 };
         // repeated = 2+1=3, limit=3 → goes to else branch
         const result = handleCorrect(state, word, learnOpts({ repetitionLimit: 3 }));
@@ -307,16 +307,16 @@ describe('iterate-words-logic', () => {
         expect(result2.wordQueue[0].memLevel).toBe(4);
       });
 
-      it('form progression includes write_def: choose_4_def → write_def → choose_8_def → write → write_last → choose_4_def', () => {
+      it('form progression includes write_mid: choose_4_def → write_mid → choose_8_def → write → write_last → choose_4_def', () => {
         const forms = [
           'choose_4_def',
-          'write_def',
+          'write_mid',
           'choose_8_def',
           'write',
           'write_last',
         ] as const;
         const expectedNext = [
-          'write_def',
+          'write_mid',
           'choose_8_def',
           'write',
           'write_last',
