@@ -1,19 +1,26 @@
 import { lusitana } from '@/app/ui/fonts';
 import { s } from '@/app/ui/styles';
 import { signOut, auth } from '@/auth';
+import { fetchAllUsers } from '@/app/lib/data';
 
 import SignoutButton from '../ui/SignoutButton';
 import { ChangePasswordCard } from '../ui/ChangePasswordCard';
 import { AddNewUserCard } from '../ui/AddNewUserCard';
+import { ImpersonateCard } from '../ui/ImpersonateCard';
 
 export default async function Page() {
   const myAuth = await auth();
   const isLoggedIn = !!myAuth;
+  const isAdmin = myAuth?.user?.is_admin ?? false;
 
   const handleSignOut = async () => {
     'use server';
     await signOut();
   };
+
+  const otherUsers = isAdmin
+    ? (await fetchAllUsers()).filter((u) => u.id !== myAuth?.user?.id)
+    : [];
 
   return (
     <div className="flex flex-col">
@@ -37,6 +44,12 @@ export default async function Page() {
         <div className="flex">
           <AddNewUserCard />
         </div>
+
+        {isAdmin && (
+          <div className="flex">
+            <ImpersonateCard users={otherUsers} />
+          </div>
+        )}
 
         <div className="flex flex-col gap-1 text-sm text-gray-500">
           <span>
