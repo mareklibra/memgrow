@@ -9,7 +9,7 @@ export type User = {
 export type TeachingForm =
   | 'show'
   | 'write'
-  | 'write_def'
+  | 'write_mid'
   | 'write_last'
   | 'choose_4_def'
   | 'choose_4_word'
