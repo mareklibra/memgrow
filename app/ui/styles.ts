@@ -82,6 +82,9 @@ export const s = {
     'mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-xs hover:bg-gray-50 focus:outline-hidden focus:ring-3 focus:ring-blue-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm',
   disabledState: 'opacity-50 cursor-not-allowed',
 
+  // ── Forms ──────────────────────────────────────────────────────────
+  narrowForm: 'flex flex-col items-start space-y-4 w-2/12 min-w-48',
+
   // ── Feedback ─────────────────────────────────────────────────────
   successText: 'text-green-600',
   inlineActions: 'flex items-center justify-end gap-4 my-4',

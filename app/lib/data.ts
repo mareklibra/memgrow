@@ -46,6 +46,7 @@ const omDbCourse = (dbCourse: DbCourse): Course => ({
   toLearn: -1,
   toTest: -1,
   withPriority: -1,
+  coursePriority: dbCourse.course_priority ?? 0,
 });
 
 export type WordPronunciation = Pick<Word, 'id' | 'word' | 'definition'> & {
@@ -265,13 +266,15 @@ export async function fetchCourses(): Promise<Course[]> {
     // TODO: filter based on user permissions
     const fetchResults = await Promise.all([
       // generic
-      sql<DbCourse>`SELECT id, name, known_lang, learning_lang, course_code, total
+      sql<DbCourse>`SELECT courses.id, courses.name, courses.known_lang, courses.learning_lang, courses.course_code, total.total, user_course.priority AS course_priority
       FROM
         courses
         LEFT OUTER JOIN
         (SELECT course_id, count(*) as total FROM words GROUP BY course_id) as total ON total.course_id = courses.id
+        LEFT OUTER JOIN
+        user_course ON user_course.course_id = courses.id AND user_course.user_id = ${myAuth?.user?.id}
       ORDER BY
-        courses.name
+        COALESCE(user_course.priority, 0) ASC, courses.name ASC
       `,
 
       // to learn
@@ -422,5 +425,19 @@ export async function fetchExamples({
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch examples.');
+  }
+}
+
+export async function fetchCoursePriority(courseId: string): Promise<number | undefined> {
+  try {
+    const myAuth = await auth();
+    const result = await sql<{ priority: number }>`
+      SELECT priority FROM user_course
+      WHERE user_id = ${myAuth?.user?.id} AND course_id = ${courseId}
+    `;
+    return result.rows[0]?.priority;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch course priority.');
   }
 }
