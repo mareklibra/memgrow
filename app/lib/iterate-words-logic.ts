@@ -84,7 +84,7 @@ export function handleCorrect(
         word.form === 'write_last' ? increaseMemLevel(word.memLevel) : word.memLevel;
       newQueue = updateCurrentWord({
         ...word,
-        form: getNextForm(word.form),
+        form: getNextForm(word.form, true),
         memLevel: newMemLevel,
         repeatAgain: getRepeatAgainDate(newMemLevel),
       });
