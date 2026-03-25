@@ -99,7 +99,7 @@ export function TeachWord({
     }
 
     if (
-      ['choose_4_word', 'write', 'write_last'].includes(word.form) &&
+      ['choose_4_word', 'write', 'write_mid', 'write_last'].includes(word.form) &&
       // TODO: make this configurable (e.g. for german)
       value?.trim().toLowerCase() === word.word.trim().toLowerCase()
     ) {
