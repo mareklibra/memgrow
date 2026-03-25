@@ -6,15 +6,17 @@ export type User = {
   is_admin: boolean;
 };
 
-export type TeachingForm =
-  | 'show'
-  | 'write'
-  | 'write_mid'
-  | 'write_last'
-  | 'choose_4_def'
-  | 'choose_4_word'
-  | 'choose_8_def';
-export const TeachingFormCount = 6;
+export const TEACHING_FORMS = [
+  'show',
+  'choose_4_word',
+  'choose_4_def',
+  'write_mid',
+  'choose_8_def',
+  'write',
+  'write_last',
+] as const;
+export type TeachingForm = (typeof TEACHING_FORMS)[number];
+export const TeachingFormCount = TEACHING_FORMS.length;
 
 export type DbWord = {
   id: string;
