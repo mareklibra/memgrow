@@ -117,19 +117,30 @@ export const ChooseCourse = ({
   showForOffline: boolean;
   showSimulate?: boolean;
 }) => {
+  const [showAll, setShowAll] = useState(false);
+
+  const visibleCourses = showAll
+    ? courses
+    : courses.filter((c) => (c.coursePriority ?? 0) > 0);
+
   return (
-    <div className="flex w-10/12 flex-wrap" id="choose-course">
-      {courses.map((course) => (
-        <Course
-          course={course}
-          key={course.id}
-          pathPrefix={pathPrefix}
-          showPriority={showPriority}
-          showFastEntry={showFastEntry}
-          showForOffline={showForOffline}
-          showSimulate={showSimulate}
-        />
-      ))}
+    <div className="w-10/12" id="choose-course">
+      <div className="flex justify-end mb-2">
+        <Switch label="All" checked={showAll} onChange={() => setShowAll(!showAll)} />
+      </div>
+      <div className="flex flex-wrap">
+        {visibleCourses.map((course) => (
+          <Course
+            course={course}
+            key={course.id}
+            pathPrefix={pathPrefix}
+            showPriority={showPriority}
+            showFastEntry={showFastEntry}
+            showForOffline={showForOffline}
+            showSimulate={showSimulate}
+          />
+        ))}
+      </div>
     </div>
   );
 };

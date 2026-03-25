@@ -50,6 +50,7 @@ export type DbCourse = {
   learning_lang: string;
   course_code: string;
   total: number;
+  course_priority?: number;
 };
 
 export type Course = {
@@ -62,6 +63,7 @@ export type Course = {
   toLearn: number;
   toTest: number;
   withPriority: number;
+  coursePriority?: number;
 };
 
 export type UserProgress = {

@@ -1,7 +1,7 @@
 import { Pool } from 'pg';
 
 /**
- * Runs the full schema (equivalent to seed batches 001-007) against a given connection string.
+ * Runs the full schema (equivalent to seed batches 001-008) against a given connection string.
  * Uses pg (not @vercel/postgres) because @vercel/postgres uses Neon's WebSocket driver
  * which doesn't support standard Postgres (e.g. Testcontainers).
  */
@@ -84,6 +84,18 @@ export async function runSchema(connectionString: string): Promise<void> {
       example TEXT NOT NULL,
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
       CONSTRAINT fk_word FOREIGN KEY(word_id) REFERENCES words(id) ON DELETE CASCADE
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS user_course (
+      user_id UUID NOT NULL,
+      course_id UUID NOT NULL,
+      priority INT NOT NULL DEFAULT 0,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT fk_uc_user FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+      CONSTRAINT fk_uc_course FOREIGN KEY(course_id) REFERENCES courses(id) ON DELETE CASCADE,
+      CONSTRAINT unique_user_course UNIQUE (user_id, course_id)
     );
   `);
 
