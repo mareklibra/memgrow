@@ -4,6 +4,7 @@ import { Word } from '@/app/lib/definitions';
 import { UpdateWordsResult } from '@/app/lib/types';
 import Link from 'next/link';
 import { Button, Spinner } from '@/app/lib/material-tailwind-compat';
+import { fetchRemainingWordsCount } from '@/app/lib/actions';
 import { s } from '@/app/ui/styles';
 import { WordTeachingStatus } from './WordTeachingStatus';
 
@@ -41,6 +42,7 @@ export function DoneState({
   const [wordsToPersist, setWordsToPersist] = useState<Word[]>([]);
   const wordsToPersistRef = useRef<Word[]>([]);
   const [isRetrigger, setIsRetrigger] = useState<boolean>(true);
+  const [remainingCount, setRemainingCount] = useState<number | null>(null);
   const courseId = words[0].courseId;
 
   const doPersist = useCallback(async () => {
@@ -65,11 +67,15 @@ export function DoneState({
 
         setWordsToPersist(failedWords);
         wordsToPersistRef.current = failedWords;
+
+        if (failedWords.length === 0 && courseId) {
+          fetchRemainingWordsCount(courseId, !!isLearning).then(setRemainingCount);
+        }
       } finally {
         setIsRetrigger(false);
       }
     }
-  }, [storeProgress]);
+  }, [storeProgress, courseId, isLearning]);
 
   useEffect(
     () => {
@@ -142,7 +148,11 @@ export function DoneState({
       {wordsToPersist.length === 0 && (
         <div className={s.centered}>
           <Link href={`/${isLearning ? 'learn' : 'test'}/${courseId ?? ''}/next`} replace>
-            <Button variant="outlined">{isLearning ? 'Learn' : 'Test'} more...</Button>
+            <Button variant="outlined">
+              {isLearning ? 'Learn' : 'Test'} more
+              {remainingCount !== null && ` (${remainingCount})`}
+              ...
+            </Button>
           </Link>
         </div>
       )}

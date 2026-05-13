@@ -5,6 +5,7 @@ import { auth } from '@/auth';
 import { revalidatePath } from 'next/cache';
 
 import { Word, WordToAdd } from '../definitions';
+import { countWordsToLearn, countWordsToTest } from '../data';
 import { UpdateWordResult, UpdateWordsResult } from '../types';
 
 export async function updateWordProgress(word: Word): Promise<UpdateWordResult> {
@@ -200,6 +201,13 @@ export async function autoLearnWords(courseId: string): Promise<UpdateWordsResul
     console.error('autoLearnWords error:', error);
     return { message: `Failed to auto-learn words: ${error}`, failedWordIds: [] };
   }
+}
+
+export async function fetchRemainingWordsCount(
+  courseId: string,
+  isLearning: boolean,
+): Promise<number> {
+  return isLearning ? countWordsToLearn(courseId) : countWordsToTest(courseId);
 }
 
 export async function updateWord(changed: Word): Promise<UpdateWordResult> {
