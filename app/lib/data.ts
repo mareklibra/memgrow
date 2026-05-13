@@ -225,6 +225,49 @@ export async function fetchWordsToTest(
   }
 }
 
+export async function countWordsToLearn(courseId: string): Promise<number> {
+  try {
+    const myAuth = await auth();
+    const result = await sql<{ count: string }>`
+      SELECT count(words.id) as count
+      FROM words
+      LEFT OUTER JOIN
+        (SELECT * FROM user_progress WHERE user_id = ${myAuth?.user?.id}) AS user_progress
+        ON words.id = user_progress.word_id
+      WHERE
+        words.course_id = ${courseId}
+        AND (user_progress.memlevel = 0 OR user_progress.memlevel IS NULL)
+        AND (user_progress.is_skipped = FALSE OR user_progress.memlevel IS NULL)
+    `;
+    return parseInt(result.rows[0]?.count ?? '0', 10);
+  } catch (error) {
+    console.error('Database Error:', error);
+    return 0;
+  }
+}
+
+export async function countWordsToTest(courseId: string): Promise<number> {
+  try {
+    const myAuth = await auth();
+    const result = await sql<{ count: string }>`
+      SELECT count(words.id) as count
+      FROM words
+      LEFT OUTER JOIN
+        (SELECT * FROM user_progress WHERE user_id = ${myAuth?.user?.id}) AS user_progress
+        ON words.id = user_progress.word_id
+      WHERE
+        words.course_id = ${courseId}
+        AND (user_progress.memlevel > 0)
+        AND (user_progress.is_skipped = FALSE OR user_progress.memlevel IS NULL)
+        AND user_progress.repeat_again < NOW()
+    `;
+    return parseInt(result.rows[0]?.count ?? '0', 10);
+  } catch (error) {
+    console.error('Database Error:', error);
+    return 0;
+  }
+}
+
 export async function fetchAllWords(courseId: string): Promise<Word[]> {
   try {
     const myAuth = await auth();

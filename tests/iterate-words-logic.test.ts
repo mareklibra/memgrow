@@ -9,7 +9,7 @@ import {
   initializeQueue,
   IterateState,
 } from '@/app/lib/iterate-words-logic';
-import { TEACHING_FORMS, TeachingForm, Word, WordWithMeta } from '@/app/lib/definitions';
+import { TEACHING_FORMS, Word, WordWithMeta } from '@/app/lib/definitions';
 import { getNextForm } from '@/app/lib/word-transitions';
 import { DAY_MS, REPEAT_SOONER_FACTOR } from '@/app/constants';
 
