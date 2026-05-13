@@ -65,7 +65,7 @@ export default function NavLinks({
             <Fragment key={link.name}>
               {space}
               <div key={link.name} className={clz}>
-                <LinkIcon className="w-6" />
+                <LinkIcon className="w-5 md:w-6" />
                 <p className="hidden md:block">{link.name}</p>
               </div>
             </Fragment>
@@ -76,7 +76,7 @@ export default function NavLinks({
           <Fragment key={link.name}>
             {space}
             <Link key={link.name} href={link.href} className={clz}>
-              <LinkIcon className="w-6" />
+              <LinkIcon className="w-5 md:w-6" />
               <p className="hidden md:block">{link.name}</p>
             </Link>
           </Fragment>
