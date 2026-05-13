@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import { lusitana } from '@/app/ui/fonts';
-import { s } from '@/app/ui/styles';
+import { cn, s } from '@/app/ui/styles';
 import Link from 'next/link';
 import { Button } from '@/app/lib/material-tailwind-compat';
 import { decreaseMemLevel } from '@/app/lib/word-transitions';
@@ -183,8 +183,14 @@ export function IterateWords({
   const progress = calculateProgress(wordIdx, wordQueue.length, maxWordsInBatch);
 
   return (
-    <div className="w-full p-2 md:pt-5">
-      <h1 className={`${lusitana.className} ${s.pageTitle} flex justify-between`}>
+    <div className="w-full p-1 md:p-2 md:pt-5">
+      <h1
+        className={cn(
+          lusitana.className,
+          s.pageTitle,
+          'mb-1 md:mb-4 flex justify-between',
+        )}
+      >
         <DonutProgressChart
           label="Level"
           progress={word.memLevel}
@@ -193,7 +199,7 @@ export function IterateWords({
           width={70}
           valueSize="12px"
         />
-        <div className="flex items-center">
+        <div className="flex items-center text-sm md:text-xl">
           {title}&nbsp;{words.length} words
         </div>
         <div className="flex gap-2 items-center">
