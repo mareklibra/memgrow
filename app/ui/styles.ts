@@ -58,7 +58,7 @@ export const s = {
 
   // ── Navigation ─────────────────────────────────────────────────────
   navLink:
-    'flex h-[48px] grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium md:flex-none md:justify-start md:p-2 md:px-3',
+    'flex h-[32px] md:h-[48px] grow items-center justify-center gap-2 rounded-md bg-gray-50 p-1 md:p-3 text-sm font-medium md:flex-none md:justify-start md:p-2 md:px-3',
   navActive: 'bg-sky-100 text-blue-600',
   navHover: 'hover:bg-sky-100 hover:text-blue-600',
   navSpacer: 'hidden h-auto w-full grow rounded-md bg-gray-50 md:block',

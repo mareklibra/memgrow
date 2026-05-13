@@ -6,7 +6,7 @@ import { useKeyHandler } from './useKeyHandler';
 
 export type TranslationOptionState = 'normal' | 'mistake' | 'correct' | 'disabled';
 
-export const translationOptionVariants = cva('justify-center w-full h-10 md:h-16', {
+export const translationOptionVariants = cva('justify-center w-full h-13 md:h-16', {
   variants: {
     state: {
       normal: '',
