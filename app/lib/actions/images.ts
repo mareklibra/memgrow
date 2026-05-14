@@ -1,8 +1,21 @@
 'use server';
 
+import OpenAI from 'openai';
 import { sql } from '@vercel/postgres';
 import { DeleteImageResult, GenerateImageResult } from '../types';
 import { WordImage } from '../definitions';
+import { fetchWord, fetchCourse } from '../data';
+import { LLM_IMAGE_MODEL } from '../../constants';
+
+let bedrockClient: OpenAI | undefined;
+try {
+  bedrockClient = new OpenAI({
+    apiKey: process.env.AWS_BEARER_TOKEN_BEDROCK,
+    baseURL: `https://bedrock-mantle.${process.env.AWS_REGION}.api.aws/v1`,
+  });
+} catch (e) {
+  console.error('Error initializing Bedrock OpenAI client: ', e);
+}
 
 export async function insertWordImage(
   wordId: string,
@@ -28,12 +41,57 @@ export async function deleteWordImage(imageId: string): Promise<DeleteImageResul
   }
 }
 
-/** Stub -- actual LLM image generation to be implemented later. */
-async function generateWordImage(_wordId: string): Promise<GenerateImageResult> {
-  // TODO: implement LLM image generation
-  // On success: call insertWordImage(wordId, base64Content)
-  // Then clear in_progress_since in image_requests
-  return {};
+async function clearInProgress(wordId: string) {
+  await sql.query(
+    `UPDATE image_requests SET in_progress_since = NULL WHERE word_id = $1`,
+    [wordId],
+  );
+}
+
+async function generateWordImage(wordId: string): Promise<GenerateImageResult> {
+  if (!bedrockClient) {
+    return { message: 'Bedrock client not initialized' };
+  }
+
+  try {
+    const word = await fetchWord(wordId);
+    if (!word) {
+      return { message: `Word not found, id: ${wordId}` };
+    }
+
+    const course = await fetchCourse(word.courseId);
+    if (!course) {
+      return { message: `Course not found, id: ${word.courseId}` };
+    }
+
+    const prompt = `Create an image which helps me to memorize ${course.learningLang} word: '${word.word}'. It's meaning in ${course.knownLang} is: '${word.definition}'.`;
+
+    console.log('Generating image for word:', { word: word.word, prompt });
+
+    const response = await bedrockClient.images.generate({
+      model: LLM_IMAGE_MODEL,
+      prompt,
+      n: 1,
+      response_format: 'b64_json',
+    });
+
+    const base64Data = response.data?.[0]?.b64_json;
+    if (!base64Data) {
+      return { message: 'No image data returned from the model' };
+    }
+
+    const { id: imageId } = await insertWordImage(wordId, base64Data);
+    await clearInProgress(wordId);
+
+    return { imageId };
+  } catch (e) {
+    console.error('Image generation error:', e);
+    await clearInProgress(wordId).catch(() => {});
+
+    const message =
+      e instanceof Error ? e.message : `Image generation failed: ${JSON.stringify(e)}`;
+    return { message };
+  }
 }
 
 export async function requestImageGeneration(wordId: string): Promise<GenerateImageResult> {
