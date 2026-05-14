@@ -2,7 +2,8 @@ import { stringSimilarity } from 'string-similarity-js';
 import { sql } from '@vercel/postgres';
 import { User } from 'next-auth';
 import { auth } from '@/auth';
-import { Course, DbCourse, DbWord, TeachingForm, Word } from '@/app/lib/definitions';
+import { Course, DbCourse, DbWord, TeachingForm, Word, WordImage } from '@/app/lib/definitions';
+import { WordImageSummary } from '@/app/lib/types';
 import { STRING_SIMILARITY_SUBSTRING_LENGTH } from '../constants';
 
 type DbWordProgress = DbWord & {
@@ -508,5 +509,94 @@ export async function fetchCoursePriority(courseId: string): Promise<number | un
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch course priority.');
+  }
+}
+
+type DbWordImage = {
+  id: string;
+  word_id: string;
+  content: string;
+  created_at: string;
+};
+
+export async function fetchWordImages(wordId: string): Promise<WordImage[]> {
+  try {
+    const result = await sql<DbWordImage>`
+      SELECT id, word_id, content, created_at
+      FROM word_images
+      WHERE word_id = ${wordId}
+      ORDER BY created_at ASC
+    `;
+    return result.rows.map((row) => ({
+      id: row.id,
+      wordId: row.word_id,
+      content: row.content,
+      createdAt: new Date(row.created_at),
+    }));
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch word images.');
+  }
+}
+
+export async function fetchWordImageById(imageId: string): Promise<WordImage | undefined> {
+  try {
+    const result = await sql<DbWordImage>`
+      SELECT id, word_id, content, created_at
+      FROM word_images
+      WHERE id = ${imageId}
+    `;
+    if (result.rows.length === 0) return undefined;
+    const row = result.rows[0];
+    return {
+      id: row.id,
+      wordId: row.word_id,
+      content: row.content,
+      createdAt: new Date(row.created_at),
+    };
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch word image.');
+  }
+}
+
+type DbWordImageSummary = {
+  word_id: string;
+  word: string;
+  definition: string;
+  image_count: string;
+  requested: boolean;
+  in_progress: boolean;
+};
+
+export async function fetchWordImageSummaries(courseId: string): Promise<WordImageSummary[]> {
+  try {
+    const result = await sql<DbWordImageSummary>`
+      SELECT
+        w.id AS word_id,
+        w.word,
+        w.definition,
+        COALESCE(img.cnt, 0) AS image_count,
+        (ir.word_id IS NOT NULL) AS requested,
+        (ir.in_progress_since IS NOT NULL) AS in_progress
+      FROM words w
+      LEFT JOIN (
+        SELECT word_id, COUNT(*) AS cnt FROM word_images GROUP BY word_id
+      ) img ON img.word_id = w.id
+      LEFT JOIN image_requests ir ON ir.word_id = w.id
+      WHERE w.course_id = ${courseId}
+      ORDER BY w.word ASC
+    `;
+    return result.rows.map((row) => ({
+      wordId: row.word_id,
+      word: row.word,
+      definition: row.definition,
+      imageCount: parseInt(String(row.image_count), 10),
+      requested: !!row.requested,
+      inProgress: !!row.in_progress,
+    }));
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch word image summaries.');
   }
 }

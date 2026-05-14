@@ -6,7 +6,13 @@ import {
   maxSimilarWords,
 } from '@/app/constants';
 import { fetchSimilarWords, fetchWordsToLearn } from '@/app/lib/data';
-import { queryExamples, deleteExample } from '@/app/lib/actions';
+import {
+  queryExamples,
+  deleteExample,
+  queryWordImages,
+  deleteWordImage,
+  requestImageGeneration,
+} from '@/app/lib/actions';
 import { getSpecialKeys } from '@/app/lib/utils';
 import { IterateWords } from '@/app/ui/IterateWords';
 
@@ -36,6 +42,9 @@ export default async function Page({
       isOffline={isOffline}
       queryExamples={queryExamples}
       deleteExample={deleteExample}
+      queryImages={queryWordImages}
+      deleteImage={deleteWordImage}
+      requestImageGeneration={requestImageGeneration}
     />
   );
 }

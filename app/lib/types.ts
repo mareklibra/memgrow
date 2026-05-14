@@ -43,3 +43,23 @@ export type UpdateWordsResult =
     };
 
 export type WordWithSimilarity = Word & { similarity: number };
+
+export type GenerateImageResult = {
+  message?: string;
+  imageId?: string;
+};
+
+export type DeleteImageResult =
+  | {
+      message?: string;
+    }
+  | undefined;
+
+export type WordImageSummary = {
+  wordId: string;
+  word: string;
+  definition: string;
+  imageCount: number;
+  requested: boolean;
+  inProgress: boolean;
+};

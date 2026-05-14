@@ -5,6 +5,7 @@ import {
   AdjustmentsVerticalIcon,
   PencilSquareIcon,
   AcademicCapIcon,
+  PhotoIcon,
   Cog6ToothIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
@@ -32,6 +33,11 @@ export default function NavLinks({
       name: 'Edit',
       href: '/edit',
       icon: PencilSquareIcon,
+    },
+    {
+      name: 'Images',
+      href: '/images',
+      icon: PhotoIcon,
     },
     {
       name: userName ? `Settings (${userName})` : 'Settings',
