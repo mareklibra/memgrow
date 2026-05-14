@@ -36,3 +36,5 @@ export const SEARCH_DELAY_MS = 500;
 // export const OPENAI_MODEL = 'gpt-5-nano'; // 'gpt-4.1-nano';
 export const OPENAI_MODEL = 'gpt-4.1-nano'; // 'gpt-4.1-nano';
 export const EXAMPLE_AI_REQUEST_COUNT = 'three (3)';
+
+export const LLM_IMAGE_MODEL = process.env.LLM_MODEL ?? 'openai.gpt-55';
