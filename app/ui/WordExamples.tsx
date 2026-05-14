@@ -14,12 +14,14 @@ export type WordExamplesProps = {
   word: Word;
   queryExamples: (wordId: string) => Promise<GetWordExamplesResult>;
   deleteExample: (wordId: string, example: string) => Promise<DeleteExampleResult>;
+  children?: React.ReactNode;
 };
 
 export const WordExamples = ({
   word,
   queryExamples,
   deleteExample,
+  children,
 }: Readonly<WordExamplesProps>) => {
   const [examples, setExamples] = useState<string[]>([]);
   const [error, setError] = useState<string | undefined>(undefined);
@@ -78,6 +80,8 @@ export const WordExamples = ({
               ))}
             </List>
           )}
+
+          {open && children}
 
           {!open && <Typography>&gt;&nbsp;Show examples</Typography>}
 

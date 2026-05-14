@@ -2,7 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { s } from '@/app/ui/styles';
 import { Word, WordWithMeta } from '@/app/lib/definitions';
-import { BoltIcon, BoltSlashIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline';
+import {
+  BoltIcon,
+  BoltSlashIcon,
+  CameraIcon,
+  SpeakerWaveIcon,
+} from '@heroicons/react/24/outline';
 import { TypeTranslation, TypeTranslationProps } from './TypeTranslation';
 import { ShowWord } from './ShowWord';
 import { Button } from './button';
@@ -12,8 +17,10 @@ import { EditWords, EditWordsProps } from './EditWords';
 import { useWithSound } from '../lib/useWithSound';
 import { DELAY_CORRECT_MS, DELAY_MISTAKE_MS } from '../constants';
 import { WordExamples, WordExamplesProps } from './WordExamples';
+import { WordPictures, WordPicturesProps } from './WordPictures';
 import { FORM_CORRECT_ANSWER } from '../lib/form-config';
 import { assertNever } from '../lib/utils';
+import { GenerateImageResult } from '../lib/types';
 
 interface TeachWordProps {
   word: WordWithMeta;
@@ -28,6 +35,9 @@ interface TeachWordProps {
   specialKeys: TypeTranslationProps['specialKeys'];
   queryExamples: WordExamplesProps['queryExamples'];
   deleteExample: WordExamplesProps['deleteExample'];
+  queryImages: WordPicturesProps['queryImages'];
+  deleteImage: WordPicturesProps['deleteImage'];
+  requestImageGeneration: (wordId: string) => Promise<GenerateImageResult>;
 }
 
 const delay = async (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -42,6 +52,9 @@ export function TeachWord({
   specialKeys,
   queryExamples,
   deleteExample,
+  queryImages,
+  deleteImage,
+  requestImageGeneration,
   skipWord,
 }: Readonly<TeachWordProps>) {
   const [status, setStatus] = useState<FieldStatus>('normal');
@@ -231,7 +244,13 @@ export function TeachWord({
             word={word}
             queryExamples={queryExamples}
             deleteExample={deleteExample}
-          />
+          >
+            <WordPictures
+              wordId={word.id}
+              queryImages={queryImages}
+              deleteImage={deleteImage}
+            />
+          </WordExamples>
         </div>
 
         <div className="flex flex-row justify-between">
@@ -280,6 +299,10 @@ export function TeachWord({
 
           <Button onClick={playPronunciation} type="button" disabled={isPlaying}>
             <SpeakerWaveIcon className="w-5" />
+          </Button>
+
+          <Button onClick={() => requestImageGeneration(word.id)} type="button">
+            <CameraIcon className="w-5" />
           </Button>
 
           {!isLearning && (

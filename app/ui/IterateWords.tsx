@@ -29,7 +29,9 @@ import {
   testBatchLimitOffline,
 } from '../constants';
 import { WordExamplesProps } from './WordExamples';
+import { WordPicturesProps } from './WordPictures';
 import { DonutProgressChart } from './DonutProgressChart';
+import { GenerateImageResult } from '../lib/types';
 
 interface IterateWordsProps {
   words: Word[];
@@ -40,6 +42,9 @@ interface IterateWordsProps {
   isOffline: boolean;
   queryExamples: WordExamplesProps['queryExamples'];
   deleteExample: WordExamplesProps['deleteExample'];
+  queryImages: WordPicturesProps['queryImages'];
+  deleteImage: WordPicturesProps['deleteImage'];
+  requestImageGeneration: (wordId: string) => Promise<GenerateImageResult>;
 }
 
 const storeProgress = async (words: Word[]): Promise<UpdateWordsResult> => {
@@ -63,6 +68,9 @@ export function IterateWords({
   isOffline,
   queryExamples,
   deleteExample,
+  queryImages,
+  deleteImage,
+  requestImageGeneration,
 }: Readonly<IterateWordsProps>) {
   const [wordQueue, setWordQueue] = useState<WordWithMeta[]>([]);
   const [wordIdx, setWordIdx] = useState<number>(-1);
@@ -229,6 +237,9 @@ export function IterateWords({
         specialKeys={specialKeys}
         queryExamples={queryExamples}
         deleteExample={deleteExample}
+        queryImages={queryImages}
+        deleteImage={deleteImage}
+        requestImageGeneration={requestImageGeneration}
         skipWord={skipWord}
       />
     </div>

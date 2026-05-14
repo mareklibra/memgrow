@@ -8,7 +8,13 @@ import {
   testWordsDeepMemoryCountLimit,
 } from '@/app/constants';
 import { getSpecialKeys } from '@/app/lib/utils';
-import { queryExamples, deleteExample } from '@/app/lib/actions';
+import {
+  queryExamples,
+  deleteExample,
+  queryWordImages,
+  deleteWordImage,
+  requestImageGeneration,
+} from '@/app/lib/actions';
 
 export default async function Page({
   params,
@@ -41,6 +47,9 @@ export default async function Page({
       isOffline={isOffline}
       queryExamples={queryExamples}
       deleteExample={deleteExample}
+      queryImages={queryWordImages}
+      deleteImage={deleteWordImage}
+      requestImageGeneration={requestImageGeneration}
     />
   );
 }

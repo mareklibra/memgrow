@@ -76,3 +76,16 @@ export type UserProgress = {
   memLevel: number;
   form: TeachingForm;
 };
+
+export type WordImage = {
+  id: string;
+  wordId: string;
+  content: string;
+  createdAt: Date;
+};
+
+export type ImageRequest = {
+  wordId: string;
+  createdAt: Date;
+  inProgressSince: Date | null;
+};
