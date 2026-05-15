@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Course } from '@/app/lib/definitions';
 import { WordImageSummary, GenerateImageResult } from '@/app/lib/types';
 import { Spinner } from '@/app/lib/material-tailwind-compat';
 import { s } from '@/app/ui/styles';
 import {
   ArrowPathIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
   CheckCircleIcon,
   PhotoIcon,
   TrashIcon,
@@ -39,9 +41,54 @@ export function ImagesManager({
   const [rowErrors, setRowErrors] = useState<Record<string, string>>({});
   const [rowInProgress, setRowInProgress] = useState<Record<string, boolean>>({});
 
+  type SortKey = 'word' | 'definition' | 'requested' | 'imageCount';
+  type SortDir = 'asc' | 'desc';
+  const [sortKey, setSortKey] = useState<SortKey>('word');
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
+
   const [galleryWordId, setGalleryWordId] = useState<string | null>(null);
   const [galleryImages, setGalleryImages] = useState<{ id: string; createdAt: Date }[]>([]);
   const [galleryLoading, setGalleryLoading] = useState(false);
+
+  const sortedSummaries = useMemo(() => {
+    const sorted = [...summaries].sort((a, b) => {
+      let cmp: number;
+      switch (sortKey) {
+        case 'word':
+          cmp = a.word.localeCompare(b.word);
+          break;
+        case 'definition':
+          cmp = a.definition.localeCompare(b.definition);
+          break;
+        case 'requested':
+          cmp = Number(a.requested) - Number(b.requested);
+          break;
+        case 'imageCount':
+          cmp = a.imageCount - b.imageCount;
+          break;
+      }
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+    return sorted;
+  }, [summaries, sortKey, sortDir]);
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  };
+
+  const SortIcon = ({ column }: { column: SortKey }) => {
+    if (sortKey !== column) return null;
+    return sortDir === 'asc' ? (
+      <ChevronUpIcon className="w-3 h-3 inline ml-1" />
+    ) : (
+      <ChevronDownIcon className="w-3 h-3 inline ml-1" />
+    );
+  };
 
   const loadSummaries = async (courseId: string) => {
     if (!courseId) {
@@ -172,15 +219,23 @@ export function ImagesManager({
           <table className="min-w-full">
             <thead>
               <tr>
-                <th className={s.th}>Word</th>
-                <th className={s.th}>Translation</th>
-                <th className={s.th}>Requested</th>
-                <th className={s.th}>Images</th>
+                <th className={`${s.th} cursor-pointer select-none`} onClick={() => toggleSort('word')}>
+                  Word<SortIcon column="word" />
+                </th>
+                <th className={`${s.th} cursor-pointer select-none`} onClick={() => toggleSort('definition')}>
+                  Translation<SortIcon column="definition" />
+                </th>
+                <th className={`${s.th} cursor-pointer select-none`} onClick={() => toggleSort('requested')}>
+                  Requested<SortIcon column="requested" />
+                </th>
+                <th className={`${s.th} cursor-pointer select-none`} onClick={() => toggleSort('imageCount')}>
+                  Images<SortIcon column="imageCount" />
+                </th>
                 <th className={s.th}>Action</th>
               </tr>
             </thead>
             <tbody className={s.tableDivider}>
-              {summaries.map((item) => (
+              {sortedSummaries.map((item) => (
                 <tr key={item.wordId}>
                   <td className={s.td}>{item.word}</td>
                   <td className={s.td}>{item.definition}</td>
