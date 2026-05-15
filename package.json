@@ -14,6 +14,7 @@
     "chores": "pnpm prettier:fix && pnpm eslint:fix && pnpm prettier:fix &&pnpm tsc && pnpm test"
   },
   "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.1047.0",
     "@elevenlabs/elevenlabs-js": "^2.36.0",
     "@heroicons/react": "^2.2.0",
     "@material-tailwind/react": "^2.1.10",

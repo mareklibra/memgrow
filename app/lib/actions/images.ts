@@ -1,21 +1,10 @@
 'use server';
 
-import OpenAI from 'openai';
 import { sql } from '@vercel/postgres';
 import { DeleteImageResult, GenerateImageResult } from '../types';
 import { WordImage } from '../definitions';
 import { fetchWord, fetchCourse } from '../data';
-import { LLM_IMAGE_MODEL } from '../../constants';
-
-let bedrockClient: OpenAI | undefined;
-try {
-  bedrockClient = new OpenAI({
-    apiKey: process.env.AWS_BEARER_TOKEN_BEDROCK,
-    baseURL: `https://bedrock-mantle.${process.env.AWS_REGION}.api.aws/v1`,
-  });
-} catch (e) {
-  console.error('Error initializing Bedrock OpenAI client: ', e);
-}
+import { generateImage } from '../image-provider';
 
 export async function insertWordImage(
   wordId: string,
@@ -49,10 +38,6 @@ async function clearInProgress(wordId: string) {
 }
 
 async function generateWordImage(wordId: string): Promise<GenerateImageResult> {
-  if (!bedrockClient) {
-    return { message: 'Bedrock client not initialized' };
-  }
-
   try {
     const word = await fetchWord(wordId);
     if (!word) {
@@ -68,19 +53,12 @@ async function generateWordImage(wordId: string): Promise<GenerateImageResult> {
 
     console.log('Generating image for word:', { word: word.word, prompt });
 
-    const response = await bedrockClient.images.generate({
-      model: LLM_IMAGE_MODEL,
-      prompt,
-      n: 1,
-      response_format: 'b64_json',
-    });
-
-    const base64Data = response.data?.[0]?.b64_json;
-    if (!base64Data) {
-      return { message: 'No image data returned from the model' };
+    const result = await generateImage(prompt);
+    if (result.error || !result.base64Data) {
+      return { message: result.error || 'No image data returned from the model' };
     }
 
-    const { id: imageId } = await insertWordImage(wordId, base64Data);
+    const { id: imageId } = await insertWordImage(wordId, result.base64Data);
     await clearInProgress(wordId);
 
     return { imageId };
