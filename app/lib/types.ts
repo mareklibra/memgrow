@@ -68,3 +68,22 @@ export type WordImageSummary = {
   requested: boolean;
   inProgress: boolean;
 };
+
+export type WordMediaSummary = {
+  wordId: string;
+  courseId: string;
+  word: string;
+  definition: string;
+  imageCount: number;
+  totalImageSizeKb: number;
+  imageRequested: boolean;
+  imageInProgress: boolean;
+  hasSound: boolean;
+  soundSizeKb: number;
+};
+
+export type DeleteSoundResult =
+  | {
+      message?: string;
+    }
+  | undefined;
