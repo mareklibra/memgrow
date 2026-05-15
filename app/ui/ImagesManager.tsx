@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { Course } from '@/app/lib/definitions';
-import { WordImageSummary, RequestImageResult, GenerateImageResult } from '@/app/lib/types';
+import { WordImageSummary, RequestImageResult } from '@/app/lib/types';
 import { Spinner } from '@/app/lib/material-tailwind-compat';
 import { s } from '@/app/ui/styles';
 import {
@@ -20,7 +20,6 @@ type ImagesManagerProps = {
   courses: Course[];
   fetchSummaries: (courseId: string) => Promise<WordImageSummary[]>;
   requestGeneration: (wordId: string) => Promise<RequestImageResult>;
-  generateImage: (wordId: string) => Promise<GenerateImageResult>;
   removeRequest: (wordId: string) => Promise<void>;
   queryImages: (
     wordId: string,
@@ -32,7 +31,6 @@ export function ImagesManager({
   courses,
   fetchSummaries,
   requestGeneration,
-  generateImage,
   removeRequest,
   queryImages,
   deleteImage,
@@ -135,9 +133,10 @@ export function ImagesManager({
         ),
       );
 
-      const genResult = await generateImage(wordId);
-      if (genResult.message) {
-        setRowErrors((prev) => ({ ...prev, [wordId]: genResult.message! }));
+      const res = await fetch(`/api/image/generate/${wordId}`, { method: 'POST' });
+      const genResult: { message?: string; imageId?: string } = await res.json();
+      if (!res.ok || genResult.message) {
+        setRowErrors((prev) => ({ ...prev, [wordId]: genResult.message ?? 'Image generation failed' }));
       } else {
         setSummaries((prev) =>
           prev.map((s) =>

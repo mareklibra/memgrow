@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Course as CourseType } from '@/app/lib/definitions';
 import { s } from '@/app/ui/styles';
-import { ChevronDoubleRightIcon } from '@heroicons/react/24/outline';
+import { ArrowPathIcon, ChevronDoubleRightIcon } from '@heroicons/react/24/outline';
 import { Switch } from '@/app/lib/material-tailwind-compat';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -24,6 +24,7 @@ const Course = ({
 }) => {
   const [isPriorityFirst, setIsPriorityFirst] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
+  const [navigating, setNavigating] = useState(false);
 
   let link = `${pathPrefix}/${course.id}`;
   if (showPriority) {
@@ -40,9 +41,13 @@ const Course = ({
   return (
     <div id={`course-${course.id}`} className={s.courseCard}>
       <div className="p-4">
-        <Link href={link}>
+        <Link href={link} onClick={() => setNavigating(true)}>
           <h5 className="flex flex-row items-center mb-2 text-slate-800 text-xl font-semibold">
-            <ChevronDoubleRightIcon className="h-5 w-5 text-gray-900" />
+            {navigating ? (
+              <ArrowPathIcon className="h-5 w-5 text-gray-900 animate-spin" />
+            ) : (
+              <ChevronDoubleRightIcon className="h-5 w-5 text-gray-900" />
+            )}
             <div className="text-base font-semibold text-gray-900">{course.name}</div>
 
             <Image
