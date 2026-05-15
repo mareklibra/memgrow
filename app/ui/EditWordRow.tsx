@@ -4,7 +4,7 @@ import { MouseEvent, useCallback, useState } from 'react';
 import isEqual from 'lodash/isEqual';
 import clsx from 'clsx';
 
-import { Word } from '@/app/lib/definitions';
+import { Word, TEACHING_FORMS, TeachingForm } from '@/app/lib/definitions';
 import { addWord, deleteWord, updateWord } from '@/app/lib/actions';
 import {
   ExclamationTriangleIcon,
@@ -164,10 +164,21 @@ export function WordRow({
               onChange={(e) => {
                 setChanged({ ...changed, memLevel: Number(e.currentTarget.value) });
               }}
-
             />
           </td>
-          <td className={clsx(s.td, 'whitespace-nowrap')}>{changed.form}</td>
+          <td className={clsx(s.td, 'whitespace-nowrap')}>
+            <select
+              className={`${s.input}`}
+              value={changed.form}
+              onChange={(e) => {
+                setChanged({ ...changed, form: e.currentTarget.value as TeachingForm });
+              }}
+            >
+              {TEACHING_FORMS.map((f) => (
+                <option key={f} value={f}>{f}</option>
+              ))}
+            </select>
+          </td>
           <td className={clsx(s.td, 'whitespace-nowrap')}>
             <ButtonTailwind variant="text" onClick={handleRepeatAgain}>
               {changed.repeatAgain?.toLocaleDateString()}
