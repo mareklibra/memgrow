@@ -37,6 +37,7 @@ export const SEARCH_DELAY_MS = 500;
 export const OPENAI_MODEL = 'gpt-4.1-nano'; // 'gpt-4.1-nano';
 export const EXAMPLE_AI_REQUEST_COUNT = 'three (3)';
 
+export const IMAGE_COUNT = 3;
 export const LLM_IMAGE_MODEL = process.env.LLM_MODEL ?? 'amazon.nova-canvas-v1:0';
 // amazon.titan-image-generator-v2:0
 // stability.sd3-5-large-v1:0

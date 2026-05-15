@@ -1,5 +1,10 @@
 import { fetchCourses, fetchWordImageSummaries } from '@/app/lib/data';
-import { requestImageGeneration } from '@/app/lib/actions';
+import {
+  requestImageGeneration,
+  removeImageRequest,
+  queryWordImages,
+  deleteWordImage,
+} from '@/app/lib/actions';
 import { lusitana } from '@/app/ui/fonts';
 import { s } from '@/app/ui/styles';
 import { ImagesManager } from '@/app/ui/ImagesManager';
@@ -18,6 +23,11 @@ export default async function Page() {
     return await requestImageGeneration(wordId);
   };
 
+  const handleRemoveRequest = async (wordId: string) => {
+    'use server';
+    await removeImageRequest(wordId);
+  };
+
   return (
     <div className={s.pageContainer}>
       <h1 className={`${lusitana.className} ${s.pageTitle}`}>Image Generation</h1>
@@ -25,6 +35,9 @@ export default async function Page() {
         courses={courses}
         fetchSummaries={fetchSummaries}
         requestGeneration={handleRequestGeneration}
+        removeRequest={handleRemoveRequest}
+        queryImages={queryWordImages}
+        deleteImage={deleteWordImage}
       />
     </div>
   );

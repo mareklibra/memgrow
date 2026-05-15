@@ -66,6 +66,13 @@ export const WordExamples = ({
           {open && examples.length === 0 && (
             <Typography>Generating examples...</Typography>
           )}
+
+          {open && examples.length > 0 && (
+            <Typography>&lt; &nbsp; Hide examples</Typography>
+          )}
+
+          {open && children}
+
           {open && examples.length > 0 && (
             <List key={word.id}>
               {examples.map((e) => (
@@ -80,8 +87,6 @@ export const WordExamples = ({
               ))}
             </List>
           )}
-
-          {open && children}
 
           {!open && <Typography>&gt;&nbsp;Show examples</Typography>}
 

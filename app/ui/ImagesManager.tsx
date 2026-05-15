@@ -9,18 +9,29 @@ import {
   ArrowPathIcon,
   CheckCircleIcon,
   PhotoIcon,
+  TrashIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
+import { DeleteImageResult } from '@/app/lib/types';
 
 type ImagesManagerProps = {
   courses: Course[];
   fetchSummaries: (courseId: string) => Promise<WordImageSummary[]>;
   requestGeneration: (wordId: string) => Promise<GenerateImageResult>;
+  removeRequest: (wordId: string) => Promise<void>;
+  queryImages: (
+    wordId: string,
+  ) => Promise<{ images?: { id: string; createdAt: Date }[]; message?: string }>;
+  deleteImage: (imageId: string) => Promise<DeleteImageResult>;
 };
 
 export function ImagesManager({
   courses,
   fetchSummaries,
   requestGeneration,
+  removeRequest,
+  queryImages,
+  deleteImage,
 }: Readonly<ImagesManagerProps>) {
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
   const [summaries, setSummaries] = useState<WordImageSummary[]>([]);
@@ -28,11 +39,11 @@ export function ImagesManager({
   const [rowErrors, setRowErrors] = useState<Record<string, string>>({});
   const [rowInProgress, setRowInProgress] = useState<Record<string, boolean>>({});
 
-  const handleCourseChange = async (courseId: string) => {
-    setSelectedCourseId(courseId);
-    setRowErrors({});
-    setRowInProgress({});
+  const [galleryWordId, setGalleryWordId] = useState<string | null>(null);
+  const [galleryImages, setGalleryImages] = useState<{ id: string; createdAt: Date }[]>([]);
+  const [galleryLoading, setGalleryLoading] = useState(false);
 
+  const loadSummaries = async (courseId: string) => {
     if (!courseId) {
       setSummaries([]);
       return;
@@ -47,6 +58,13 @@ export function ImagesManager({
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCourseChange = async (courseId: string) => {
+    setSelectedCourseId(courseId);
+    setRowErrors({});
+    setRowInProgress({});
+    await loadSummaries(courseId);
   };
 
   const handleGenerate = async (wordId: string) => {
@@ -76,25 +94,71 @@ export function ImagesManager({
     }
   };
 
+  const handleRemoveRequest = async (wordId: string) => {
+    await removeRequest(wordId);
+    setSummaries((prev) =>
+      prev.map((s) =>
+        s.wordId === wordId ? { ...s, requested: false, inProgress: false } : s,
+      ),
+    );
+  };
+
+  const openGallery = async (wordId: string) => {
+    setGalleryWordId(wordId);
+    setGalleryLoading(true);
+    const result = await queryImages(wordId);
+    setGalleryImages(result.images ?? []);
+    setGalleryLoading(false);
+  };
+
+  const closeGallery = () => {
+    setGalleryWordId(null);
+    setGalleryImages([]);
+  };
+
+  const handleDeleteImage = async (imageId: string) => {
+    const result = await deleteImage(imageId);
+    if (result?.message) return;
+
+    setGalleryImages((prev) => prev.filter((img) => img.id !== imageId));
+    setSummaries((prev) =>
+      prev.map((item) =>
+        item.wordId === galleryWordId
+          ? { ...item, imageCount: Math.max(0, item.imageCount - 1) }
+          : item,
+      ),
+    );
+  };
+
   return (
     <div>
       <div className="mb-6">
         <label htmlFor="course-select" className={s.label}>
           Course
         </label>
-        <select
-          id="course-select"
-          value={selectedCourseId}
-          onChange={(e) => handleCourseChange(e.target.value)}
-          className={`${s.input} w-full max-w-md`}
-        >
-          <option value="">-- Select a course --</option>
-          {courses.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+        <div className="flex items-center gap-2 max-w-md">
+          <select
+            id="course-select"
+            value={selectedCourseId}
+            onChange={(e) => handleCourseChange(e.target.value)}
+            className={`${s.input} flex-1`}
+          >
+            <option value="">-- Select a course --</option>
+            {courses.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={() => loadSummaries(selectedCourseId)}
+            disabled={!selectedCourseId || loading}
+            className="p-2 text-gray-600 hover:text-blue-600 disabled:opacity-30"
+          >
+            <ArrowPathIcon className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
       </div>
 
       {loading && (
@@ -122,15 +186,22 @@ export function ImagesManager({
                   <td className={s.td}>{item.definition}</td>
                   <td className={s.td}>
                     {item.requested && (
-                      <CheckCircleIcon className="w-5 h-5 text-green-500" />
+                      <CheckCircleIcon
+                        className="w-5 h-5 text-green-500 cursor-pointer hover:text-red-500"
+                        onClick={() => handleRemoveRequest(item.wordId)}
+                      />
                     )}
                   </td>
                   <td className={s.td}>
                     {item.imageCount > 0 && (
-                      <span className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => openGallery(item.wordId)}
+                        className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
+                      >
                         <PhotoIcon className="w-4 h-4" />
                         {item.imageCount}
-                      </span>
+                      </button>
                     )}
                   </td>
                   <td className={s.td}>
@@ -166,6 +237,61 @@ export function ImagesManager({
 
       {!loading && selectedCourseId && summaries.length === 0 && (
         <p className="text-sm text-gray-500">No words found for this course.</p>
+      )}
+
+      {galleryWordId && (
+        <div className={s.dialogOverlay}>
+          <div className={s.dialogBackdrop} onClick={closeGallery} />
+          <div className={`${s.dialogPanel} max-w-2xl`} role="dialog" aria-modal="true">
+            <div className="absolute right-0 top-0 pr-4 pt-4">
+              <button type="button" className={s.dialogCloseBtn} onClick={closeGallery}>
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+
+            <h3 className={s.dialogTitle}>
+              Images for &ldquo;{summaries.find((i) => i.wordId === galleryWordId)?.word}&rdquo;
+            </h3>
+
+            {galleryLoading && (
+              <div className="flex justify-center py-8">
+                <Spinner />
+              </div>
+            )}
+
+            {!galleryLoading && galleryImages.length === 0 && (
+              <p className="text-sm text-gray-500 mt-4">No images.</p>
+            )}
+
+            {!galleryLoading && galleryImages.length > 0 && (
+              <div className="grid grid-cols-2 gap-4 mt-4 max-h-96 overflow-y-auto">
+                {galleryImages.map((img) => (
+                  <div key={img.id} className="relative group">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`/api/image/word/${img.id}`}
+                      alt="Word illustration"
+                      className="w-full rounded-lg object-contain"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteImage(img.id)}
+                      className="absolute top-2 right-2 p-1 bg-white/80 rounded-full text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <TrashIcon className="w-5 h-5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-5 flex justify-end">
+              <button type="button" className={s.dialogCancelBtn} onClick={closeGallery}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
