@@ -10,7 +10,9 @@ async function getAccessToken(): Promise<string | undefined> {
   return process.env.VERTEXAI_ACCESS_TOKEN;
 }
 
-export async function generateImageVertex(prompt: string): Promise<ImageGenerationResponse> {
+export async function generateImageVertex(
+  prompt: string,
+): Promise<ImageGenerationResponse> {
   if (!VERTEXAI_PROJECT) {
     return { error: 'VERTEXAI_PROJECT not configured' };
   }
@@ -34,7 +36,7 @@ export async function generateImageVertex(prompt: string): Promise<ImageGenerati
   const response = await fetch(url, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${accessToken}`,
+      Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(body),

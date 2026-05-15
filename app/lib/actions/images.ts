@@ -31,10 +31,7 @@ export async function deleteWordImage(imageId: string): Promise<DeleteImageResul
 }
 
 export async function removeImageRequest(wordId: string) {
-  await sql.query(
-    `DELETE FROM image_requests WHERE word_id = $1`,
-    [wordId],
-  );
+  await sql.query(`DELETE FROM image_requests WHERE word_id = $1`, [wordId]);
 }
 
 async function clearInProgress(wordId: string) {
@@ -81,7 +78,7 @@ export async function generateWordImage(wordId: string): Promise<GenerateImageRe
     return { imageId: lastImageId };
   } catch (e) {
     console.error('Image generation error:', e);
-    await clearInProgress(wordId).catch(() => { });
+    await clearInProgress(wordId).catch(() => {});
 
     const message =
       e instanceof Error ? e.message : `Image generation failed: ${JSON.stringify(e)}`;
@@ -89,7 +86,9 @@ export async function generateWordImage(wordId: string): Promise<GenerateImageRe
   }
 }
 
-export async function requestImageGeneration(wordId: string): Promise<RequestImageResult> {
+export async function requestImageGeneration(
+  wordId: string,
+): Promise<RequestImageResult> {
   try {
     await sql.query(
       `INSERT INTO image_requests (word_id)

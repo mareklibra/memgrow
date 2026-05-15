@@ -47,7 +47,9 @@ export function ImagesManager({
   const [sortDir, setSortDir] = useState<SortDir>('asc');
 
   const [galleryWordId, setGalleryWordId] = useState<string | null>(null);
-  const [galleryImages, setGalleryImages] = useState<{ id: string; createdAt: Date }[]>([]);
+  const [galleryImages, setGalleryImages] = useState<{ id: string; createdAt: Date }[]>(
+    [],
+  );
   const [galleryLoading, setGalleryLoading] = useState(false);
 
   const sortedSummaries = useMemo(() => {
@@ -127,21 +129,27 @@ export function ImagesManager({
 
       setSummaries((prev) =>
         prev.map((s) =>
-          s.wordId === wordId
-            ? { ...s, requested: true, inProgress: true }
-            : s,
+          s.wordId === wordId ? { ...s, requested: true, inProgress: true } : s,
         ),
       );
 
       const res = await fetch(`/api/image/generate/${wordId}`, { method: 'POST' });
       const genResult: { message?: string; imageId?: string } = await res.json();
       if (!res.ok || genResult.message) {
-        setRowErrors((prev) => ({ ...prev, [wordId]: genResult.message ?? 'Image generation failed' }));
+        setRowErrors((prev) => ({
+          ...prev,
+          [wordId]: genResult.message ?? 'Image generation failed',
+        }));
       } else {
         setSummaries((prev) =>
           prev.map((s) =>
             s.wordId === wordId
-              ? { ...s, requested: false, inProgress: false, imageCount: s.imageCount + 1 }
+              ? {
+                  ...s,
+                  requested: false,
+                  inProgress: false,
+                  imageCount: s.imageCount + 1,
+                }
               : s,
           ),
         );
@@ -234,17 +242,33 @@ export function ImagesManager({
           <table className="min-w-full">
             <thead>
               <tr>
-                <th className={`${s.th} cursor-pointer select-none`} onClick={() => toggleSort('word')}>
-                  Word<SortIcon column="word" />
+                <th
+                  className={`${s.th} cursor-pointer select-none`}
+                  onClick={() => toggleSort('word')}
+                >
+                  Word
+                  <SortIcon column="word" />
                 </th>
-                <th className={`${s.th} cursor-pointer select-none`} onClick={() => toggleSort('definition')}>
-                  Translation<SortIcon column="definition" />
+                <th
+                  className={`${s.th} cursor-pointer select-none`}
+                  onClick={() => toggleSort('definition')}
+                >
+                  Translation
+                  <SortIcon column="definition" />
                 </th>
-                <th className={`${s.th} cursor-pointer select-none`} onClick={() => toggleSort('requested')}>
-                  Requested<SortIcon column="requested" />
+                <th
+                  className={`${s.th} cursor-pointer select-none`}
+                  onClick={() => toggleSort('requested')}
+                >
+                  Requested
+                  <SortIcon column="requested" />
                 </th>
-                <th className={`${s.th} cursor-pointer select-none`} onClick={() => toggleSort('imageCount')}>
-                  Images<SortIcon column="imageCount" />
+                <th
+                  className={`${s.th} cursor-pointer select-none`}
+                  onClick={() => toggleSort('imageCount')}
+                >
+                  Images
+                  <SortIcon column="imageCount" />
                 </th>
                 <th className={s.th}>Action</th>
               </tr>
@@ -279,9 +303,7 @@ export function ImagesManager({
                       <button
                         type="button"
                         onClick={() => handleGenerate(item.wordId)}
-                        disabled={
-                          rowInProgress[item.wordId] || item.inProgress
-                        }
+                        disabled={rowInProgress[item.wordId] || item.inProgress}
                         className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {rowInProgress[item.wordId] || item.inProgress ? (
@@ -320,7 +342,8 @@ export function ImagesManager({
             </div>
 
             <h3 className={s.dialogTitle}>
-              Images for &ldquo;{summaries.find((i) => i.wordId === galleryWordId)?.word}&rdquo;
+              Images for &ldquo;{summaries.find((i) => i.wordId === galleryWordId)?.word}
+              &rdquo;
             </h3>
 
             {galleryLoading && (
