@@ -4,6 +4,7 @@ import {
   removeImageRequest,
   queryWordImages,
   deleteWordImage,
+  deleteAllWordImages,
 } from '@/app/lib/actions';
 import { lusitana } from '@/app/ui/fonts';
 import { s } from '@/app/ui/styles';
@@ -38,6 +39,7 @@ export default async function Page() {
         removeRequest={handleRemoveRequest}
         queryImages={queryWordImages}
         deleteImage={deleteWordImage}
+        deleteAllImages={deleteAllWordImages}
       />
     </div>
   );

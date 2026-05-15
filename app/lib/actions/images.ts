@@ -30,6 +30,17 @@ export async function deleteWordImage(imageId: string): Promise<DeleteImageResul
   }
 }
 
+export async function deleteAllWordImages(wordId: string): Promise<DeleteImageResult> {
+  try {
+    await sql.query(`DELETE FROM word_images WHERE word_id = $1`, [wordId]);
+    return undefined;
+  } catch (e) {
+    return {
+      message: `Database Error: Failed to delete images. ${JSON.stringify(e)}`,
+    };
+  }
+}
+
 export async function removeImageRequest(wordId: string) {
   await sql.query(`DELETE FROM image_requests WHERE word_id = $1`, [wordId]);
 }
