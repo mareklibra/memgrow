@@ -13,6 +13,10 @@ export default defineConfig({
     hookTimeout: 60000,
     pool: 'forks',
     maxWorkers: 12,
+    // Integration tests (data.test.ts, actions/) share a single Testcontainers
+    // PostgreSQL database and truncate tables between tests, so they cannot run
+    // in parallel. Vitest's fileParallelism is root-level only (cannot differ
+    // per project), so all files must run sequentially.
     fileParallelism: false,
     include: ['tests/**/*.test.ts'],
     exclude: ['node_modules', '.next'],
