@@ -12,9 +12,9 @@ import {
   CheckCircleIcon,
   PhotoIcon,
   TrashIcon,
-  XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { DeleteImageResult } from '@/app/lib/types';
+import { ImageGalleryDialog } from '@/app/ui/ImageGalleryDialog';
 
 type ImagesManagerProps = {
   courses: Course[];
@@ -25,6 +25,7 @@ type ImagesManagerProps = {
     wordId: string,
   ) => Promise<{ images?: { id: string; createdAt: Date }[]; message?: string }>;
   deleteImage: (imageId: string) => Promise<DeleteImageResult>;
+  deleteAllImages: (wordId: string) => Promise<DeleteImageResult>;
 };
 
 export function ImagesManager({
@@ -34,6 +35,7 @@ export function ImagesManager({
   removeRequest,
   queryImages,
   deleteImage,
+  deleteAllImages,
 }: Readonly<ImagesManagerProps>) {
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
   const [summaries, setSummaries] = useState<WordImageSummary[]>([]);
@@ -203,6 +205,29 @@ export function ImagesManager({
     );
   };
 
+  const handleDeleteAllImages = async (wordId: string) => {
+    setRowInProgress((prev) => ({ ...prev, [wordId]: true }));
+    try {
+      const result = await deleteAllImages(wordId);
+      if (result?.message) {
+        setRowErrors((prev) => ({ ...prev, [wordId]: result.message! }));
+        return;
+      }
+      setSummaries((prev) =>
+        prev.map((item) =>
+          item.wordId === wordId ? { ...item, imageCount: 0, totalSizeKb: 0 } : item,
+        ),
+      );
+    } catch (e) {
+      setRowErrors((prev) => ({
+        ...prev,
+        [wordId]: `Delete failed: ${e}`,
+      }));
+    } finally {
+      setRowInProgress((prev) => ({ ...prev, [wordId]: false }));
+    }
+  };
+
   return (
     <div>
       <div className="mb-6">
@@ -326,6 +351,17 @@ export function ImagesManager({
                         )}
                         Generate
                       </button>
+                      {item.imageCount > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteAllImages(item.wordId)}
+                          disabled={rowInProgress[item.wordId] || item.inProgress}
+                          className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <TrashIcon className="w-4 h-4" />
+                          Delete All
+                        </button>
+                      )}
                       {rowErrors[item.wordId] && (
                         <span className="text-xs text-red-500">
                           {rowErrors[item.wordId]}
@@ -345,59 +381,13 @@ export function ImagesManager({
       )}
 
       {galleryWordId && (
-        <div className={s.dialogOverlay}>
-          <div className={s.dialogBackdrop} onClick={closeGallery} />
-          <div className={`${s.dialogPanel} max-w-2xl`} role="dialog" aria-modal="true">
-            <div className="absolute right-0 top-0 pr-4 pt-4">
-              <button type="button" className={s.dialogCloseBtn} onClick={closeGallery}>
-                <XMarkIcon className="h-6 w-6" />
-              </button>
-            </div>
-
-            <h3 className={s.dialogTitle}>
-              Images for &ldquo;{summaries.find((i) => i.wordId === galleryWordId)?.word}
-              &rdquo;
-            </h3>
-
-            {galleryLoading && (
-              <div className="flex justify-center py-8">
-                <Spinner />
-              </div>
-            )}
-
-            {!galleryLoading && galleryImages.length === 0 && (
-              <p className="text-sm text-gray-500 mt-4">No images.</p>
-            )}
-
-            {!galleryLoading && galleryImages.length > 0 && (
-              <div className="grid grid-cols-2 gap-4 mt-4 max-h-96 overflow-y-auto">
-                {galleryImages.map((img) => (
-                  <div key={img.id} className="relative group">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={`/api/image/word/${img.id}`}
-                      alt="Word illustration"
-                      className="w-full rounded-lg object-contain"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteImage(img.id)}
-                      className="absolute top-2 right-2 p-1 bg-white/80 rounded-full text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <TrashIcon className="w-5 h-5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="mt-5 flex justify-end">
-              <button type="button" className={s.dialogCancelBtn} onClick={closeGallery}>
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
+        <ImageGalleryDialog
+          word={summaries.find((i) => i.wordId === galleryWordId)?.word}
+          images={galleryImages}
+          loading={galleryLoading}
+          onDelete={handleDeleteImage}
+          onClose={closeGallery}
+        />
       )}
     </div>
   );
