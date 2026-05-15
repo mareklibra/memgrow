@@ -25,7 +25,6 @@ const tdFirst =
 
 export type EditWordRowProps = {
   word: Word;
-  reduced?: boolean;
   onChange?: (word: Word) => void;
   similarity?: number;
   fastEntry?: boolean;
@@ -33,7 +32,6 @@ export type EditWordRowProps = {
 
 export function WordRow({
   word,
-  reduced,
   onChange,
   similarity,
   fastEntry,
@@ -166,7 +164,7 @@ export function WordRow({
               onChange={(e) => {
                 setChanged({ ...changed, memLevel: Number(e.currentTarget.value) });
               }}
-              disabled={reduced}
+
             />
           </td>
           <td className={clsx(s.td, 'whitespace-nowrap')}>{changed.form}</td>
@@ -188,7 +186,7 @@ export function WordRow({
               <Button disabled={isEqual(old, changed)} onClick={handleReset}>
                 <ArrowPathIcon className="w-5" />
               </Button>
-              {!reduced && <DeleteButton word={old} handleDelete={handleDelete} />}
+              <DeleteButton word={old} handleDelete={handleDelete} />
             </>
           )}
         </div>

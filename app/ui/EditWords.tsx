@@ -14,7 +14,6 @@ import { s } from '@/app/ui/styles';
 export type EditWordsProps = {
   words: Word[];
   courseId: string;
-  reduced?: boolean;
   onChange?: EditWordRowProps['onChange'];
   forceDbReload?: () => Promise<void>;
 };
@@ -24,7 +23,6 @@ type EnrichedWord = { similarity: number; word: Word };
 export function EditWords({
   words,
   courseId,
-  reduced,
   onChange,
   forceDbReload,
 }: Readonly<EditWordsProps>) {
@@ -65,34 +63,29 @@ export function EditWords({
           <WordRow
             word={w}
             key={w.id}
-            reduced={reduced}
             onChange={onChange}
             similarity={enriched[w.id]?.similarity}
           />
         ))}
       </>
     );
-  }, [sortedWords, enriched, reduced, onChange]);
+  }, [sortedWords, enriched, onChange]);
 
   return (
     <div className="flex flex-col mr-4">
-      {!reduced && (
-        <SearchBar setSearch={setSearchThrottled} matches={sortedWords.length} />
-      )}
+      <SearchBar setSearch={setSearchThrottled} matches={sortedWords.length} />
       <table className={s.tableDivider}>
         <EditWordHeader isEnriched={isEnriched} switchEnrichment={switchEnrichment} />
         <tbody className={s.tableDivider}>
           {wordRows}
-          {!reduced && <NewWordRow key="___new___" courseId={courseId} />}
+          <NewWordRow key="___new___" courseId={courseId} />
         </tbody>
       </table>
-      {!reduced && (
-        <BatchImport
-          className="min-h-96"
-          courseId={courseId}
-          forceDbReload={forceDbReload}
-        />
-      )}
+      <BatchImport
+        className="min-h-96"
+        courseId={courseId}
+        forceDbReload={forceDbReload}
+      />
     </div>
   );
 }
