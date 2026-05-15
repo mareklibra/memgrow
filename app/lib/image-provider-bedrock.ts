@@ -2,7 +2,7 @@ import {
   BedrockRuntimeClient,
   InvokeModelCommand,
 } from '@aws-sdk/client-bedrock-runtime';
-import { IMAGE_COUNT, LLM_IMAGE_MODEL } from '../constants';
+import { IMAGE_COUNT, IMAGE_SIZE, LLM_IMAGE_MODEL } from '../constants';
 import { ImageGenerationResponse } from './image-provider';
 
 // Authenticates via AWS_BEARER_TOKEN_BEDROCK env var (picked up by the default credential chain).
@@ -29,8 +29,8 @@ export async function generateImageBedrock(
     imageGenerationConfig: {
       seed: Math.floor(Math.random() * 858993460),
       quality: 'standard',
-      width: 512,
-      height: 512,
+      width: IMAGE_SIZE,
+      height: IMAGE_SIZE,
       numberOfImages: IMAGE_COUNT,
     },
   };

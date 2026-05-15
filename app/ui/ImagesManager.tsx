@@ -41,7 +41,7 @@ export function ImagesManager({
   const [rowErrors, setRowErrors] = useState<Record<string, string>>({});
   const [rowInProgress, setRowInProgress] = useState<Record<string, boolean>>({});
 
-  type SortKey = 'word' | 'definition' | 'requested' | 'imageCount';
+  type SortKey = 'word' | 'definition' | 'requested' | 'imageCount' | 'totalSizeKb';
   type SortDir = 'asc' | 'desc';
   const [sortKey, setSortKey] = useState<SortKey>('word');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
@@ -67,6 +67,9 @@ export function ImagesManager({
           break;
         case 'imageCount':
           cmp = a.imageCount - b.imageCount;
+          break;
+        case 'totalSizeKb':
+          cmp = a.totalSizeKb - b.totalSizeKb;
           break;
       }
       return sortDir === 'asc' ? cmp : -cmp;
@@ -270,6 +273,13 @@ export function ImagesManager({
                   Images
                   <SortIcon column="imageCount" />
                 </th>
+                <th
+                  className={`${s.th} cursor-pointer select-none`}
+                  onClick={() => toggleSort('totalSizeKb')}
+                >
+                  Size (KB)
+                  <SortIcon column="totalSizeKb" />
+                </th>
                 <th className={s.th}>Action</th>
               </tr>
             </thead>
@@ -297,6 +307,9 @@ export function ImagesManager({
                         {item.imageCount}
                       </button>
                     )}
+                  </td>
+                  <td className={`${s.td} text-right tabular-nums`}>
+                    {item.totalSizeKb > 0 ? item.totalSizeKb.toLocaleString() : ''}
                   </td>
                   <td className={s.td}>
                     <div className="flex flex-col gap-1">

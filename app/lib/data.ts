@@ -574,6 +574,7 @@ type DbWordImageSummary = {
   word: string;
   definition: string;
   image_count: string;
+  total_size_bytes: string;
   requested: boolean;
   in_progress: boolean;
 };
@@ -588,11 +589,12 @@ export async function fetchWordImageSummaries(
         w.word,
         w.definition,
         COALESCE(img.cnt, 0) AS image_count,
+        COALESCE(img.total_size, 0) AS total_size_bytes,
         (ir.word_id IS NOT NULL) AS requested,
         (ir.in_progress_since IS NOT NULL) AS in_progress
       FROM words w
       LEFT JOIN (
-        SELECT word_id, COUNT(*) AS cnt FROM word_images GROUP BY word_id
+        SELECT word_id, COUNT(*) AS cnt, SUM(LENGTH(content)) AS total_size FROM word_images GROUP BY word_id
       ) img ON img.word_id = w.id
       LEFT JOIN image_requests ir ON ir.word_id = w.id
       WHERE w.course_id = ${courseId}
@@ -603,6 +605,7 @@ export async function fetchWordImageSummaries(
       word: row.word,
       definition: row.definition,
       imageCount: parseInt(String(row.image_count), 10),
+      totalSizeKb: Math.round(parseInt(String(row.total_size_bytes), 10) / 1024),
       requested: !!row.requested,
       inProgress: !!row.in_progress,
     }));

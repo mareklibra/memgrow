@@ -64,6 +64,7 @@ export type WordImageSummary = {
   word: string;
   definition: string;
   imageCount: number;
+  totalSizeKb: number;
   requested: boolean;
   inProgress: boolean;
 };

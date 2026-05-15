@@ -28,6 +28,7 @@ export async function generateImageVertex(
     instances: [{ prompt }],
     parameters: {
       sampleCount: IMAGE_COUNT,
+      aspectRatio: '1:1',
     },
   };
 
