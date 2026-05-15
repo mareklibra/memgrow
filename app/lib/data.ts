@@ -2,7 +2,14 @@ import { stringSimilarity } from 'string-similarity-js';
 import { sql } from '@vercel/postgres';
 import { User } from 'next-auth';
 import { auth } from '@/auth';
-import { Course, DbCourse, DbWord, TeachingForm, Word, WordImage } from '@/app/lib/definitions';
+import {
+  Course,
+  DbCourse,
+  DbWord,
+  TeachingForm,
+  Word,
+  WordImage,
+} from '@/app/lib/definitions';
 import { WordImageSummary } from '@/app/lib/types';
 import { STRING_SIMILARITY_SUBSTRING_LENGTH } from '../constants';
 
@@ -539,7 +546,9 @@ export async function fetchWordImages(wordId: string): Promise<WordImage[]> {
   }
 }
 
-export async function fetchWordImageById(imageId: string): Promise<WordImage | undefined> {
+export async function fetchWordImageById(
+  imageId: string,
+): Promise<WordImage | undefined> {
   try {
     const result = await sql<DbWordImage>`
       SELECT id, word_id, content, created_at
@@ -569,7 +578,9 @@ type DbWordImageSummary = {
   in_progress: boolean;
 };
 
-export async function fetchWordImageSummaries(courseId: string): Promise<WordImageSummary[]> {
+export async function fetchWordImageSummaries(
+  courseId: string,
+): Promise<WordImageSummary[]> {
   try {
     const result = await sql<DbWordImageSummary>`
       SELECT

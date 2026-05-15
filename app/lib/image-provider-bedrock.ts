@@ -16,7 +16,9 @@ try {
   console.error('Error initializing Bedrock client: ', e);
 }
 
-export async function generateImageBedrock(prompt: string): Promise<ImageGenerationResponse> {
+export async function generateImageBedrock(
+  prompt: string,
+): Promise<ImageGenerationResponse> {
   if (!client) {
     return { error: 'Bedrock client not initialized' };
   }

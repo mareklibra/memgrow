@@ -1,5 +1,9 @@
 import { useState } from 'react';
-import { TrashIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import {
+  TrashIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from '@heroicons/react/24/outline';
 import { DeleteImageResult } from '../lib/types';
 import { Typography } from '@/app/lib/material-tailwind-compat';
 
