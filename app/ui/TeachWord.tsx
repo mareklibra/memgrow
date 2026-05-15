@@ -14,7 +14,7 @@ import { ShowWord } from './ShowWord';
 import { Button } from './button';
 import { FieldStatus } from './types';
 import { ChooseTranslation } from './ChooseTranslation';
-import { EditWords, EditWordsProps } from './EditWords';
+import { EditWordInline } from './EditWordInline';
 import { useWithSound } from '../lib/useWithSound';
 import { DELAY_CORRECT_MS, DELAY_MISTAKE_MS } from '../constants';
 import { WordExamples, WordExamplesProps } from './WordExamples';
@@ -32,7 +32,7 @@ interface TeachWordProps {
   repeatSooner: (word: Word) => void;
   handlePriority: (word: Word) => void;
   skipWord: (word: Word) => void;
-  onChange: EditWordsProps['onChange'];
+  onChange?: (word: Word) => void;
   specialKeys: TypeTranslationProps['specialKeys'];
   queryExamples: WordExamplesProps['queryExamples'];
   deleteExample: WordExamplesProps['deleteExample'];
@@ -362,12 +362,7 @@ export function TeachWord({
         )}
 
         {isEdit && (
-          <EditWords
-            words={[word]}
-            courseId={word.courseId}
-            reduced
-            onChange={handleOnChange}
-          />
+          <EditWordInline word={word} onChange={handleOnChange} />
         )}
       </div>
     </form>
