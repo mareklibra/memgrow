@@ -1,6 +1,7 @@
 import { fetchCourses, fetchWordImageSummaries } from '@/app/lib/data';
 import {
   requestImageGeneration,
+  generateWordImage,
   removeImageRequest,
   queryWordImages,
   deleteWordImage,
@@ -23,6 +24,11 @@ export default async function Page() {
     return await requestImageGeneration(wordId);
   };
 
+  const handleGenerateImage = async (wordId: string) => {
+    'use server';
+    return await generateWordImage(wordId);
+  };
+
   const handleRemoveRequest = async (wordId: string) => {
     'use server';
     await removeImageRequest(wordId);
@@ -35,6 +41,7 @@ export default async function Page() {
         courses={courses}
         fetchSummaries={fetchSummaries}
         requestGeneration={handleRequestGeneration}
+        generateImage={handleGenerateImage}
         removeRequest={handleRemoveRequest}
         queryImages={queryWordImages}
         deleteImage={deleteWordImage}

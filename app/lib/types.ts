@@ -49,6 +49,10 @@ export type GenerateImageResult = {
   imageId?: string;
 };
 
+export type RequestImageResult = {
+  message?: string;
+};
+
 export type DeleteImageResult =
   | {
       message?: string;
