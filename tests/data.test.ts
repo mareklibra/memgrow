@@ -198,10 +198,15 @@ describe('data', () => {
       const course = await createTestCourse();
       const word = await createTestWord(course.id, { word: 'pronounce' });
       const { sql } = await import('@vercel/postgres');
-      await sql`INSERT INTO sounds (word_id, audio_source_base64) VALUES (${word.id}, 'base64audio')`;
+      const audioBuffer = Buffer.from('testaudio');
+      await sql.query(`INSERT INTO sounds (word_id, content) VALUES ($1, $2)`, [
+        word.id,
+        audioBuffer,
+      ]);
 
       const result = await fetchPronunciation({ id: word.id, courseId: course.id });
-      expect(result?.audioSourceB64).toBe('base64audio');
+      expect(result?.audioContent).toBeDefined();
+      expect(Buffer.from(result!.audioContent!).toString()).toBe('testaudio');
       expect(result?.word).toBe('pronounce');
     });
 

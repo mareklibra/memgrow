@@ -254,9 +254,7 @@ export function MediaManager({
       }
       setSummaries((prev) =>
         prev.map((item) =>
-          item.wordId === wordId
-            ? { ...item, imageCount: 0, totalImageSizeKb: 0 }
-            : item,
+          item.wordId === wordId ? { ...item, imageCount: 0, totalImageSizeKb: 0 } : item,
         ),
       );
     } catch (e) {
@@ -286,9 +284,7 @@ export function MediaManager({
         }));
       } else {
         setSummaries((prev) =>
-          prev.map((s) =>
-            s.wordId === wordId ? { ...s, hasSound: true } : s,
-          ),
+          prev.map((s) => (s.wordId === wordId ? { ...s, hasSound: true } : s)),
         );
       }
     } catch (e) {
@@ -327,9 +323,7 @@ export function MediaManager({
       }
       setSummaries((prev) =>
         prev.map((item) =>
-          item.wordId === wordId
-            ? { ...item, hasSound: false, soundSizeKb: 0 }
-            : item,
+          item.wordId === wordId ? { ...item, hasSound: false, soundSizeKb: 0 } : item,
         ),
       );
     } catch (e) {
@@ -471,7 +465,9 @@ export function MediaManager({
 
                   {/* Image size */}
                   <td className={`${s.td} text-right tabular-nums`}>
-                    {item.totalImageSizeKb > 0 ? item.totalImageSizeKb.toLocaleString() : ''}
+                    {item.totalImageSizeKb > 0
+                      ? item.totalImageSizeKb.toLocaleString()
+                      : ''}
                   </td>
 
                   {/* Sound */}

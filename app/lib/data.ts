@@ -84,7 +84,7 @@ const omDbCourse = (dbCourse: DbCourse): Course => ({
 });
 
 export type WordPronunciation = Pick<Word, 'id' | 'word' | 'definition'> & {
-  audioSourceB64?: string;
+  audioContent?: Buffer;
 };
 
 export type WordExamples = Pick<Word, 'id' | 'word' | 'definition' | 'courseId'> & {
@@ -93,13 +93,13 @@ export type WordExamples = Pick<Word, 'id' | 'word' | 'definition' | 'courseId'>
 
 const omDbPronunciation = (
   dbWord: Pick<DbWord, 'id' | 'course_id' | 'word' | 'definition'> & {
-    audio_source_base64?: string;
+    content?: Buffer;
   },
 ): WordPronunciation => ({
   id: dbWord.id,
   word: dbWord.word,
   definition: dbWord.definition,
-  audioSourceB64: dbWord.audio_source_base64,
+  audioContent: dbWord.content,
 });
 
 const omDbExamples = (
@@ -457,7 +457,7 @@ export async function fetchPronunciation({
 }: Pick<Word, 'id' | 'courseId'>): Promise<WordPronunciation | undefined> {
   try {
     const result = await sql<DbWord>`
-      SELECT words.id, words.word, words.course_id, words.definition, sounds.audio_source_base64
+      SELECT words.id, words.word, words.course_id, words.definition, sounds.content
       FROM words
       LEFT OUTER JOIN sounds ON words.id = sounds.word_id
       WHERE
@@ -643,7 +643,7 @@ export async function fetchWordMediaSummaries(
         (ir.word_id IS NOT NULL) AS requested,
         (ir.in_progress_since IS NOT NULL) AS in_progress,
         (snd.word_id IS NOT NULL) AS has_sound,
-        COALESCE(LENGTH(snd.audio_source_base64), 0) AS sound_size_bytes
+        COALESCE(LENGTH(snd.content), 0) AS sound_size_bytes
       FROM words w
       LEFT JOIN (
         SELECT word_id, COUNT(*) AS cnt, SUM(LENGTH(content)) AS total_size
@@ -660,7 +660,9 @@ export async function fetchWordMediaSummaries(
       word: row.word,
       definition: row.definition,
       imageCount: parseInt(String(row.image_count), 10),
-      totalImageSizeKb: Math.round(parseInt(String(row.total_image_size_bytes), 10) / 1024),
+      totalImageSizeKb: Math.round(
+        parseInt(String(row.total_image_size_bytes), 10) / 1024,
+      ),
       imageRequested: !!row.requested,
       imageInProgress: !!row.in_progress,
       hasSound: !!row.has_sound,
