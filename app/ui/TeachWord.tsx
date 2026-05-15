@@ -65,6 +65,7 @@ export function TeachWord({
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [reply, setReply] = useState<number>(0);
   const [isSkipped, setIsSkipped] = useState<boolean>(word.isSkipped);
+  const [imageRequested, setImageRequested] = useState(false);
   const skipMistakeRef = useRef<boolean>(false);
 
   const threeSimilarWords = useMemo(
@@ -301,7 +302,14 @@ export function TeachWord({
             <SpeakerWaveIcon className="w-5" />
           </Button>
 
-          <Button onClick={() => requestImageGeneration(word.id)} type="button">
+          <Button
+            onClick={() => {
+              setImageRequested(true);
+              requestImageGeneration(word.id);
+            }}
+            type="button"
+            disabled={imageRequested}
+          >
             <CameraIcon className="w-5" />
           </Button>
 
