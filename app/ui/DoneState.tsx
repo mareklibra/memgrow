@@ -23,11 +23,84 @@ type ProgressType = {
   end: Word;
 };
 
-function RepeatCell({ date }: Readonly<{ date: Date }>) {
-  const [isDetail, setIsDetail] = useState<boolean>(false);
+function RepeatCell({
+  date,
+  onChange,
+}: Readonly<{ date: Date; onChange: (d: Date) => void }>) {
+  const [isEditing, setIsEditing] = useState(false);
+
+  const toInputValue = (d: Date) => {
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+
+  if (isEditing) {
+    return (
+      <td className={s.td}>
+        <input
+          type="datetime-local"
+          defaultValue={toInputValue(date)}
+          autoFocus
+          className="text-sm border rounded px-1"
+          onBlur={(e) => {
+            const d = new Date(e.target.value);
+            if (!isNaN(d.getTime())) onChange(d);
+            setIsEditing(false);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') e.currentTarget.blur();
+            if (e.key === 'Escape') setIsEditing(false);
+          }}
+        />
+      </td>
+    );
+  }
+
   return (
-    <td className={s.td} onClick={() => setIsDetail(!isDetail)}>
-      {isDetail ? date.toLocaleString() : date.toLocaleDateString()}
+    <td
+      className={clsx(s.td, 'cursor-pointer')}
+      onClick={() => setIsEditing(true)}
+    >
+      {date.toLocaleDateString()}
+    </td>
+  );
+}
+
+function MemLevelCell({
+  value,
+  onChange,
+}: Readonly<{ value: number; onChange: (v: number) => void }>) {
+  const [isEditing, setIsEditing] = useState(false);
+
+  if (isEditing) {
+    return (
+      <td className={s.td}>
+        <input
+          type="number"
+          defaultValue={value}
+          min={0}
+          autoFocus
+          className="text-sm border rounded px-1 w-16"
+          onBlur={(e) => {
+            const v = parseInt(e.target.value, 10);
+            if (!isNaN(v) && v >= 0) onChange(v);
+            setIsEditing(false);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') e.currentTarget.blur();
+            if (e.key === 'Escape') setIsEditing(false);
+          }}
+        />
+      </td>
+    );
+  }
+
+  return (
+    <td
+      className={clsx(s.td, 'cursor-pointer')}
+      onClick={() => setIsEditing(true)}
+    >
+      {value}
     </td>
   );
 }
@@ -43,6 +116,7 @@ export function DoneState({
   const wordsToPersistRef = useRef<Word[]>([]);
   const [isRetrigger, setIsRetrigger] = useState<boolean>(true);
   const [remainingCount, setRemainingCount] = useState<number | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const courseId = words[0].courseId;
 
   const doPersist = useCallback(async () => {
@@ -68,14 +142,37 @@ export function DoneState({
         setWordsToPersist(failedWords);
         wordsToPersistRef.current = failedWords;
 
-        if (failedWords.length === 0 && courseId) {
-          fetchRemainingWordsCount(courseId, !!isLearning).then(setRemainingCount);
+        if (failedWords.length === 0) {
+          setHasUnsavedChanges(false);
+          if (courseId) {
+            fetchRemainingWordsCount(courseId, !!isLearning).then(setRemainingCount);
+          }
         }
       } finally {
         setIsRetrigger(false);
       }
     }
   }, [storeProgress, courseId, isLearning]);
+
+  const updateWordField = useCallback(
+    (wordId: string, updates: Partial<Pick<Word, 'repeatAgain' | 'memLevel'>>) => {
+      setProgress((prev) => {
+        const updated = prev.map((p) =>
+          p.end.id === wordId ? { ...p, end: { ...p.end, ...updates } } : p,
+        );
+        const wordsToSave = updated.map((p) => p.end);
+        setWordsToPersist(wordsToSave);
+        wordsToPersistRef.current = wordsToSave;
+        return updated;
+      });
+      setHasUnsavedChanges(true);
+    },
+    [],
+  );
+
+  const handleSave = useCallback(() => {
+    setIsRetrigger(true);
+  }, []);
 
   useEffect(
     () => {
@@ -129,7 +226,7 @@ export function DoneState({
           &nbsp;Persisting...
         </div>
       )}
-      {!isRetrigger && wordsToPersist.length > 0 && (
+      {!isRetrigger && wordsToPersist.length > 0 && !hasUnsavedChanges && (
         <div className={s.centered}>
           <Button
             variant="outlined"
@@ -141,11 +238,19 @@ export function DoneState({
         </div>
       )}
 
-      {wordsToPersist.length === 0 && (
+      {!isRetrigger && hasUnsavedChanges && (
+        <div className={s.centered}>
+          <Button variant="outlined" onClick={handleSave}>
+            Save changes
+          </Button>
+        </div>
+      )}
+
+      {wordsToPersist.length === 0 && !hasUnsavedChanges && (
         <div className={s.centered}>All words have been persisted.</div>
       )}
 
-      {wordsToPersist.length === 0 && (
+      {wordsToPersist.length === 0 && !hasUnsavedChanges && (
         <div className={s.centered}>
           <Link href={`/${isLearning ? 'learn' : 'test'}/${courseId ?? ''}/next`} replace>
             <Button variant="outlined">
@@ -192,8 +297,14 @@ export function DoneState({
                 <td className={clsx(s.td, 'w-2')}>
                   <WordTeachingStatus word={p.end} />
                 </td>
-                <RepeatCell date={p.end.repeatAgain} />
-                <td className={s.td}>{p.end.memLevel}</td>
+                <RepeatCell
+                  date={p.end.repeatAgain}
+                  onChange={(d) => updateWordField(p.end.id, { repeatAgain: d })}
+                />
+                <MemLevelCell
+                  value={p.end.memLevel}
+                  onChange={(v) => updateWordField(p.end.id, { memLevel: v })}
+                />
               </tr>
             );
           })}
