@@ -2,7 +2,7 @@ import {
   BedrockRuntimeClient,
   InvokeModelCommand,
 } from '@aws-sdk/client-bedrock-runtime';
-import { LLM_IMAGE_MODEL } from '../constants';
+import { IMAGE_COUNT, LLM_IMAGE_MODEL } from '../constants';
 import { ImageGenerationResponse } from './image-provider';
 
 // Authenticates via AWS_BEARER_TOKEN_BEDROCK env var (picked up by the default credential chain).
@@ -29,7 +29,7 @@ export async function generateImageBedrock(prompt: string): Promise<ImageGenerat
       quality: 'standard',
       width: 512,
       height: 512,
-      numberOfImages: 1,
+      numberOfImages: IMAGE_COUNT,
     },
   };
 
@@ -44,11 +44,11 @@ export async function generateImageBedrock(prompt: string): Promise<ImageGenerat
   const response = await client.send(command);
   const responseBody = JSON.parse(new TextDecoder().decode(response.body));
 
-  const base64Data: string | undefined = responseBody.images?.[0];
-  if (!base64Data) {
+  const images: string[] = responseBody.images ?? [];
+  if (images.length === 0) {
     const errorMsg = responseBody.error || responseBody.message;
     return { error: errorMsg || 'No image data returned from the model' };
   }
 
-  return { base64Data };
+  return { images };
 }

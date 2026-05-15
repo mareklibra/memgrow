@@ -1,4 +1,4 @@
-import { LLM_IMAGE_MODEL } from '../constants';
+import { IMAGE_COUNT, LLM_IMAGE_MODEL } from '../constants';
 import { ImageGenerationResponse } from './image-provider';
 
 const VERTEXAI_PROJECT = process.env.VERTEXAI_PROJECT;
@@ -25,7 +25,7 @@ export async function generateImageVertex(prompt: string): Promise<ImageGenerati
   const body = {
     instances: [{ prompt }],
     parameters: {
-      sampleCount: 1,
+      sampleCount: IMAGE_COUNT,
     },
   };
 
@@ -47,12 +47,13 @@ export async function generateImageVertex(prompt: string): Promise<ImageGenerati
   }
 
   const responseBody = await response.json();
-  const base64Data: string | undefined =
-    responseBody.predictions?.[0]?.bytesBase64Encoded;
+  const images: string[] = (responseBody.predictions ?? [])
+    .map((p: { bytesBase64Encoded?: string }) => p.bytesBase64Encoded)
+    .filter(Boolean);
 
-  if (!base64Data) {
+  if (images.length === 0) {
     return { error: 'No image data returned from Vertex AI' };
   }
 
-  return { base64Data };
+  return { images };
 }

@@ -30,6 +30,13 @@ export async function deleteWordImage(imageId: string): Promise<DeleteImageResul
   }
 }
 
+export async function removeImageRequest(wordId: string) {
+  await sql.query(
+    `DELETE FROM image_requests WHERE word_id = $1`,
+    [wordId],
+  );
+}
+
 async function clearInProgress(wordId: string) {
   await sql.query(
     `UPDATE image_requests SET in_progress_since = NULL WHERE word_id = $1`,
@@ -49,22 +56,32 @@ async function generateWordImage(wordId: string): Promise<GenerateImageResult> {
       return { message: `Course not found, id: ${word.courseId}` };
     }
 
-    const prompt = `Create an image which helps me to memorize ${course.learningLang} word: '${word.word}'. It's meaning in ${course.knownLang} is: '${word.definition}'.`;
-
-    console.log('Generating image for word:', { word: word.word, prompt });
+    const prompt = [
+      `For every image requested, create a single mnemonic image for the ${course.learningLang} word '${word.word}'`,
+      `(${course.knownLang}: '${word.definition}').`,
+      `The image must be ONE coherent scene - not a collage, not a grid, not a collection of thumbnails.`,
+      `Show exactly one unified composition that illustrates the word's meaning.`,
+      `Do not tile, repeat, or multiply the subject. Do not split the canvas into panels or sections.`,
+      `Each image should trigger a completely unrelated visual association with the word's meaning, vary artistic styles (e.g. photorealistic, watercolor, cartoon, or abstract).`,
+      `Never include text in ${course.knownLang} but you can use VERY BRIEFLY ${course.learningLang}`,
+    ].join(' ');
 
     const result = await generateImage(prompt);
-    if (result.error || !result.base64Data) {
+    if (result.error || !result.images?.length) {
       return { message: result.error || 'No image data returned from the model' };
     }
 
-    const { id: imageId } = await insertWordImage(wordId, result.base64Data);
-    await clearInProgress(wordId);
+    let lastImageId: string | undefined;
+    for (const base64Data of result.images) {
+      const { id } = await insertWordImage(wordId, base64Data);
+      lastImageId = id;
+    }
+    await removeImageRequest(wordId);
 
-    return { imageId };
+    return { imageId: lastImageId };
   } catch (e) {
     console.error('Image generation error:', e);
-    await clearInProgress(wordId).catch(() => {});
+    await clearInProgress(wordId).catch(() => { });
 
     const message =
       e instanceof Error ? e.message : `Image generation failed: ${JSON.stringify(e)}`;

@@ -2,7 +2,7 @@ import { generateImageBedrock } from './image-provider-bedrock';
 import { generateImageVertex } from './image-provider-vertex';
 
 export type ImageGenerationResponse = {
-  base64Data?: string;
+  images?: string[];
   error?: string;
 };
 
