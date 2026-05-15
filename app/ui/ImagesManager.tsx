@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { Course } from '@/app/lib/definitions';
-import { WordImageSummary, GenerateImageResult } from '@/app/lib/types';
+import { WordImageSummary, RequestImageResult, GenerateImageResult } from '@/app/lib/types';
 import { Spinner } from '@/app/lib/material-tailwind-compat';
 import { s } from '@/app/ui/styles';
 import {
@@ -19,7 +19,8 @@ import { DeleteImageResult } from '@/app/lib/types';
 type ImagesManagerProps = {
   courses: Course[];
   fetchSummaries: (courseId: string) => Promise<WordImageSummary[]>;
-  requestGeneration: (wordId: string) => Promise<GenerateImageResult>;
+  requestGeneration: (wordId: string) => Promise<RequestImageResult>;
+  generateImage: (wordId: string) => Promise<GenerateImageResult>;
   removeRequest: (wordId: string) => Promise<void>;
   queryImages: (
     wordId: string,
@@ -31,6 +32,7 @@ export function ImagesManager({
   courses,
   fetchSummaries,
   requestGeneration,
+  generateImage,
   removeRequest,
   queryImages,
   deleteImage,
@@ -119,14 +121,28 @@ export function ImagesManager({
     setRowInProgress((prev) => ({ ...prev, [wordId]: true }));
 
     try {
-      const result = await requestGeneration(wordId);
-      if (result.message) {
-        setRowErrors((prev) => ({ ...prev, [wordId]: result.message! }));
+      const reqResult = await requestGeneration(wordId);
+      if (reqResult.message) {
+        setRowErrors((prev) => ({ ...prev, [wordId]: reqResult.message! }));
+        return;
+      }
+
+      setSummaries((prev) =>
+        prev.map((s) =>
+          s.wordId === wordId
+            ? { ...s, requested: true, inProgress: true }
+            : s,
+        ),
+      );
+
+      const genResult = await generateImage(wordId);
+      if (genResult.message) {
+        setRowErrors((prev) => ({ ...prev, [wordId]: genResult.message! }));
       } else {
         setSummaries((prev) =>
           prev.map((s) =>
             s.wordId === wordId
-              ? { ...s, requested: true, inProgress: true }
+              ? { ...s, requested: false, inProgress: false, imageCount: s.imageCount + 1 }
               : s,
           ),
         );
@@ -134,7 +150,7 @@ export function ImagesManager({
     } catch (e) {
       setRowErrors((prev) => ({
         ...prev,
-        [wordId]: `Request failed: ${e}`,
+        [wordId]: `Generation failed: ${e}`,
       }));
     } finally {
       setRowInProgress((prev) => ({ ...prev, [wordId]: false }));

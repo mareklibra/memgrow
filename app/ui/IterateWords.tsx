@@ -31,7 +31,7 @@ import {
 import { WordExamplesProps } from './WordExamples';
 import { WordPicturesProps } from './WordPictures';
 import { DonutProgressChart } from './DonutProgressChart';
-import { GenerateImageResult } from '../lib/types';
+import { RequestImageResult } from '../lib/types';
 
 interface IterateWordsProps {
   words: Word[];
@@ -44,7 +44,7 @@ interface IterateWordsProps {
   deleteExample: WordExamplesProps['deleteExample'];
   queryImages: WordPicturesProps['queryImages'];
   deleteImage: WordPicturesProps['deleteImage'];
-  requestImageGeneration: (wordId: string) => Promise<GenerateImageResult>;
+  requestImageGeneration: (wordId: string) => Promise<RequestImageResult>;
 }
 
 const storeProgress = async (words: Word[]): Promise<UpdateWordsResult> => {

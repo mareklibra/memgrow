@@ -1,7 +1,7 @@
 'use server';
 
 import { sql } from '@vercel/postgres';
-import { DeleteImageResult, GenerateImageResult } from '../types';
+import { DeleteImageResult, GenerateImageResult, RequestImageResult } from '../types';
 import { WordImage } from '../definitions';
 import { fetchWord, fetchCourse } from '../data';
 import { generateImage } from '../image-provider';
@@ -44,7 +44,7 @@ async function clearInProgress(wordId: string) {
   );
 }
 
-async function generateWordImage(wordId: string): Promise<GenerateImageResult> {
+export async function generateWordImage(wordId: string): Promise<GenerateImageResult> {
   try {
     const word = await fetchWord(wordId);
     if (!word) {
@@ -89,21 +89,19 @@ async function generateWordImage(wordId: string): Promise<GenerateImageResult> {
   }
 }
 
-export async function requestImageGeneration(wordId: string): Promise<GenerateImageResult> {
+export async function requestImageGeneration(wordId: string): Promise<RequestImageResult> {
   try {
     await sql.query(
-      `INSERT INTO image_requests (word_id, in_progress_since)
-       VALUES ($1, NOW())
-       ON CONFLICT (word_id)
-       DO UPDATE SET in_progress_since = NOW()`,
+      `INSERT INTO image_requests (word_id)
+       VALUES ($1)
+       ON CONFLICT (word_id) DO NOTHING`,
       [wordId],
     );
 
-    const result = await generateWordImage(wordId);
-    return result;
+    return {};
   } catch (e) {
     return {
-      message: `Failed to request image generation. ${JSON.stringify(e)}`,
+      message: `Failed to queue image request. ${JSON.stringify(e)}`,
     };
   }
 }

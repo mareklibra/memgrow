@@ -20,7 +20,7 @@ import { WordExamples, WordExamplesProps } from './WordExamples';
 import { WordPictures, WordPicturesProps } from './WordPictures';
 import { FORM_CORRECT_ANSWER } from '../lib/form-config';
 import { assertNever } from '../lib/utils';
-import { GenerateImageResult } from '../lib/types';
+import { RequestImageResult } from '../lib/types';
 
 interface TeachWordProps {
   word: WordWithMeta;
@@ -37,7 +37,7 @@ interface TeachWordProps {
   deleteExample: WordExamplesProps['deleteExample'];
   queryImages: WordPicturesProps['queryImages'];
   deleteImage: WordPicturesProps['deleteImage'];
-  requestImageGeneration: (wordId: string) => Promise<GenerateImageResult>;
+  requestImageGeneration: (wordId: string) => Promise<RequestImageResult>;
 }
 
 const delay = async (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
