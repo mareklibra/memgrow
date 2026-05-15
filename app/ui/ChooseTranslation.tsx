@@ -66,7 +66,7 @@ export function ChooseTranslation({
         </Button>
       )}
       <div className="grid grid-cols-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 w-3/4 col-span-11 justify-self-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 w-full col-span-11 justify-self-center">
           {options.map((option, index) => {
             let state: TranslationOptionState = 'normal';
             const item = guessing === 'word' ? option.word : option.definition;
@@ -91,17 +91,6 @@ export function ChooseTranslation({
               />
             );
           })}
-        </div>
-
-        <div>
-          <Button
-            onClick={(e) => {
-              e.preventDefault();
-              handleClick('');
-            }}
-          >
-            ?
-          </Button>
         </div>
       </div>
     </>
