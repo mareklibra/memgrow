@@ -66,6 +66,7 @@ export function TeachWord({
   const [reply, setReply] = useState<number>(0);
   const [isSkipped, setIsSkipped] = useState<boolean>(word.isSkipped);
   const [imageRequested, setImageRequested] = useState(false);
+  const [hasPictures, setHasPictures] = useState<boolean | null>(null);
   const skipMistakeRef = useRef<boolean>(false);
 
   const threeSimilarWords = useMemo(
@@ -230,6 +231,19 @@ export function TeachWord({
     setReply(reply + 1);
   };
 
+  useEffect(() => {
+    const checkImages = async () => {
+      const result = await queryImages(word.id);
+      setHasPictures((result.images?.length ?? 0) > 0);
+    };
+    checkImages();
+  }, [word.id, queryImages]);
+
+  const handleRequestImage = () => {
+    setImageRequested(true);
+    requestImageGeneration(word.id);
+  };
+
   return (
     <form>
       <div className="flex flex-col" id="teach-word">
@@ -245,13 +259,7 @@ export function TeachWord({
             word={word}
             queryExamples={queryExamples}
             deleteExample={deleteExample}
-          >
-            <WordPictures
-              wordId={word.id}
-              queryImages={queryImages}
-              deleteImage={deleteImage}
-            />
-          </WordExamples>
+          />
         </div>
 
         <div className="flex flex-row justify-between">
@@ -302,17 +310,6 @@ export function TeachWord({
             <SpeakerWaveIcon className="w-5" />
           </Button>
 
-          <Button
-            onClick={() => {
-              setImageRequested(true);
-              requestImageGeneration(word.id);
-            }}
-            type="button"
-            disabled={imageRequested}
-          >
-            <CameraIcon className="w-5" />
-          </Button>
-
           {!isLearning && (
             <Button onClick={() => repeatSooner(word)} type="button">
               Repeat sooner
@@ -327,6 +324,25 @@ export function TeachWord({
             {word.form === 'show' ? 'Next' : 'Check'}
           </Button>
         </div>
+
+        {hasPictures && (
+          <WordPictures
+            wordId={word.id}
+            queryImages={queryImages}
+            deleteImage={deleteImage}
+          />
+        )}
+        {hasPictures === false && (
+          <div className="flex justify-center py-2">
+            <Button
+              onClick={handleRequestImage}
+              type="button"
+              disabled={imageRequested}
+            >
+              <CameraIcon className="w-5" />
+            </Button>
+          </div>
+        )}
 
         {isEdit && (
           <EditWords
