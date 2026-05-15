@@ -1,31 +1,31 @@
 import sharp from 'sharp';
 import { generateImageBedrock } from './image-provider-bedrock';
 import { generateImageVertex } from './image-provider-vertex';
-import { IMAGE_SIZE } from '../constants';
+import { IMAGE_SIZE, IMAGE_QUALITY } from '../constants';
+
+export type ProviderResponse = {
+  images?: string[];
+  error?: string;
+};
 
 export type ImageGenerationResponse = {
-  images?: string[];
+  images?: Buffer[];
   error?: string;
 };
 
 // Set IMAGE_PROVIDER env var to 'vertex' or 'bedrock' (default).
 const IMAGE_PROVIDER = process.env.IMAGE_PROVIDER ?? 'bedrock';
 
-async function resizeToTarget(base64: string): Promise<string> {
+async function toWebpBuffer(base64: string): Promise<Buffer> {
   const buf = Buffer.from(base64, 'base64');
-  const meta = await sharp(buf).metadata();
-  if (meta.width === IMAGE_SIZE && meta.height === IMAGE_SIZE) {
-    return base64;
-  }
-  const resized = await sharp(buf)
+  return sharp(buf)
     .resize(IMAGE_SIZE, IMAGE_SIZE, { fit: 'cover' })
-    .png()
+    .webp({ quality: IMAGE_QUALITY })
     .toBuffer();
-  return resized.toString('base64');
 }
 
 export async function generateImage(prompt: string): Promise<ImageGenerationResponse> {
-  let result: ImageGenerationResponse;
+  let result: ProviderResponse;
   switch (IMAGE_PROVIDER) {
     case 'vertex':
       result = await generateImageVertex(prompt);
@@ -38,9 +38,9 @@ export async function generateImage(prompt: string): Promise<ImageGenerationResp
   }
 
   if (result.error || !result.images?.length) {
-    return result;
+    return { error: result.error };
   }
 
-  const resized = await Promise.all(result.images.map(resizeToTarget));
-  return { images: resized };
+  const buffers = await Promise.all(result.images.map(toWebpBuffer));
+  return { images: buffers };
 }

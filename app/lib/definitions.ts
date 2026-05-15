@@ -80,7 +80,7 @@ export type UserProgress = {
 export type WordImage = {
   id: string;
   wordId: string;
-  content: string;
+  content: Buffer;
   createdAt: Date;
 };
 

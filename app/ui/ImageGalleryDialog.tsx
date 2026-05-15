@@ -6,7 +6,7 @@ import { TrashIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 type ImageGalleryDialogProps = {
   word: string | undefined;
-  images: { id: string; createdAt: Date }[];
+  images: { id: string; createdAt: Date; sizeKb: number }[];
   loading: boolean;
   onDelete: (imageId: string) => void;
   onClose: () => void;
@@ -29,9 +29,7 @@ export function ImageGalleryDialog({
           </button>
         </div>
 
-        <h3 className={s.dialogTitle}>
-          Images for &ldquo;{word}&rdquo;
-        </h3>
+        <h3 className={s.dialogTitle}>Images for &ldquo;{word}&rdquo;</h3>
 
         {loading && (
           <div className="flex justify-center py-8">
@@ -60,6 +58,9 @@ export function ImageGalleryDialog({
                 >
                   <TrashIcon className="w-5 h-5" />
                 </button>
+                <p className="text-xs text-gray-500 mt-1 text-center tabular-nums">
+                  {img.sizeKb.toLocaleString()} KB
+                </p>
               </div>
             ))}
           </div>

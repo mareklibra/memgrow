@@ -21,9 +21,10 @@ type ImagesManagerProps = {
   fetchSummaries: (courseId: string) => Promise<WordImageSummary[]>;
   requestGeneration: (wordId: string) => Promise<RequestImageResult>;
   removeRequest: (wordId: string) => Promise<void>;
-  queryImages: (
-    wordId: string,
-  ) => Promise<{ images?: { id: string; createdAt: Date }[]; message?: string }>;
+  queryImages: (wordId: string) => Promise<{
+    images?: { id: string; createdAt: Date; sizeKb: number }[];
+    message?: string;
+  }>;
   deleteImage: (imageId: string) => Promise<DeleteImageResult>;
   deleteAllImages: (wordId: string) => Promise<DeleteImageResult>;
 };
@@ -49,9 +50,9 @@ export function ImagesManager({
   const [sortDir, setSortDir] = useState<SortDir>('asc');
 
   const [galleryWordId, setGalleryWordId] = useState<string | null>(null);
-  const [galleryImages, setGalleryImages] = useState<{ id: string; createdAt: Date }[]>(
-    [],
-  );
+  const [galleryImages, setGalleryImages] = useState<
+    { id: string; createdAt: Date; sizeKb: number }[]
+  >([]);
   const [galleryLoading, setGalleryLoading] = useState(false);
 
   const sortedSummaries = useMemo(() => {

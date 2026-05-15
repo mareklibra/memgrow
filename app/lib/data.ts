@@ -522,7 +522,7 @@ export async function fetchCoursePriority(courseId: string): Promise<number | un
 type DbWordImage = {
   id: string;
   word_id: string;
-  content: string;
+  content: Buffer;
   created_at: string;
 };
 

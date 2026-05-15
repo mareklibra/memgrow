@@ -1,5 +1,5 @@
 import { IMAGE_COUNT, LLM_IMAGE_MODEL } from '../constants';
-import { ImageGenerationResponse } from './image-provider';
+import { ProviderResponse } from './image-provider';
 
 const VERTEXAI_PROJECT = process.env.VERTEXAI_PROJECT;
 const VERTEXAI_LOCATION = process.env.VERTEXAI_LOCATION ?? 'us-central1';
@@ -10,9 +10,7 @@ async function getAccessToken(): Promise<string | undefined> {
   return process.env.VERTEXAI_ACCESS_TOKEN;
 }
 
-export async function generateImageVertex(
-  prompt: string,
-): Promise<ImageGenerationResponse> {
+export async function generateImageVertex(prompt: string): Promise<ProviderResponse> {
   if (!VERTEXAI_PROJECT) {
     return { error: 'VERTEXAI_PROJECT not configured' };
   }

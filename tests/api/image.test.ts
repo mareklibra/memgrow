@@ -70,11 +70,10 @@ describe('GET /api/image/word/[imageId]', () => {
   });
 
   it('returns 200 with PNG content type for valid image', async () => {
-    // "AQID" is base64 for bytes [1, 2, 3]
     mockFetchWordImageById.mockResolvedValue({
       id: 'img-1',
       wordId: 'w1',
-      content: 'AQID',
+      content: Buffer.from([0x89, 0x50, 0x4e, 0x47]),
       createdAt: new Date(),
     });
     const response = await GET(makeRequest('GET') as never, {
@@ -82,6 +81,21 @@ describe('GET /api/image/word/[imageId]', () => {
     });
     expect(response.status).toBe(200);
     expect(response.headers.get('Content-Type')).toBe('image/png');
+  });
+
+  it('returns 200 with WebP content type for WebP image', async () => {
+    const webpHeader = Buffer.from('RIFF\x00\x00\x00\x00WEBP', 'ascii');
+    mockFetchWordImageById.mockResolvedValue({
+      id: 'img-2',
+      wordId: 'w1',
+      content: webpHeader,
+      createdAt: new Date(),
+    });
+    const response = await GET(makeRequest('GET') as never, {
+      params: Promise.resolve({ imageId: 'img-2' }),
+    });
+    expect(response.status).toBe(200);
+    expect(response.headers.get('Content-Type')).toBe('image/webp');
   });
 
   it('calls fetchWordImageById with the provided imageId', async () => {
@@ -92,12 +106,11 @@ describe('GET /api/image/word/[imageId]', () => {
     expect(mockFetchWordImageById).toHaveBeenCalledWith('my-image-id');
   });
 
-  it('returns binary data decoded from base64', async () => {
-    // "AQID" = base64([1, 2, 3])
+  it('returns binary data from BYTEA content', async () => {
     mockFetchWordImageById.mockResolvedValue({
       id: 'img-1',
       wordId: 'w1',
-      content: 'AQID',
+      content: Buffer.from([1, 2, 3]),
       createdAt: new Date(),
     });
     const response = await GET(makeRequest('GET') as never, {
