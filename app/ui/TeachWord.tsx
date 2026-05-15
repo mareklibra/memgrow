@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { s } from '@/app/ui/styles';
 import { Word, WordWithMeta } from '@/app/lib/definitions';
 import {
+  ArrowPathIcon,
   BoltIcon,
   BoltSlashIcon,
   CameraIcon,
@@ -225,6 +226,7 @@ export function TeachWord({
   );
 
   const isLearning = word.memLevel === 0;
+  const isChooseForm = word.form.startsWith('choose_');
 
   const playPronunciation = () => {
     setAudioSource(`/api/sound/word/${word.courseId}/${word.id}`);
@@ -247,7 +249,32 @@ export function TeachWord({
   return (
     <form>
       <div className="flex flex-col" id="teach-word">
-        {!isSkipped && <div>{component}</div>}
+        {!isSkipped && (
+          <div className="grid grid-cols-12 gap-2">
+            <div className="col-span-11">{component}</div>
+            <div className="col-span-1 flex flex-col justify-between items-center">
+              {isChooseForm && (
+                <Button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onValue('', true);
+                  }}
+                  type="button"
+                >
+                  ?
+                </Button>
+              )}
+              <Button onClick={playPronunciation} type="button" disabled={isPlaying}>
+                <SpeakerWaveIcon className="w-5" />
+              </Button>
+              {!isLearning && (
+                <Button onClick={() => repeatSooner(word)} type="button">
+                  <ArrowPathIcon className="w-5" />
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
         {isSkipped && (
           <div className="text-center">
             The word will be skipped from your further learning.
@@ -305,16 +332,6 @@ export function TeachWord({
           <Button onClick={editWord} type="button">
             Edit
           </Button>
-
-          <Button onClick={playPronunciation} type="button" disabled={isPlaying}>
-            <SpeakerWaveIcon className="w-5" />
-          </Button>
-
-          {!isLearning && (
-            <Button onClick={() => repeatSooner(word)} type="button">
-              Repeat sooner
-            </Button>
-          )}
 
           <Button
             onClick={() => forceCheck()}
