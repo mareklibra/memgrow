@@ -10,7 +10,7 @@ import {
   Word,
   WordImage,
 } from '@/app/lib/definitions';
-import { WordImageSummary } from '@/app/lib/types';
+import { WordImageSummary, WordMediaSummary } from '@/app/lib/types';
 import { STRING_SIMILARITY_SUBSTRING_LENGTH } from '../constants';
 
 type DbWordProgress = DbWord & {
@@ -612,5 +612,62 @@ export async function fetchWordImageSummaries(
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch word image summaries.');
+  }
+}
+
+type DbWordMediaSummary = {
+  word_id: string;
+  course_id: string;
+  word: string;
+  definition: string;
+  image_count: string;
+  total_image_size_bytes: string;
+  requested: boolean;
+  in_progress: boolean;
+  has_sound: boolean;
+  sound_size_bytes: string;
+};
+
+export async function fetchWordMediaSummaries(
+  courseId: string,
+): Promise<WordMediaSummary[]> {
+  try {
+    const result = await sql<DbWordMediaSummary>`
+      SELECT
+        w.id AS word_id,
+        w.course_id,
+        w.word,
+        w.definition,
+        COALESCE(img.cnt, 0) AS image_count,
+        COALESCE(img.total_size, 0) AS total_image_size_bytes,
+        (ir.word_id IS NOT NULL) AS requested,
+        (ir.in_progress_since IS NOT NULL) AS in_progress,
+        (snd.word_id IS NOT NULL) AS has_sound,
+        COALESCE(LENGTH(snd.audio_source_base64), 0) AS sound_size_bytes
+      FROM words w
+      LEFT JOIN (
+        SELECT word_id, COUNT(*) AS cnt, SUM(LENGTH(content)) AS total_size
+        FROM word_images GROUP BY word_id
+      ) img ON img.word_id = w.id
+      LEFT JOIN image_requests ir ON ir.word_id = w.id
+      LEFT JOIN sounds snd ON snd.word_id = w.id
+      WHERE w.course_id = ${courseId}
+      ORDER BY w.word ASC
+    `;
+    return result.rows.map((row) => ({
+      wordId: row.word_id,
+      courseId: row.course_id,
+      word: row.word,
+      definition: row.definition,
+      imageCount: parseInt(String(row.image_count), 10),
+      totalImageSizeKb: Math.round(parseInt(String(row.total_image_size_bytes), 10) / 1024),
+      imageRequested: !!row.requested,
+      imageInProgress: !!row.in_progress,
+      hasSound: !!row.has_sound,
+      soundSizeKb: Math.round(parseInt(String(row.sound_size_bytes), 10) / 1024),
+    }));
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch word media summaries.');
   }
 }

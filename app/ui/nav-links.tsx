@@ -35,8 +35,8 @@ export default function NavLinks({
       icon: PencilSquareIcon,
     },
     {
-      name: 'Images',
-      href: '/images',
+      name: 'Media',
+      href: '/media',
       icon: PhotoIcon,
     },
     {
