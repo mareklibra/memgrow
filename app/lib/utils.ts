@@ -84,3 +84,16 @@ export const getWordSimilarity = (
 export const formatMemLevel = (memLevel: number) => {
   return memLevel.toFixed(1);
 };
+
+export function getMemLevelFromRepeat(repeat: number): number {
+  if (repeat < 1) {
+    return 0;
+  }
+  if (repeat < 2) {
+    return 2;
+  }
+  if (repeat > 60) {
+    return repeat;
+  }
+  return repeat;
+}

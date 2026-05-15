@@ -2,12 +2,8 @@ import { fetchAllWords, fetchCourse } from '@/app/lib/data';
 import { lusitana } from '@/app/ui/fonts';
 import { s } from '@/app/ui/styles';
 import { SimulateProgress } from '@/app/ui/SimulateProgress';
+import type { SimulationWord } from '@/app/lib/simulate';
 import Link from 'next/link';
-
-export type SimulationWord = {
-  memLevel: number;
-  repeatAgain: string;
-};
 
 export default async function Page({
   params,
