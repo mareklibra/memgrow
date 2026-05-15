@@ -1,6 +1,16 @@
-import 'core-js/proposals/array-buffer-base64';
 import { NextRequest } from 'next/server';
 import { fetchWordImageById } from '@/app/lib/data';
+
+function detectContentType(buf: Buffer): string {
+  if (
+    buf.length >= 12 &&
+    buf.toString('ascii', 0, 4) === 'RIFF' &&
+    buf.toString('ascii', 8, 12) === 'WEBP'
+  ) {
+    return 'image/webp';
+  }
+  return 'image/png';
+}
 
 export async function GET(
   _: NextRequest,
@@ -17,10 +27,9 @@ export async function GET(
     return new Response(`Image not found, id: ${imageId}`, { status: 404 });
   }
 
-  // @ts-expect-error From polyfill
-  const binaryData = Uint8Array.fromBase64(image.content);
-  return new Response(binaryData, {
+  const body = new Uint8Array(image.content);
+  return new Response(body, {
     status: 200,
-    headers: { 'Content-Type': 'image/png' },
+    headers: { 'Content-Type': detectContentType(image.content) },
   });
 }

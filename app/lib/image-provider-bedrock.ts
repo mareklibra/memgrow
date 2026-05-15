@@ -3,7 +3,7 @@ import {
   InvokeModelCommand,
 } from '@aws-sdk/client-bedrock-runtime';
 import { IMAGE_COUNT, IMAGE_SIZE, LLM_IMAGE_MODEL } from '../constants';
-import { ImageGenerationResponse } from './image-provider';
+import { ProviderResponse } from './image-provider';
 
 // Authenticates via AWS_BEARER_TOKEN_BEDROCK env var (picked up by the default credential chain).
 // AWS_REGION must also be set.
@@ -16,9 +16,7 @@ try {
   console.error('Error initializing Bedrock client: ', e);
 }
 
-export async function generateImageBedrock(
-  prompt: string,
-): Promise<ImageGenerationResponse> {
+export async function generateImageBedrock(prompt: string): Promise<ProviderResponse> {
   if (!client) {
     return { error: 'Bedrock client not initialized' };
   }

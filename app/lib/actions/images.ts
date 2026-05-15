@@ -8,13 +8,13 @@ import { generateImage } from '../image-provider';
 
 export async function insertWordImage(
   wordId: string,
-  contentBase64: string,
+  content: Buffer,
 ): Promise<{ id: string }> {
   const result = await sql.query(
     `INSERT INTO word_images (word_id, content)
      VALUES ($1, $2)
      RETURNING id`,
-    [wordId, contentBase64],
+    [wordId, content],
   );
   return { id: result.rows[0].id };
 }
@@ -80,8 +80,8 @@ export async function generateWordImage(wordId: string): Promise<GenerateImageRe
     }
 
     let lastImageId: string | undefined;
-    for (const base64Data of result.images) {
-      const { id } = await insertWordImage(wordId, base64Data);
+    for (const buffer of result.images) {
+      const { id } = await insertWordImage(wordId, buffer);
       lastImageId = id;
     }
     await removeImageRequest(wordId);
@@ -116,19 +116,24 @@ export async function requestImageGeneration(
   }
 }
 
+export type WordImageInfo = Pick<WordImage, 'id' | 'createdAt'> & { sizeKb: number };
+
 export async function queryWordImages(
   wordId: string,
-): Promise<{ images?: Pick<WordImage, 'id' | 'createdAt'>[]; message?: string }> {
+): Promise<{ images?: WordImageInfo[]; message?: string }> {
   try {
     const result = await sql.query(
-      `SELECT id, created_at FROM word_images WHERE word_id = $1 ORDER BY created_at ASC`,
+      `SELECT id, created_at, LENGTH(content) AS size_bytes FROM word_images WHERE word_id = $1 ORDER BY created_at ASC`,
       [wordId],
     );
     return {
-      images: result.rows.map((row: { id: string; created_at: string }) => ({
-        id: row.id,
-        createdAt: new Date(row.created_at),
-      })),
+      images: result.rows.map(
+        (row: { id: string; created_at: string; size_bytes: number }) => ({
+          id: row.id,
+          createdAt: new Date(row.created_at),
+          sizeKb: Math.round(row.size_bytes / 1024),
+        }),
+      ),
     };
   } catch (e) {
     return {
