@@ -18,11 +18,13 @@ describe('actions/pronunciation', () => {
       const course = await createTestCourse();
       const word = await createTestWord(course.id, { word: 'pronounce' });
 
-      const result = await insertPronunciation(word.id, 'base64audiodata');
+      const audioBuffer = Buffer.from('testaudiodata');
+      const result = await insertPronunciation(word.id, audioBuffer);
       expect(result?.id).toBeDefined();
 
       const fetched = await fetchPronunciation({ id: word.id, courseId: course.id });
-      expect(fetched?.audioSourceB64).toBe('base64audiodata');
+      expect(fetched?.audioContent).toBeDefined();
+      expect(Buffer.from(fetched!.audioContent!).toString()).toBe('testaudiodata');
     });
   });
 });

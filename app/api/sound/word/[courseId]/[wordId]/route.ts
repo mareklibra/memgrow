@@ -1,4 +1,3 @@
-import 'core-js/proposals/array-buffer-base64';
 import { NextRequest } from 'next/server';
 import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
 import { fetchCourse, fetchPronunciation } from '@/app/lib/data';
@@ -12,36 +11,17 @@ try {
   console.error('Error initializing ElevenLabsClient: ', e);
 }
 
-function mergeUint8Arrays(...arrays: Uint8Array[]) {
-  const totalSize = arrays.reduce((acc, e) => acc + e.length, 0);
-  const merged = new Uint8Array(totalSize);
-
-  arrays.forEach((array, i, arrays) => {
-    const offset = arrays.slice(0, i).reduce((acc, e) => acc + e.length, 0);
-    merged.set(array, offset);
-  });
-
-  return merged;
-}
-
-async function streamToBase64(stream: ReadableStream<Uint8Array>): Promise<string> {
+async function streamToBuffer(stream: ReadableStream<Uint8Array>): Promise<Buffer> {
   const reader = stream.getReader();
-  const values: Uint8Array[] = [];
+  const chunks: Uint8Array[] = [];
 
   while (true) {
     const { done, value } = await reader.read();
-
-    if (value) {
-      values.push(value);
-    }
-
-    if (done) {
-      const mergedArray = mergeUint8Arrays(...values);
-      // @ts-expect-error From polyfill
-      const base64 = mergedArray.toBase64();
-      return base64;
-    }
+    if (value) chunks.push(value);
+    if (done) break;
   }
+
+  return Buffer.concat(chunks);
 }
 
 export async function GET(
@@ -77,18 +57,16 @@ export async function GET(
     });
   }
 
-  if (word.audioSourceB64) {
+  if (word.audioContent) {
     console.log(
       'Reusing pronunciation from DB for word: ',
       word.word,
       word.id,
-      '. Length: ',
-      word.audioSourceB64.length,
+      '. Size: ',
+      word.audioContent.length,
     );
 
-    // @ts-expect-error From polyfill
-    const binaryData = Uint8Array.fromBase64(word.audioSourceB64);
-    return new Response(binaryData, {
+    return new Response(new Uint8Array(word.audioContent), {
       status: 200,
       headers: { 'Content-Type': 'audio/mpeg' },
     });
@@ -101,17 +79,15 @@ export async function GET(
   });
   const audio = await elevenlabs.textToSpeech.convert(voiceId, {
     text: word.word,
-    // modelId: 'eleven_multilingual_v2',
     modelId: 'eleven_flash_v2_5',
+    outputFormat: 'mp3_22050_32',
     enableLogging: true,
     languageCode: course.courseCode,
   });
-  const base64FromReadableStream = await streamToBase64(audio);
-  await insertPronunciation(wordId, base64FromReadableStream);
+  const buffer = await streamToBuffer(audio);
+  await insertPronunciation(wordId, buffer);
 
-  // @ts-expect-error From polyfill
-  const binaryData = Uint8Array.fromBase64(base64FromReadableStream);
-  return new Response(binaryData, {
+  return new Response(new Uint8Array(buffer), {
     status: 200,
     headers: { 'Content-Type': 'audio/mpeg' },
   });

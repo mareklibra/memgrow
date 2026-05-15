@@ -3,14 +3,12 @@
 import { sql } from '@vercel/postgres';
 import { DeleteSoundResult } from '../types';
 
-export async function insertPronunciation(wordId: string, audioSourceB64: string) {
+export async function insertPronunciation(wordId: string, content: Buffer) {
   const result = await sql.query(
-    `
-    INSERT INTO sounds (word_id, audio_source_base64)
-    VALUES ($1, $2)
-    RETURNING *
-  `,
-    [wordId, audioSourceB64],
+    `INSERT INTO sounds (word_id, content)
+     VALUES ($1, $2)
+     RETURNING id`,
+    [wordId, content],
   );
 
   return { id: result.rows[0].id };
