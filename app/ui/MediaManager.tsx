@@ -187,11 +187,11 @@ export function MediaManager({
           prev.map((item) =>
             item.wordId === wordId
               ? {
-                ...item,
-                imageRequested: false,
-                imageInProgress: false,
-                imageCount: item.imageCount + 1,
-              }
+                  ...item,
+                  imageRequested: false,
+                  imageInProgress: false,
+                  imageCount: item.imageCount + 1,
+                }
               : item,
           ),
         );
@@ -474,10 +474,11 @@ export function MediaManager({
                   <td className={s.td}>
                     {item.hasSound ? (
                       <SpeakerWaveIcon
-                        className={`w-5 h-5 cursor-pointer ${playingWordId === item.wordId
-                          ? 'text-blue-500 animate-pulse'
-                          : 'text-green-500 hover:text-blue-500'
-                          }`}
+                        className={`w-5 h-5 cursor-pointer ${
+                          playingWordId === item.wordId
+                            ? 'text-blue-500 animate-pulse'
+                            : 'text-green-500 hover:text-blue-500'
+                        }`}
                         onClick={() => handlePlaySound(item)}
                       />
                     ) : (

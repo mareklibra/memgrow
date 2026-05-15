@@ -123,11 +123,7 @@ export function WordRow({
       <td className={tdFirst}>
         {error && <ExclamationTriangleIcon className="text-danger w-8" />}
         {word.id === UNUSED && <PlusCircleIcon className="text-blue-500 w-8" />}
-        {similarity && similarity >= 0.8 ? (
-          <div>{parseFloat(similarity.toFixed(2))}</div>
-        ) : (
-          ''
-        )}
+        {similarity !== undefined && <div>{parseFloat(similarity.toFixed(2))}</div>}
       </td>
       <td className={clsx(s.td, 'whitespace-nowrap')}>
         <input
@@ -175,7 +171,9 @@ export function WordRow({
               }}
             >
               {TEACHING_FORMS.map((f) => (
-                <option key={f} value={f}>{f}</option>
+                <option key={f} value={f}>
+                  {f}
+                </option>
               ))}
             </select>
           </td>

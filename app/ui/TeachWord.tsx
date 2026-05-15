@@ -351,19 +351,13 @@ export function TeachWord({
         )}
         {hasPictures === false && (
           <div className="flex justify-center py-2">
-            <Button
-              onClick={handleRequestImage}
-              type="button"
-              disabled={imageRequested}
-            >
+            <Button onClick={handleRequestImage} type="button" disabled={imageRequested}>
               <CameraIcon className="w-5" />
             </Button>
           </div>
         )}
 
-        {isEdit && (
-          <EditWordInline word={word} onChange={handleOnChange} />
-        )}
+        {isEdit && <EditWordInline word={word} onChange={handleOnChange} />}
       </div>
     </form>
   );

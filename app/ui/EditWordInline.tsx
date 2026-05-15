@@ -17,9 +17,9 @@ export function EditWordInline({ word, onChange }: Readonly<EditWordInlineProps>
   const [changed, setChanged] = useState<Word>(word);
   const [error, setError] = useState<string>();
 
-  const isDirty =
-    changed.word !== word.word || changed.definition !== word.definition;
-  const canSave = isDirty && changed.word.trim() !== '' && changed.definition.trim() !== '';
+  const isDirty = changed.word !== word.word || changed.definition !== word.definition;
+  const canSave =
+    isDirty && changed.word.trim() !== '' && changed.definition.trim() !== '';
 
   const handleSave = async (e: MouseEvent) => {
     e.preventDefault();
