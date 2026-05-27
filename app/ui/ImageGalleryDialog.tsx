@@ -22,7 +22,11 @@ export function ImageGalleryDialog({
   return (
     <div className={s.dialogOverlay}>
       <div className={s.dialogBackdrop} onClick={onClose} />
-        <div className={`${s.dialogPanel} max-w-5xl w-[90vw]`} role="dialog" aria-modal="true">
+      <div
+        className={`${s.dialogPanel} max-w-5xl w-[90vw]`}
+        role="dialog"
+        aria-modal="true"
+      >
         <div className="absolute right-0 top-0 pr-4 pt-4">
           <button type="button" className={s.dialogCloseBtn} onClick={onClose}>
             <XMarkIcon className="h-6 w-6" />
