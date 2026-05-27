@@ -39,10 +39,5 @@ export const EXAMPLE_AI_REQUEST_COUNT = 'three (3)';
 
 export const IMAGE_SIZE = 256;
 export const IMAGE_QUALITY = 60;
-export const IMAGE_COUNT = 2;
-export const LLM_IMAGE_MODEL = process.env.LLM_MODEL ?? 'imagen-3.0-generate-002';
-//'amazon.nova-canvas-v1:0';
-// amazon.titan-image-generator-v2:0
-// stability.sd3-5-large-v1:0
-// stability.stable-image-ultra-v1:0
-// stability.stable-image-core-v1:0
+export const IMAGE_COUNT = 4;
+export const LLM_IMAGE_MODEL = process.env.LLM_MODEL ?? 'imagen-4.0-generate-001';

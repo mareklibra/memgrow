@@ -22,7 +22,7 @@ export function ImageGalleryDialog({
   return (
     <div className={s.dialogOverlay}>
       <div className={s.dialogBackdrop} onClick={onClose} />
-      <div className={`${s.dialogPanel} max-w-2xl`} role="dialog" aria-modal="true">
+        <div className={`${s.dialogPanel} max-w-5xl w-[90vw]`} role="dialog" aria-modal="true">
         <div className="absolute right-0 top-0 pr-4 pt-4">
           <button type="button" className={s.dialogCloseBtn} onClick={onClose}>
             <XMarkIcon className="h-6 w-6" />
@@ -42,7 +42,7 @@ export function ImageGalleryDialog({
         )}
 
         {!loading && images.length > 0 && (
-          <div className="grid grid-cols-2 gap-4 mt-4 max-h-96 overflow-y-auto">
+          <div className="grid grid-cols-3 gap-4 mt-4 max-h-[70vh] overflow-y-auto">
             {images.map((img) => (
               <div key={img.id} className="relative group">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
