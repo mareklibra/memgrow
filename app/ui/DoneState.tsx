@@ -5,6 +5,11 @@ import { UpdateWordsResult } from '@/app/lib/types';
 import Link from 'next/link';
 import { Button, Spinner } from '@/app/lib/material-tailwind-compat';
 import { fetchRemainingWordsCount } from '@/app/lib/actions';
+import {
+  savePendingBatch,
+  clearPendingBatch,
+  getBatchKey,
+} from '@/app/lib/pending-batch';
 import { s } from '@/app/ui/styles';
 import { WordTeachingStatus } from './WordTeachingStatus';
 
@@ -57,10 +62,7 @@ function RepeatCell({
   }
 
   return (
-    <td
-      className={clsx(s.td, 'cursor-pointer')}
-      onClick={() => setIsEditing(true)}
-    >
+    <td className={clsx(s.td, 'cursor-pointer')} onClick={() => setIsEditing(true)}>
       {date.toLocaleDateString()}
     </td>
   );
@@ -96,10 +98,7 @@ function MemLevelCell({
   }
 
   return (
-    <td
-      className={clsx(s.td, 'cursor-pointer')}
-      onClick={() => setIsEditing(true)}
-    >
+    <td className={clsx(s.td, 'cursor-pointer')} onClick={() => setIsEditing(true)}>
       {value}
     </td>
   );
@@ -117,7 +116,23 @@ export function DoneState({
   const [isRetrigger, setIsRetrigger] = useState<boolean>(true);
   const [remainingCount, setRemainingCount] = useState<number | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [localStorageError, setLocalStorageError] = useState<string | null>(null);
   const courseId = words[0].courseId;
+
+  const batchKey = courseId ? getBatchKey(courseId, !!isLearning) : '';
+
+  const doSavePendingBatch = useCallback(
+    (words: Word[]) => {
+      const err = savePendingBatch({
+        words,
+        courseId: courseId ?? '',
+        isLearning: !!isLearning,
+        timestamp: Date.now(),
+      });
+      setLocalStorageError(err ?? null);
+    },
+    [courseId, isLearning],
+  );
 
   const doPersist = useCallback(async () => {
     if (wordsToPersistRef.current.length > 0) {
@@ -137,12 +152,15 @@ export function DoneState({
 
         if (failedWords.length > 0) {
           console.error('Failed to persist words: ', failedWords);
+          doSavePendingBatch(failedWords);
         }
 
         setWordsToPersist(failedWords);
         wordsToPersistRef.current = failedWords;
 
         if (failedWords.length === 0) {
+          clearPendingBatch(batchKey);
+          setLocalStorageError(null);
           setHasUnsavedChanges(false);
           if (courseId) {
             fetchRemainingWordsCount(courseId, !!isLearning).then(setRemainingCount);
@@ -152,7 +170,7 @@ export function DoneState({
         setIsRetrigger(false);
       }
     }
-  }, [storeProgress, courseId, isLearning]);
+  }, [storeProgress, courseId, isLearning, batchKey, doSavePendingBatch]);
 
   const updateWordField = useCallback(
     (wordId: string, updates: Partial<Pick<Word, 'repeatAgain' | 'memLevel'>>) => {
@@ -195,6 +213,10 @@ export function DoneState({
       setWordsToPersist(lastWords);
       wordsToPersistRef.current = lastWords;
 
+      if (lastWords.length > 0 && courseId) {
+        doSavePendingBatch(lastWords);
+      }
+
       return () => {
         console.log('Leaving the DoneState: ', {
           words,
@@ -224,6 +246,11 @@ export function DoneState({
         <div className={clsx(s.centered, 'mb-10')}>
           <Spinner className="h-6 w-6" />
           &nbsp;Persisting...
+        </div>
+      )}
+      {localStorageError && (
+        <div className="mx-auto mt-2 max-w-xl rounded border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-900">
+          {localStorageError}
         </div>
       )}
       {!isRetrigger && wordsToPersist.length > 0 && !hasUnsavedChanges && (
