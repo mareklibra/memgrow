@@ -117,6 +117,11 @@ export function IterateWords({
     }
   }, [wordIdx, wordQueue.length, maxWordsInBatch]);
 
+  const resetPreview = () => {
+    setPreviewMemLevel(null);
+    previewMemLevelRef.current = null;
+  };
+
   const correct = (word: WordWithMeta) => {
     const newState = handleCorrect({ wordQueue, wordIdx }, word, {
       isLearning: !!isLearning,
@@ -124,6 +129,7 @@ export function IterateWords({
       maxDistForRandom: maxDistanceForRandomQueueInsertion,
       overrideMemLevel: previewMemLevelRef.current ?? undefined,
     });
+    resetPreview();
     setWordQueue(newState.wordQueue);
     setWordIdx(newState.wordIdx);
   };
@@ -134,14 +140,10 @@ export function IterateWords({
       isShortenOnly,
       overrideMemLevel: previewMemLevelRef.current ?? undefined,
     });
+    resetPreview();
     setWordQueue(newState.wordQueue);
     setWordIdx(newState.wordIdx);
   };
-
-  useEffect(() => {
-    setPreviewMemLevel(null);
-    previewMemLevelRef.current = null;
-  }, [wordIdx]);
 
   const previewNewLevel = useCallback(
     (isCorrect: boolean, isShortenOnly?: boolean) => {
@@ -168,6 +170,7 @@ export function IterateWords({
     (word: Word) => {
       console.log('skipWord', word);
       const newState = handleSkipWord({ wordQueue, wordIdx }, word);
+      resetPreview();
       setWordQueue(newState.wordQueue);
       setWordIdx(newState.wordIdx);
     },

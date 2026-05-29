@@ -41,9 +41,7 @@ export function computeNewMemLevel(
 ): number {
   if (isCorrect) {
     if (options.isLearning) {
-      return word.form === 'write_last'
-        ? increaseMemLevel(word.memLevel)
-        : word.memLevel;
+      return word.form === 'write_last' ? increaseMemLevel(word.memLevel) : word.memLevel;
     }
     return increaseMemLevel(word.memLevel);
   }
@@ -90,7 +88,8 @@ export function handleCorrect(
     return newQueue;
   };
 
-  const newMemLevel = options.overrideMemLevel ?? computeNewMemLevel(word, true, { isLearning });
+  const newMemLevel =
+    options.overrideMemLevel ?? computeNewMemLevel(word, true, { isLearning });
   let newQueue: WordWithMeta[];
 
   if (isLearning) {
@@ -144,7 +143,9 @@ export function handleMistake(
   const { wordQueue, wordIdx } = state;
 
   const newForm: TeachingForm = 'show';
-  const newMemLevel = options.overrideMemLevel ?? computeNewMemLevel(word, false, { isLearning, isShortenOnly });
+  const newMemLevel =
+    options.overrideMemLevel ??
+    computeNewMemLevel(word, false, { isLearning, isShortenOnly });
 
   const newWord: WordWithMeta = {
     ...word,

@@ -159,6 +159,7 @@ export function TeachWord({
 
   const onRevertMistake = () => {
     skipMistakeRef.current = true;
+    onPreviewMemLevel(false, true);
   };
 
   let component;
