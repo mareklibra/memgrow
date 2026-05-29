@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { lusitana } from '@/app/ui/fonts';
 import { cn, s } from '@/app/ui/styles';
 import Link from 'next/link';
@@ -11,6 +11,7 @@ import { UpdateWordsResult } from '@/app/lib/types';
 import {
   calculateProgress,
   checkIsDone,
+  computeNewMemLevel,
   handleCorrect,
   handleMistake,
   handleOnChange,
@@ -75,6 +76,8 @@ export function IterateWords({
   const [wordQueue, setWordQueue] = useState<WordWithMeta[]>([]);
   const [wordIdx, setWordIdx] = useState<number>(-1);
   const [isDone, setIsDone] = useState<boolean>(false);
+  const [previewMemLevel, setPreviewMemLevel] = useState<number | null>(null);
+  const previewMemLevelRef = useRef<number | null>(null);
 
   let maxWordsInBatch = isOffline ? testBatchLimitOffline : testBatchLimit;
   if (isLearning) {
@@ -119,6 +122,7 @@ export function IterateWords({
       isLearning: !!isLearning,
       repetitionLimit,
       maxDistForRandom: maxDistanceForRandomQueueInsertion,
+      overrideMemLevel: previewMemLevelRef.current ?? undefined,
     });
     setWordQueue(newState.wordQueue);
     setWordIdx(newState.wordIdx);
@@ -128,10 +132,30 @@ export function IterateWords({
     const newState = handleMistake({ wordQueue, wordIdx }, word, {
       isLearning: !!isLearning,
       isShortenOnly,
+      overrideMemLevel: previewMemLevelRef.current ?? undefined,
     });
     setWordQueue(newState.wordQueue);
     setWordIdx(newState.wordIdx);
   };
+
+  useEffect(() => {
+    setPreviewMemLevel(null);
+    previewMemLevelRef.current = null;
+  }, [wordIdx]);
+
+  const previewNewLevel = useCallback(
+    (isCorrect: boolean, isShortenOnly?: boolean) => {
+      if (wordIdx < 0 || wordIdx >= wordQueue.length) return;
+      const w = wordQueue[wordIdx];
+      const level = computeNewMemLevel(w, isCorrect, {
+        isLearning: !!isLearning,
+        isShortenOnly,
+      });
+      previewMemLevelRef.current = level;
+      setPreviewMemLevel(level);
+    },
+    [wordQueue, wordIdx, isLearning],
+  );
 
   const onChange = useCallback(
     (word: Word) => {
@@ -201,7 +225,7 @@ export function IterateWords({
       >
         <DonutProgressChart
           label="Level"
-          progress={word.memLevel}
+          progress={previewMemLevel ?? word.memLevel}
           max={MAX_MEM_LEVEL}
           suffix=""
           width={70}
@@ -241,6 +265,7 @@ export function IterateWords({
         deleteImage={deleteImage}
         requestImageGeneration={requestImageGeneration}
         skipWord={skipWord}
+        onPreviewMemLevel={previewNewLevel}
       />
     </div>
   );

@@ -39,6 +39,7 @@ interface TeachWordProps {
   queryImages: WordPicturesProps['queryImages'];
   deleteImage: WordPicturesProps['deleteImage'];
   requestImageGeneration: (wordId: string) => Promise<RequestImageResult>;
+  onPreviewMemLevel: (isCorrect: boolean, isShortenOnly?: boolean) => void;
 }
 
 const delay = async (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -57,6 +58,7 @@ export function TeachWord({
   deleteImage,
   requestImageGeneration,
   skipWord,
+  onPreviewMemLevel,
 }: Readonly<TeachWordProps>) {
   const [status, setStatus] = useState<FieldStatus>('normal');
   const [isAnyText, setIsAnyText] = useState<boolean>(false);
@@ -101,6 +103,7 @@ export function TeachWord({
       const expected = answerTarget === 'word' ? word.word : word.definition;
       if (value?.trim().toLowerCase() === expected.trim().toLowerCase()) {
         setStatus('correct');
+        onPreviewMemLevel(true);
         await delay(DELAY_CORRECT_MS);
         correct(word);
         return;
@@ -121,6 +124,7 @@ export function TeachWord({
 
     if (word.form === 'show') {
       setStatus('correct');
+      onPreviewMemLevel(true);
       await delay(DELAY_CORRECT_MS);
       correct(word);
       return;
@@ -128,6 +132,7 @@ export function TeachWord({
 
     // the value has been checked in onValue(), no need to repeat
     setStatus('mistake');
+    onPreviewMemLevel(false, isShortenOnly);
     skipMistakeRef.current = false;
     await delay(DELAY_MISTAKE_MS);
 
