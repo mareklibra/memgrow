@@ -34,6 +34,25 @@ export function calculateProgress(
   return Math.round((wordIdx / Math.min(queueLength, maxWordsInBatch)) * 100);
 }
 
+export function computeNewMemLevel(
+  word: WordWithMeta,
+  isCorrect: boolean,
+  options: { isLearning: boolean; isShortenOnly?: boolean },
+): number {
+  if (isCorrect) {
+    if (options.isLearning) {
+      return word.form === 'write_last'
+        ? increaseMemLevel(word.memLevel)
+        : word.memLevel;
+    }
+    return increaseMemLevel(word.memLevel);
+  }
+  if (!options.isLearning) {
+    return decreaseMemLevel(word.memLevel, !!options.isShortenOnly);
+  }
+  return word.memLevel;
+}
+
 export function handleCorrect(
   state: IterateState,
   word: WordWithMeta,
@@ -42,6 +61,7 @@ export function handleCorrect(
     repetitionLimit: number;
     maxDistForRandom: number;
     randomFn?: () => number;
+    overrideMemLevel?: number;
   },
 ): IterateState {
   const {
@@ -70,6 +90,7 @@ export function handleCorrect(
     return newQueue;
   };
 
+  const newMemLevel = options.overrideMemLevel ?? computeNewMemLevel(word, true, { isLearning });
   let newQueue: WordWithMeta[];
 
   if (isLearning) {
@@ -80,8 +101,6 @@ export function handleCorrect(
         repeated,
       });
     } else {
-      const newMemLevel =
-        word.form === 'write_last' ? increaseMemLevel(word.memLevel) : word.memLevel;
       newQueue = updateCurrentWord({
         ...word,
         form: getNextForm(word.form, true),
@@ -95,7 +114,7 @@ export function handleCorrect(
       newQueue = insertNextAtRandomPosition({
         ...word,
         form: getNextForm(word.form, true),
-        memLevel: increaseMemLevel(word.memLevel),
+        memLevel: newMemLevel,
         repeatAgain: getRepeatAgainDate(word.memLevel),
         repeated,
       });
@@ -103,7 +122,7 @@ export function handleCorrect(
       newQueue = updateCurrentWord({
         ...word,
         form: getNextForm(word.form, true),
-        memLevel: increaseMemLevel(word.memLevel),
+        memLevel: newMemLevel,
         repeatAgain: getRepeatAgainDate(word.memLevel),
       });
     }
@@ -118,16 +137,14 @@ export function handleMistake(
   options: {
     isLearning: boolean;
     isShortenOnly: boolean;
+    overrideMemLevel?: number;
   },
 ): IterateState {
   const { isLearning, isShortenOnly } = options;
   const { wordQueue, wordIdx } = state;
 
   const newForm: TeachingForm = 'show';
-  let newMemLevel = word.memLevel;
-  if (!isLearning) {
-    newMemLevel = decreaseMemLevel(word.memLevel, isShortenOnly);
-  }
+  const newMemLevel = options.overrideMemLevel ?? computeNewMemLevel(word, false, { isLearning, isShortenOnly });
 
   const newWord: WordWithMeta = {
     ...word,
