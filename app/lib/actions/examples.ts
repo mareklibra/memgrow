@@ -304,6 +304,74 @@ export async function suggestTranslation({
   };
 }
 
+export async function reverseTranslation({
+  word,
+  courseId,
+}: SuggestTranslationProps): Promise<SuggestTranslationResult> {
+  if (!client) {
+    return {
+      message: 'OpenAI Client not initialized',
+    };
+  }
+
+  const course = await fetchCourse(courseId);
+  if (!course) {
+    return {
+      message: `Course not found, id: ${courseId}.`,
+    };
+  }
+
+  console.log('Requesting reverse translation for word ', word);
+
+  const prompt = `
+  Translate "${word}" from ${course.knownLang} to ${course.learningLang}, each meaning on new line, no extra text or symbols.
+  `;
+  const response = await client.chat.completions.create(
+    {
+      model: OPENAI_MODEL,
+      messages: [
+        { role: 'system', content: 'You are a dictionary.' },
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
+    },
+    DEFAULT_OPENAI_OPTIONS,
+  );
+
+  const content = response.choices[0].message.content?.trim();
+  console.log('Received reverse translation content: ', content);
+  if (!content) {
+    return {
+      message: 'No content returned from OpenAI',
+    };
+  }
+
+  const translations = content.split('\n').map((e) => e.trim());
+  const translationsDeduplicated = Array.from(
+    new Map(
+      translations.filter((t) => t.length > 0).map((t) => [t.toLowerCase(), t]),
+    ).values(),
+  );
+
+  return {
+    translations: translationsDeduplicated,
+  };
+}
+
+export const queryReverseTranslation = async (args: SuggestTranslationProps) => {
+  'use server';
+  try {
+    return await reverseTranslation(args);
+  } catch (e) {
+    console.error('Error in queryReverseTranslation: ', e);
+    return {
+      message: `Error in queryReverseTranslation: ${JSON.stringify(e)}`,
+    };
+  }
+};
+
 export const queryExamples = async (wordId: string) => {
   'use server';
   return await getWordExamples(wordId);

@@ -9,7 +9,11 @@ import {
   ListItem,
   Typography,
 } from '@/app/lib/material-tailwind-compat';
-import { queryTranslations, queryExamplesRaw } from '@/app/lib/actions';
+import {
+  queryTranslations,
+  queryReverseTranslation,
+  queryExamplesRaw,
+} from '@/app/lib/actions';
 import { s } from '@/app/ui/styles';
 import { Button } from './button';
 import { Course, Word, WordToAdd } from '../lib/definitions';
@@ -81,6 +85,26 @@ export function FastEntryForm({
     }
   };
 
+  const handleTranslate = async () => {
+    setError(undefined);
+    setIsLoading(true);
+    try {
+      const result = await queryReverseTranslation({
+        word: definition,
+        courseId: course.id,
+      });
+      if (result?.message) {
+        setError(result.message);
+      } else {
+        setWord(result?.translations?.join(', ') || '');
+      }
+    } catch (e) {
+      setError(`Error in queryReverseTranslation: ${JSON.stringify(e)}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleGenerateExamples = async () => {
     const result = await queryExamplesRaw({ word, courseId: course.id });
     if (result?.message) {
@@ -91,24 +115,48 @@ export function FastEntryForm({
   };
 
   return (
-    <div className="flex flex-col gap-2">
-      <Input
-        label={`Word (${course.learningLang})`}
-        size="lg"
-        value={word}
-        onChange={(e) => setWord(e.target.value)}
-        autoCapitalize="none"
-      />
-      <Input
-        label={`Definition (${course.knownLang})`}
-        size="lg"
-        value={definition}
-        onChange={(e) => setDefinition(e.target.value)}
-        autoCapitalize="none"
-      />
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-row items-end gap-2">
+        <div className="flex-1">
+          <Input
+            label={`Word (${course.learningLang})`}
+            size="lg"
+            value={word}
+            onChange={(e) => setWord(e.target.value)}
+            autoCapitalize="none"
+          />
+        </div>
+        <Button
+          className="w-fit shrink-0"
+          disabled={!word}
+          onClick={handleSuggestTranslation}
+        >
+          Suggest
+        </Button>
+      </div>
+
+      <div className="flex flex-row items-end gap-2">
+        <div className="flex-1">
+          <Input
+            label={`Definition (${course.knownLang})`}
+            size="lg"
+            value={definition}
+            onChange={(e) => setDefinition(e.target.value)}
+            autoCapitalize="none"
+          />
+        </div>
+        <Button
+          className="w-fit shrink-0"
+          disabled={!definition || isLoading}
+          onClick={handleTranslate}
+        >
+          Translate
+        </Button>
+      </div>
+
       {error && <p className={s.errorText}>{error}</p>}
       {word && (
-        <div className="flex flex-row gap-2">
+        <div className="flex flex-row gap-2 text-sm text-gray-600">
           Similarity:{' '}
           {similarities
             .slice(0, 3)
@@ -116,41 +164,43 @@ export function FastEntryForm({
             .join(', ')}
         </div>
       )}
-      <div className="flex flex-row gap-2">
-        <Button className="w-fit" disabled={!word || !definition} onClick={handleAdd}>
-          Add
-        </Button>
-        <Button
-          className="w-fit"
-          disabled={!word || isLoading}
-          onClick={handleSuggestTranslation}
-        >
-          Suggest translation
-        </Button>
-        <Button onClick={handleGenerateExamples} disabled={!word}>
+
+      <Button
+        className="w-full justify-center"
+        disabled={!word || !definition}
+        onClick={handleAdd}
+      >
+        Add Word
+      </Button>
+
+      <div className="flex flex-row justify-between items-center">
+        <Button className="w-fit" onClick={handleGenerateExamples} disabled={!word}>
           Generate examples
         </Button>
-        <Button className="w-fit" disabled={!word && !definition} onClick={handleClear}>
+        <Button
+          className="w-fit bg-transparent border border-gray-400 text-gray-700 hover:bg-gray-100"
+          disabled={!word && !definition}
+          onClick={handleClear}
+        >
           Clear
         </Button>
       </div>
+
       {examples?.length > 0 && (
-        <div className="flex flex-row gap-2">
-          <Card>
-            <CardBody>
-              <Typography variant="h5" color="blue-gray" className="mb-2">
-                Examples
-              </Typography>
-              <Typography>
-                <List>
-                  {examples.map((e) => (
-                    <ListItem key={e}>{e}</ListItem>
-                  ))}
-                </List>
-              </Typography>
-            </CardBody>
-          </Card>
-        </div>
+        <Card>
+          <CardBody>
+            <Typography variant="h5" color="blue-gray" className="mb-2">
+              Examples
+            </Typography>
+            <Typography>
+              <List>
+                {examples.map((e) => (
+                  <ListItem key={e}>{e}</ListItem>
+                ))}
+              </List>
+            </Typography>
+          </CardBody>
+        </Card>
       )}
     </div>
   );
