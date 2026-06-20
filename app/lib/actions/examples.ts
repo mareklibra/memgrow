@@ -1,7 +1,7 @@
 'use server';
 
 import OpenAI from 'openai';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/app/lib/db';
 import { fetchCourse, fetchExamples } from '../data';
 import {
   DeleteExampleResult,

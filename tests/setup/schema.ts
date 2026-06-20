@@ -2,7 +2,7 @@ import { Pool } from 'pg';
 
 /**
  * Runs the full schema (equivalent to seed batches 001-008) against a given connection string.
- * Uses pg (not @vercel/postgres) because @vercel/postgres uses Neon's WebSocket driver
+ * Uses pg (not @neondatabase/serverless) because it uses Neon's WebSocket driver
  * which doesn't support standard Postgres (e.g. Testcontainers).
  */
 export async function runSchema(connectionString: string): Promise<void> {

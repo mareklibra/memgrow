@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { sql } from '@/app/lib/db';
 
 const TABLES = [
   'examples',

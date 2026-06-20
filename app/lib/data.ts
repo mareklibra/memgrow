@@ -1,5 +1,5 @@
 import { stringSimilarity } from 'string-similarity-js';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/app/lib/db';
 import { User } from 'next-auth';
 import { auth } from '@/auth';
 import {

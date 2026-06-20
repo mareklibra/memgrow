@@ -1,6 +1,6 @@
 'use server';
 
-import { sql } from '@vercel/postgres';
+import { sql } from '@/app/lib/db';
 import { DeleteImageResult, GenerateImageResult, RequestImageResult } from '../types';
 import { WordImage } from '../definitions';
 import { fetchWord, fetchCourse } from '../data';

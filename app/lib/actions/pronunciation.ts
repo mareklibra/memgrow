@@ -1,6 +1,6 @@
 'use server';
 
-import { sql } from '@vercel/postgres';
+import { sql } from '@/app/lib/db';
 import { DeleteSoundResult } from '../types';
 
 export async function insertPronunciation(wordId: string, content: Buffer) {
