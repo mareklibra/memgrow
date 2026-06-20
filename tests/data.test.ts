@@ -197,7 +197,7 @@ describe('data', () => {
     it('returns word with audio when sound exists', async () => {
       const course = await createTestCourse();
       const word = await createTestWord(course.id, { word: 'pronounce' });
-      const { sql } = await import('@vercel/postgres');
+      const { sql } = await import('@/app/lib/db');
       const audioBuffer = Buffer.from('testaudio');
       await sql.query(`INSERT INTO sounds (word_id, content) VALUES ($1, $2)`, [
         word.id,
@@ -224,7 +224,7 @@ describe('data', () => {
     it('returns word with examples when they exist', async () => {
       const course = await createTestCourse();
       const word = await createTestWord(course.id, { word: 'example' });
-      const { sql } = await import('@vercel/postgres');
+      const { sql } = await import('@/app/lib/db');
       await sql`INSERT INTO examples (word_id, example) VALUES (${word.id}, 'Example sentence.')`;
 
       const result = await fetchExamples({ wordId: word.id });

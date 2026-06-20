@@ -1,6 +1,6 @@
 /**
- * Creates a sql-like interface using pg Pool, compatible with @vercel/postgres usage.
- * Used to mock @vercel/postgres in tests since it uses Neon's WebSocket driver
+ * Creates a sql-like interface using pg Pool, compatible with @/app/lib/db usage.
+ * Used to mock @/app/lib/db in tests since it uses Neon's WebSocket driver
  * which doesn't work with standard Postgres (e.g. Testcontainers).
  */
 import { Pool } from 'pg';
@@ -48,7 +48,7 @@ export function createPgSqlAdapter(connectionString: string) {
 }
 
 /**
- * Creates the mock module for @vercel/postgres. Reads connection string from env.
+ * Creates the mock module for @/app/lib/db. Reads connection string from env.
  * Used by vi.mock in env.ts.
  */
 export function createPgSql(): { sql: ReturnType<typeof createPgSqlAdapter>['sql'] } {

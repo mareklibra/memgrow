@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { sql } from '@/app/lib/db';
 import bcrypt from 'bcrypt';
 import { mockAuthUser } from '../setup/auth-mock';
 

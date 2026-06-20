@@ -40,9 +40,9 @@ vi.mock('next-auth', () => ({
   }),
 }));
 
-// Mock @vercel/postgres with pg - @vercel/postgres uses Neon WebSocket driver
+// Mock @/app/lib/db with pg - @neondatabase/serverless uses Neon WebSocket driver
 // which doesn't work with standard Postgres (Testcontainers). Use pg for tests.
-vi.mock('@vercel/postgres', async () => {
+vi.mock('@/app/lib/db', async () => {
   const { createPgSql } = await import('./pg-sql');
   const { sql } = createPgSql();
   return { sql };

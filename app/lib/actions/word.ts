@@ -1,6 +1,6 @@
 'use server';
 
-import { sql } from '@vercel/postgres';
+import { sql } from '@/app/lib/db';
 import { auth } from '@/auth';
 import { revalidatePath } from 'next/cache';
 
