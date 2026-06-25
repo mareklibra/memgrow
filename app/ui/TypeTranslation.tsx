@@ -1,4 +1,4 @@
-import { useState, MouseEvent, useRef } from 'react';
+import { useState, MouseEvent, KeyboardEvent, useRef } from 'react';
 
 import { s, cn } from '@/app/ui/styles';
 import { Word } from '@/app/lib/definitions';
@@ -40,11 +40,23 @@ export function TypeTranslation({
     if (inputRef.current) inputRef.current.focus();
   };
 
-  const handleHint = (e: MouseEvent) => {
-    e.preventDefault();
+  const applyHint = () => {
+    if (value === correctResponse) return;
     const prefix = longestCommonPrefix(correctResponse, value);
     handleChange(prefix + correctResponse[prefix.length]);
     focusInputbox();
+  };
+
+  const handleHint = (e: MouseEvent) => {
+    e.preventDefault();
+    applyHint();
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Tab' && !e.shiftKey) {
+      e.preventDefault();
+      applyHint();
+    }
   };
 
   const getHandleKey = (key: string) => {
@@ -80,6 +92,7 @@ export function TypeTranslation({
           value={value}
           placeholder="Enter your translation"
           onChange={(e) => handleChange(e.currentTarget.value)}
+          onKeyDown={handleKeyDown}
           autoFocus
           disabled={status !== 'normal'}
           required
