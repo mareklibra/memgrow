@@ -1,0 +1,27 @@
+# Podman Quadlet unit for the PostgreSQL container. Install under
+# ~/.config/containers/systemd/ (see README "Running on boot"). Assumes the
+# repo is checked out at ~/memgrow with a configured .env - adjust the
+# EnvironmentFile path below if you use a different location.
+[Unit]
+Description=MemGrow PostgreSQL database
+After=memgrow-network.service
+Requires=memgrow-network.service
+
+[Container]
+Image=docker.io/library/postgres:16-alpine
+ContainerName=memgrow-db
+Network=memgrow.network
+EnvironmentFile=%h/memgrow/.env
+Volume=memgrow_postgres_data:/var/lib/postgresql/data
+# Localhost-only, matching compose.yml - never exposed to the network.
+PublishPort=127.0.0.1:5432:5432
+HealthCmd=pg_isready
+HealthInterval=5s
+HealthTimeout=5s
+HealthRetries=10
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

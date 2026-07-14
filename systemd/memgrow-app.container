@@ -1,0 +1,28 @@
+# Podman Quadlet unit for the app container. Install under
+# ~/.config/containers/systemd/ (see README "Running on boot"). Assumes the
+# repo is checked out at ~/memgrow with a configured .env and a
+# memgrow-app.env (copied from memgrow-app.env.example) - adjust the
+# EnvironmentFile paths below if you use a different location.
+#
+# Build the image first with: podman compose build (produces memgrow-app:latest)
+[Unit]
+Description=MemGrow app
+After=memgrow-network.service memgrow-db.service
+Requires=memgrow-network.service
+BindsTo=memgrow-db.service
+
+[Container]
+Image=localhost/memgrow-app:latest
+ContainerName=memgrow-app
+Network=memgrow.network
+# .env first (secrets/API keys, AUTH_*, host-facing POSTGRES_URL), then the
+# app-specific override second so its container-facing POSTGRES_URL wins.
+EnvironmentFile=%h/memgrow/.env
+EnvironmentFile=%h/memgrow/systemd/memgrow-app.env
+PublishPort=3000:3000
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,55 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      # Localhost-only: keeps scripts/db.backup.sh + db.restore.sh + psql
+      # working from the host, without exposing Postgres to the network.
+      - '127.0.0.1:${POSTGRES_PORT:-5432}:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    image: memgrow-app:latest
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_BUILD_COMMIT: ${NEXT_PUBLIC_BUILD_COMMIT:-unknown}
+        NEXT_PUBLIC_BUILD_TIME: ${NEXT_PUBLIC_BUILD_TIME:-unknown}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - '${APP_PORT:-3000}:3000'
+    environment:
+      # Intentionally not using env_file here: the app needs the container
+      # network hostname (`db`), while .env's POSTGRES_URL is host-facing
+      # (`localhost`) for scripts/db.backup.sh / db.restore.sh / `pnpm dev`.
+      DB_PROVIDER: pg
+      POSTGRES_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      AUTH_SECRET: ${AUTH_SECRET}
+      AUTH_URL: ${AUTH_URL}
+      AUTH_TRUST_HOST: ${AUTH_TRUST_HOST:-true}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY:-}
+      IMAGE_PROVIDER: ${IMAGE_PROVIDER:-}
+      LLM_MODEL: ${LLM_MODEL:-}
+      AWS_REGION: ${AWS_REGION:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      VERTEXAI_PROJECT: ${VERTEXAI_PROJECT:-}
+      VERTEXAI_LOCATION: ${VERTEXAI_LOCATION:-}
+      VERTEXAI_ACCESS_TOKEN: ${VERTEXAI_ACCESS_TOKEN:-}
+
+volumes:
+  postgres_data:

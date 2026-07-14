@@ -9,6 +9,11 @@ if (fs.existsSync(TEST_ENV_FILE)) {
   process.env.POSTGRES_URL = env.POSTGRES_URL;
 }
 
+// @/app/lib/db defaults to the Neon driver; tests run against a plain
+// Testcontainers Postgres, so route it through the same pg.Pool path used
+// for self-hosting.
+process.env.DB_PROVIDER = 'pg';
+
 // Mock auth for all tests - data layer depends on auth()
 vi.mock('@/auth', () => ({
   auth: vi.fn().mockResolvedValue({
@@ -39,11 +44,3 @@ vi.mock('next-auth', () => ({
     signOut: vi.fn(),
   }),
 }));
-
-// Mock @/app/lib/db with pg - @neondatabase/serverless uses Neon WebSocket driver
-// which doesn't work with standard Postgres (Testcontainers). Use pg for tests.
-vi.mock('@/app/lib/db', async () => {
-  const { createPgSql } = await import('./pg-sql');
-  const { sql } = createPgSql();
-  return { sql };
-});

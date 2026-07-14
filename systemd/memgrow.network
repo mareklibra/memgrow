@@ -1,0 +1,3 @@
+# Podman Quadlet network unit - shared bridge network for the db/app containers.
+# Install under ~/.config/containers/systemd/ (see README "Running on boot").
+[Network]
