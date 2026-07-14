@@ -1,0 +1,25 @@
+node_modules
+.next
+.git
+.gitignore
+
+# env / secrets
+.env
+.env.*
+!.env.example
+
+# local dev / test artifacts
+coverage
+.test-env.json
+*.tsbuildinfo
+next-env.d.ts
+
+# backups
+DB_BACKUPS
+
+# editor / os
+.DS_Store
+*.pem
+
+# docs / plans (not needed inside the image)
+docs
