@@ -233,9 +233,9 @@ describe('word-transitions', () => {
       expect(decreaseMemLevel(1, false)).toBe(1);
     });
 
-    it('returns level * REPEAT_SOONER_FACTOR when isShortenOnly and result <= 8', () => {
+    it('returns floor(level * REPEAT_SOONER_FACTOR) when isShortenOnly and result <= 8', () => {
       const level = 10;
-      const expected = level * REPEAT_SOONER_FACTOR; // 10 * 0.5 = 5
+      const expected = Math.floor(level * REPEAT_SOONER_FACTOR); // 10 * 0.5 = 5
       expect(decreaseMemLevel(level, true)).toBe(expected);
     });
 
@@ -246,12 +246,33 @@ describe('word-transitions', () => {
       expect(decreaseMemLevel(level, true)).toBe(8);
     });
 
-    it('returns level * factor when isShortenOnly and level is small', () => {
-      expect(decreaseMemLevel(2, true)).toBe(2 * REPEAT_SOONER_FACTOR);
+    it('returns an integer for odd levels when isShortenOnly', () => {
+      // 3 * 0.5 = 1.5 → floor → 1
+      expect(decreaseMemLevel(3, true)).toBe(1);
+      expect(Number.isInteger(decreaseMemLevel(3, true))).toBe(true);
     });
 
-    it('returns 0 for level 0 with isShortenOnly', () => {
+    it('returns level * factor when isShortenOnly and level is small', () => {
+      expect(decreaseMemLevel(2, true)).toBe(Math.floor(2 * REPEAT_SOONER_FACTOR));
+    });
+
+    it('clamps soft decrease to at least 1 so memLevel 1 is never worse than full penalty', () => {
+      // floor(1 * 0.5) = 0 without clamp; soft must not beat full mistake into learning (0)
+      expect(decreaseMemLevel(1, true)).toBe(1);
+      expect(decreaseMemLevel(1, true)).toBeGreaterThanOrEqual(
+        decreaseMemLevel(1, false),
+      );
+    });
+
+    it('leaves memLevel < 1 unchanged on soft decrease (0 sentinel and legacy fractions)', () => {
       expect(decreaseMemLevel(0, true)).toBe(0);
+      expect(decreaseMemLevel(0.3, true)).toBe(0.3);
+    });
+
+    it('soft decrease is non-increasing for levels >= 1', () => {
+      expect(decreaseMemLevel(1.5, true)).toBe(1);
+      expect(decreaseMemLevel(1.5, true)).toBeLessThanOrEqual(1.5);
+      expect(decreaseMemLevel(5, true)).toBeLessThanOrEqual(5);
     });
   });
 
