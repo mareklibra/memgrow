@@ -26,6 +26,35 @@ export TESTCONTAINERS_RYUK_DISABLED=true
 pnpm test
 ```
 
+### Initial Database Setup
+
+There is no HTTP endpoint to bootstrap the database (an unauthenticated one
+would be a real attack surface; an authenticated one can't create the first
+user anyway). Use the `pnpm db:seed` CLI script instead, run from a shell
+with network access to the target Postgres - this works identically for a
+hosted Neon database or a self-hosted one:
+
+```bash
+pnpm install   # first time only, to pull in the tsx dev dependency
+```
+
+**Vercel + Neon (hosted):**
+
+```bash
+POSTGRES_URL="<your Neon connection string>" pnpm db:seed
+```
+
+Leave `DB_PROVIDER` unset (defaults to the Neon driver).
+
+**Self-hosted:** see [Self-Hosting with Podman Compose](#self-hosting-with-podman-compose)
+below to set up `.env` first, then run `pnpm db:seed` the same way.
+
+Either way, this creates the schema (idempotent - safe to re-run on every
+deploy) and interactively prompts for a real admin name/email/password.
+Add `--with-demo-data` to additionally insert the hardcoded demo
+user/courses/words from `app/lib/seed-data.ts` - local development only,
+never on a deployment anyone else can reach.
+
 ### Self-Hosting with Podman Compose
 
 MemGrow can run self-hosted against a plain PostgreSQL container instead of
@@ -68,18 +97,13 @@ Open `http://localhost:3000` (or `http://<host>:${APP_PORT}`).
 
 #### Fresh install (no existing backup)
 
-The app's `/seed` HTTP route is auth-protected, so it can't bootstrap a
-brand-new database on its own. Use the CLI instead, which creates the schema
-and then prompts for a real admin account:
+See [Initial Database Setup](#initial-database-setup) above - with `.env`
+configured (previous step) and the stack started, run:
 
 ```bash
 pnpm install   # first time only, to pull in the tsx dev dependency
 pnpm db:seed
 ```
-
-`pnpm db:seed --with-demo-data` additionally inserts the hardcoded demo
-user/courses/words from `app/lib/seed-data.ts` - useful for local
-development, but do not use it on a deployment anyone else can reach.
 
 #### Migrating existing data from Vercel/Neon
 

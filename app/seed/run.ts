@@ -15,8 +15,8 @@ import seedDataBatch from './seedData';
 /**
  * Creates/updates the full schema. Idempotent (CREATE TABLE IF NOT EXISTS /
  * ADD COLUMN IF NOT EXISTS throughout), safe to run on every fresh install
- * and every subsequent deploy. Shared by the auth-protected /seed route and
- * scripts/db.seed.ts (which runs outside HTTP/auth entirely).
+ * and every subsequent deploy. Used by scripts/db.seed.ts - there is no HTTP
+ * endpoint for this (see that script's comment for why).
  */
 export async function createSchema(): Promise<void> {
   await batch001();
