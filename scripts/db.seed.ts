@@ -1,11 +1,16 @@
 #!/usr/bin/env -S pnpm tsx
 /**
- * Fresh-install seeding for self-hosted deployments, run from the host shell.
+ * Fresh-install seeding, run from a host shell with access to the target
+ * database's connection string - works against both a self-hosted Postgres
+ * and a hosted Neon database (see README's "Initial Database Setup").
  *
- * The app's own /seed HTTP route is auth-protected (see proxy.ts +
- * auth.config.ts), so it cannot bootstrap a brand-new, user-less database.
- * This script runs the same schema-creation logic directly, bypassing
- * HTTP/auth entirely, then prompts for a real admin account.
+ * There is intentionally no HTTP endpoint for this: an unauthenticated
+ * bootstrap endpoint that creates users would be a real attack surface, and
+ * an authenticated one can't bootstrap a brand-new, user-less database
+ * anyway (see proxy.ts + auth.config.ts's `authorized()` callback, which
+ * blocks all unauthenticated requests except `/`). This script runs the
+ * same schema-creation logic directly, then prompts for a real admin
+ * account.
  *
  * Usage:
  *   pnpm db:seed                  Create schema, then prompt for an admin account.

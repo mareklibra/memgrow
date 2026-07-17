@@ -27,10 +27,9 @@ function buildQuery(strings: TemplateStringsArray, values: unknown[]) {
  * the Neon driver for the Vercel + Neon production deployment.
  *
  * The connection is established lazily, on first `.sql()` call, rather than
- * at module load - this module is imported by the /seed route, and Next.js
- * evaluates route modules during `next build`'s page-data collection, which
- * must not require a live database connection (there is none yet during a
- * Docker/Podman image build).
+ * at module load - this module is imported by scripts/db.seed.ts, which
+ * needs to load `dotenv` first so POSTGRES_URL/DB_PROVIDER are set before a
+ * connection is attempted.
  */
 let clientPromise: Promise<NeonPoolClient | PgPoolClient> | null = null;
 
