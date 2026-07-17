@@ -33,14 +33,13 @@ todos:
     content: Add Podman Quadlet .container unit files (db, app, shared network) under systemd/ for boot persistence, with loginctl enable-linger note
     status: pending
   - id: readme-runbook
-    content: "Add README self-hosting section: start/stop, psql connect, backup/restore, Vercel migration path, fresh-install seeding, updating, reverse-proxy note"
+    content: 'Add README self-hosting section: start/stop, psql connect, backup/restore, Vercel migration path, fresh-install seeding, updating, reverse-proxy note'
     status: pending
   - id: verify
     content: Run pnpm tsc/eslint/test, then podman compose build/up, verify app+db healthy, seeding, login, and backup/restore round-trip
     status: pending
 isProject: false
 ---
-
 
 # Self-Host MemGrow with Podman Compose
 
@@ -85,12 +84,15 @@ flowchart LR
 ## 1. Driver layer: `DB_PROVIDER` switch
 
 ### [app/lib/db.ts](app/lib/db.ts)
+
 Add `DB_PROVIDER` env var (`neon` default | `pg`). When `pg`, route both the tagged-template and `.query()` through a `pg.Pool` (same shape as [tests/setup/pg-sql.ts](tests/setup/pg-sql.ts)'s `createPgSqlAdapter`, `{rows, rowCount}`). When `neon` (default/unset), keep the current `neon()` + `Pool` behavior unchanged — zero risk to the live Vercel deployment.
 
 ### [app/seed/client.ts](app/seed/client.ts)
+
 Same `DB_PROVIDER` branch: when `pg`, `import { Pool, PoolClient } from 'pg'` instead of `@neondatabase/serverless`. This is required for the `/seed` route (and the new CLI seed script below) to work against self-hosted Postgres at all — none of the three draft plans covered this file for the dual-mode case.
 
 ### [package.json](package.json)
+
 Move `pg` from `devDependencies` to `dependencies` (now a runtime dependency, not just test-only). Keep `@neondatabase/serverless` as-is.
 
 ## 2. Test suite de-duplication
@@ -113,20 +115,25 @@ Move `pg` from `devDependencies` to `dependencies` (now a runtime dependency, no
 ## 4. Next.js + Docker build
 
 ### [next.config.ts](next.config.ts)
+
 Add `output: 'standalone'`.
 
 ### `Dockerfile` (new)
+
 Multi-stage, `node:20-bookworm-slim` (glibc — avoids musl edge cases with `bcrypt`/`sharp` native builds vs alpine) with `corepack`/pnpm:
+
 - deps stage: install with pnpm
 - build stage: `pnpm build`, pass `NEXT_PUBLIC_BUILD_COMMIT`/`NEXT_PUBLIC_BUILD_TIME` build args
 - runtime stage: copy `.next/standalone`, `.next/static`, `public/`; run as non-root user; `CMD ["node", "server.js"]`
 
 ### `.dockerignore` (new)
+
 Exclude `node_modules`, `.next`, `.env*`, `DB_BACKUPS`, `.git`, test artifacts.
 
 ## 5. `compose.yml` (new)
 
 Two services:
+
 - **`db`** — `postgres:16-alpine`, named volume `postgres_data`, `pg_isready` healthcheck, port **`127.0.0.1:5432:5432`** (localhost-only — required so [scripts/db.backup.sh](scripts/db.backup.sh) / [scripts/db.restore.sh](scripts/db.restore.sh) keep working unmodified, but never reachable from the network).
 - **`app`** — built from `Dockerfile`, `depends_on: db (service_healthy)`, explicit `environment:` block (not `env_file`, to avoid leaking the host-facing `POSTGRES_URL` into the container) setting `DB_PROVIDER=pg`, `POSTGRES_URL=postgresql://...@db:5432/...`, `AUTH_SECRET`, `AUTH_URL`, `AUTH_TRUST_HOST=true`, plus pass-through optional keys (`OPENAI_API_KEY`, `ELEVENLABS_API_KEY`, etc). Port `3000:3000`, `restart: unless-stopped`.
 
@@ -135,6 +142,7 @@ Schema is created via `pnpm db:seed` (§3) rather than a mounted `docker-entrypo
 ## 5b. Podman Quadlet units for boot persistence (new)
 
 `compose.yml` remains the primary dev/build interface (`podman compose build`, manual `up`/`down`, logs), but for always-on operation add native Quadlet unit files so systemd supervises the containers and restarts them on boot:
+
 - `systemd/memgrow.network` — shared Podman network unit
 - `systemd/memgrow-db.container` — Postgres service, references the network unit, same volume/healthcheck/port config as `compose.yml`'s `db` service
 - `systemd/memgrow-app.container` — app service, `After=memgrow-db.service`, same env as `compose.yml`'s `app` service
@@ -149,6 +157,7 @@ Schema is created via `pnpm db:seed` (§3) rather than a mounted `docker-entrypo
 ## 7. README self-hosting section
 
 Add a runbook covering:
+
 - Prerequisites (`podman compose version`, optional host `postgresql` package for `pg_dump`/`pg_restore`)
 - Start/stop/logs (`podman compose up -d --build`, `down`, `down -v`, `logs -f`)
 - Connecting via `psql` (host and `podman compose exec db psql`)

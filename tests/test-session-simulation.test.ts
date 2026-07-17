@@ -354,7 +354,7 @@ describe('test-session-simulation', () => {
   // ── Group 3: Soften mistake ────────────────────────────────────────────
 
   describe('Group 3: soften mistake (isShortenOnly)', () => {
-    it('8. soften on choose form: memLevel = min(8, level * 0.5) instead of 1', () => {
+    it('8. soften on choose form: memLevel = max(1, min(level, min(8, floor(level * 0.5))))', () => {
       const words = [makeWord({ id: 'w1', form: 'choose_4_def', memLevel: 10 })];
       const result = simulateSession(words, () => 'mistake_shorten', {
         maxWordsInBatch: 1,
@@ -362,12 +362,14 @@ describe('test-session-simulation', () => {
 
       expect(result.log).toHaveLength(1);
       expect(result.log[0].action).toBe('mistake_shorten');
-      // decreaseMemLevel(10, true) = min(8, 10 * 0.5) = 5
+      // decreaseMemLevel(10, true) = max(1, min(10, min(8, floor(10 * 0.5)))) = 5
       const reviewCopy = result.finalQueue.find(
         (w, i) => i > 0 && w.id === 'w1' && w.form === 'show',
       );
       expect(reviewCopy).toBeDefined();
-      expect(reviewCopy!.memLevel).toBe(10 * REPEAT_SOONER_FACTOR);
+      expect(reviewCopy!.memLevel).toBe(
+        Math.max(1, Math.floor(10 * REPEAT_SOONER_FACTOR)),
+      );
     });
 
     it('9. soften vs full mistake: soften preserves higher memLevel', () => {
@@ -390,9 +392,24 @@ describe('test-session-simulation', () => {
       )!;
 
       expect(fullReview.memLevel).toBe(1);
-      // min(8, 20 * 0.5) = 8
+      // max(1, min(8, floor(20 * 0.5))) = 8
       expect(softenReview.memLevel).toBe(8);
       expect(softenReview.memLevel).toBeGreaterThan(fullReview.memLevel);
+    });
+
+    it('9b. soften at memLevel 1 stays at 1 (not learning sentinel 0)', () => {
+      const words = [makeWord({ id: 'w1', form: 'write', memLevel: 1 })];
+      const result = simulateSession(words, () => 'mistake_shorten', {
+        maxWordsInBatch: 1,
+      });
+
+      const reviewCopy = result.finalQueue.find((w, i) => i > 0 && w.id === 'w1')!;
+      expect(reviewCopy.memLevel).toBe(1);
+      expect(reviewCopy.memLevel).toBeGreaterThan(0);
+    });
+
+    it('9c. soften does not change memLevel 0 (learning sentinel)', () => {
+      expect(decreaseMemLevel(0, true)).toBe(0);
     });
   });
 
@@ -502,7 +519,7 @@ describe('test-session-simulation', () => {
 
       // w4: softened mistake
       const p4 = result.persistedState.get('w4')!;
-      // decreaseMemLevel(12, true) = min(8, 12*0.5) = 6
+      // decreaseMemLevel(12, true) = max(1, min(8, floor(12 * 0.5))) = 6
       expect(p4.memLevel).toBeLessThanOrEqual(8);
 
       // w5: skipped
@@ -1104,22 +1121,22 @@ describe('test-session-simulation', () => {
     });
   });
 
-  // ── Group 15: Non-integer memLevel ────────────────────────────────────
+  // ── Group 15: Softened decrease stays integer ─────────────────────────
 
-  describe('Group 15: non-integer memLevel', () => {
-    it('36. softened decrease on odd memLevel produces fractional value', () => {
+  describe('Group 15: softened decrease stays integer', () => {
+    it('36. softened decrease on odd memLevel produces integer value', () => {
       const words = [makeWord({ id: 'w1', form: 'write', memLevel: 3 })];
       const result = simulateSession(words, () => 'mistake_shorten', {
         maxWordsInBatch: 1,
       });
 
       const reviewCopy = result.finalQueue.find((w, i) => i > 0 && w.id === 'w1')!;
-      // decreaseMemLevel(3, true) = min(8, 3 * 0.5) = 1.5
-      expect(reviewCopy.memLevel).toBe(1.5);
-      expect(Number.isInteger(reviewCopy.memLevel)).toBe(false);
+      // decreaseMemLevel(3, true) = min(8, floor(3 * 0.5)) = 1
+      expect(reviewCopy.memLevel).toBe(1);
+      expect(Number.isInteger(reviewCopy.memLevel)).toBe(true);
     });
 
-    it('37. fractional memLevel flows correctly through subsequent correct answer', () => {
+    it('37. integer memLevel flows correctly through subsequent correct answer', () => {
       const words = [makeWord({ id: 'w1', form: 'write', memLevel: 3 })];
       let step = 0;
       const result = simulateSession(words, () => {
@@ -1128,15 +1145,14 @@ describe('test-session-simulation', () => {
         return 'correct';
       });
 
-      // Step 0: write → mistake_shorten → review show with memLevel=1.5
-      // Step 1: show → correct → re-insert choose_4_word with memLevel=2.5
-      // Step 2: choose_4_word → correct → update with memLevel=3.5
+      // Step 0: write → mistake_shorten → review show with memLevel=1
+      // Step 1: show → correct → re-insert choose_4_word with memLevel=2
+      // Step 2: choose_4_word → correct → update with memLevel=3
       expect(result.log).toHaveLength(3);
 
       const persisted = result.persistedState.get('w1')!;
-      // increaseMemLevel(1.5) = 1.5 + 1 = 2.5 (show, but memLevel still increases in test mode)
-      // increaseMemLevel(2.5) = 2.5 + 1 = 3.5
-      expect(persisted.memLevel).toBe(3.5);
+      expect(persisted.memLevel).toBe(3);
+      expect(Number.isInteger(persisted.memLevel)).toBe(true);
     });
   });
 });

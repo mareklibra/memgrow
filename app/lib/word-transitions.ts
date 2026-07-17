@@ -61,11 +61,16 @@ export function decreaseMemLevel(
   existingMemLevel: number,
   isShortenOnly: boolean,
 ): number {
-  if (isShortenOnly) {
-    // Give time to remember the word
-    return Math.min(8, existingMemLevel * REPEAT_SOONER_FACTOR);
+  if (!isShortenOnly) {
+    return 1;
   }
-  return 1;
+  // Learning sentinel (0) and legacy (0,1) stay unchanged — soft never promotes
+  if (existingMemLevel < 1) {
+    return existingMemLevel;
+  }
+  // Soften: floor to an integer day count, cap at 8, never below 1, never increase
+  const softened = Math.min(8, Math.floor(existingMemLevel * REPEAT_SOONER_FACTOR));
+  return Math.max(1, Math.min(existingMemLevel, softened));
 }
 
 export function getRepeatAgainDate(memLevel: number): Date {

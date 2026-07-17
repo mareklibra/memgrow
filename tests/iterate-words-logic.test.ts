@@ -478,7 +478,7 @@ describe('iterate-words-logic', () => {
         isLearning: false,
         isShortenOnly: true,
       });
-      expect(result.wordQueue[2].memLevel).toBe(6 * REPEAT_SOONER_FACTOR);
+      expect(result.wordQueue[2].memLevel).toBe(Math.floor(6 * REPEAT_SOONER_FACTOR));
     });
 
     it('inserts review copy 2 positions after last occurrence of word', () => {
