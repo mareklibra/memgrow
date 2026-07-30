@@ -53,30 +53,36 @@ async function clearInProgress(wordId: string) {
 }
 
 export async function generateWordImage(wordId: string): Promise<GenerateImageResult> {
+  console.log(`generateWordImage: starting for wordId=${wordId}`);
   try {
     const word = await fetchWord(wordId);
     if (!word) {
+      console.error(`generateWordImage: word not found, id=${wordId}`);
       return { message: `Word not found, id: ${wordId}` };
     }
 
     const course = await fetchCourse(word.courseId);
     if (!course) {
+      console.error(`generateWordImage: course not found, id=${word.courseId}`);
       return { message: `Course not found, id: ${word.courseId}` };
     }
 
     const prompt = [
       `For every image requested, create a single mnemonic image for the ${course.learningLang} word '${word.word}'`,
-      `(${course.knownLang}: '${word.definition}').`,
+      `when translated to (${course.knownLang}: '${word.definition}').`,
       `The image must be ONE coherent scene - not a collage, not a grid, not a collection of thumbnails.`,
       `Show exactly one unified composition that illustrates the word's meaning.`,
       `Do not tile, repeat, or multiply the subject. Do not split the canvas into panels or sections.`,
+      `Do not inscribe any text, be descriptive by the image itself.`,
       `Each image should trigger a completely unrelated visual association with the word's meaning, vary artistic styles (e.g. photorealistic, watercolor, cartoon, or abstract).`,
-      `Never include text in ${course.knownLang} but you can use VERY BRIEFLY ${course.learningLang}`,
+      // `Never include text in ${course.knownLang} but you can use VERY BRIEFLY ${course.learningLang}`,
     ].join(' ');
 
     const result = await generateImage(prompt);
     if (result.error || !result.images?.length) {
-      return { message: result.error || 'No image data returned from the model' };
+      const message = result.error || 'No image data returned from the model';
+      console.error(`generateWordImage: failed for wordId=${wordId}: ${message}`);
+      return { message };
     }
 
     let lastImageId: string | undefined;
@@ -86,10 +92,13 @@ export async function generateWordImage(wordId: string): Promise<GenerateImageRe
     }
     await removeImageRequest(wordId);
 
+    console.log(
+      `generateWordImage: succeeded for wordId=${wordId}, stored ${result.images.length} image(s), lastImageId=${lastImageId}`,
+    );
     return { imageId: lastImageId };
   } catch (e) {
-    console.error('Image generation error:', e);
-    await clearInProgress(wordId).catch(() => {});
+    console.error(`generateWordImage: unhandled error for wordId=${wordId}:`, e);
+    await clearInProgress(wordId).catch(() => { });
 
     const message =
       e instanceof Error ? e.message : `Image generation failed: ${JSON.stringify(e)}`;

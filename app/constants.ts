@@ -40,4 +40,6 @@ export const EXAMPLE_AI_REQUEST_COUNT = 'three (3)';
 export const IMAGE_SIZE = 256;
 export const IMAGE_QUALITY = 60;
 export const IMAGE_COUNT = 4;
-export const LLM_IMAGE_MODEL = process.env.LLM_MODEL ?? 'imagen-4.0-generate-001';
+// No default here - it's shared across all image providers, and each
+// provider needs its own fallback model name (see image-provider-*.ts).
+export const LLM_IMAGE_MODEL = process.env.LLM_MODEL;
