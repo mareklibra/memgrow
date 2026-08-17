@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # ---- deps: install dependencies (with native build tooling for bcrypt/sharp) ----
-FROM node:20-bookworm-slim AS deps
+FROM node:24-bookworm-slim AS deps
 RUN corepack enable && corepack prepare pnpm@9 --activate
 RUN apt-get update && apt-get install -y --no-install-recommends \
       python3 make g++ \
@@ -11,7 +11,7 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
 # ---- builder: build the Next.js app ----
-FROM node:20-bookworm-slim AS builder
+FROM node:24-bookworm-slim AS builder
 RUN corepack enable && corepack prepare pnpm@9 --activate
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
@@ -30,7 +30,7 @@ ENV POSTGRES_URL=postgresql://build:build@localhost:5432/build
 RUN pnpm exec next build
 
 # ---- runner: minimal production image ----
-FROM node:20-bookworm-slim AS runner
+FROM node:24-bookworm-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
