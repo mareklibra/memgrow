@@ -34,6 +34,16 @@ vi.mock('next/cache', () => ({
 }));
 
 // Mock next-auth - auth actions import AuthError; next-auth loads next/server which fails in Vitest
+vi.mock('next/headers', () => ({
+  cookies: vi.fn().mockResolvedValue({
+    get: vi.fn().mockReturnValue(undefined),
+    set: vi.fn(),
+  }),
+  headers: vi.fn().mockResolvedValue({
+    get: vi.fn().mockReturnValue(null),
+  }),
+}));
+
 vi.mock('next-auth', () => ({
   AuthError: class AuthError extends Error {
     type = 'CredentialsSignin';

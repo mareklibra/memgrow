@@ -33,6 +33,7 @@ import { WordExamplesProps } from './WordExamples';
 import { WordPicturesProps } from './WordPictures';
 import { DonutProgressChart } from './DonutProgressChart';
 import { RequestImageResult } from '../lib/types';
+import { useTranslation } from '@/app/lib/i18n/useTranslation';
 
 interface IterateWordsProps {
   words: Word[];
@@ -48,18 +49,6 @@ interface IterateWordsProps {
   requestImageGeneration: (wordId: string) => Promise<RequestImageResult>;
 }
 
-const storeProgress = async (words: Word[]): Promise<UpdateWordsResult> => {
-  try {
-    return await updateWordsProgress(words);
-  } catch (error) {
-    console.error('Failed to call updateWordsProgress action: ', error);
-    return {
-      message: 'Failed to call updateWordProgress action',
-      failedWordIds: words.map((w) => w.id),
-    };
-  }
-};
-
 export function IterateWords({
   words,
   repetitionLimit,
@@ -73,6 +62,7 @@ export function IterateWords({
   deleteImage,
   requestImageGeneration,
 }: Readonly<IterateWordsProps>) {
+  const { t } = useTranslation();
   const [wordQueue, setWordQueue] = useState<WordWithMeta[]>([]);
   const [wordIdx, setWordIdx] = useState<number>(-1);
   const [isDone, setIsDone] = useState<boolean>(false);
@@ -88,7 +78,7 @@ export function IterateWords({
     () => {
       window.onbeforeunload = confirmExit;
       function confirmExit() {
-        return 'By closing this page you will lose your progress.';
+        return t('learn.beforeUnload');
       }
       return () => {
         window.onbeforeunload = null;
@@ -190,10 +180,23 @@ export function IterateWords({
     onChange({ ...word, isPriority: !word.isPriority });
   };
 
+  const storeProgress = async (progressWords: Word[]): Promise<UpdateWordsResult> => {
+    try {
+      return await updateWordsProgress(progressWords);
+    } catch (error) {
+      console.error('Failed to call updateWordsProgress action: ', error);
+      return {
+        message: t('learn.persistFailedAction'),
+        failedWordIds: progressWords.map((w) => w.id),
+      };
+    }
+  };
+
   if (!words.length) {
     return (
       <div>
-        Nothing more to learn. Try <Link href="/test">Test</Link>
+        {t('learn.nothingMore')}
+        <Link href="/test">{t('nav.test')}</Link>
       </div>
     );
   }
@@ -227,7 +230,7 @@ export function IterateWords({
         )}
       >
         <DonutProgressChart
-          label="Level"
+          label={t('learn.level')}
           progress={previewMemLevel ?? word.memLevel}
           max={MAX_MEM_LEVEL}
           suffix=""
@@ -235,11 +238,11 @@ export function IterateWords({
           valueSize="12px"
         />
         <div className="flex items-center text-sm md:text-xl">
-          {title}&nbsp;{words.length} words
+          {t('learn.titleWithCount', { title, count: words.length })}
         </div>
         <div className="flex gap-2 items-center">
           <DonutProgressChart
-            label="Batch"
+            label={t('learn.batch')}
             progress={progress}
             max={100}
             width={70}

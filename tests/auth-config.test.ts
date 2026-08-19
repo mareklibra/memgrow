@@ -82,12 +82,19 @@ describe('auth.config jwt callback', () => {
   it('copies account fields to token on initial sign-in', () => {
     const token = { sub: 'user-id' } as Record<string, unknown>;
     const account = { access_token: 'at-123' } as Record<string, unknown>;
-    const user = { id: 'u1', is_admin: true } as Record<string, unknown>;
+    const user = {
+      id: 'u1',
+      is_admin: true,
+      locale: 'cs',
+      impersonating: true,
+    } as Record<string, unknown>;
     const result = jwtCallback({ token, account, user } as never);
     expect(result).toMatchObject({
       accessToken: 'at-123',
       id: 'u1',
       is_admin: true,
+      locale: 'cs',
+      impersonating: true,
     });
   });
 
@@ -96,7 +103,11 @@ describe('auth.config jwt callback', () => {
     const account = {} as Record<string, unknown>;
     const user = { id: 'u1' } as Record<string, unknown>;
     const result = jwtCallback({ token, account, user } as never);
-    expect(result).toMatchObject({ is_admin: false });
+    expect(result).toMatchObject({
+      is_admin: false,
+      locale: null,
+      impersonating: false,
+    });
   });
 
   it('returns token unchanged when no account (subsequent requests)', () => {
@@ -131,5 +142,20 @@ describe('auth.config session callback', () => {
   it('defaults is_admin to false when token has no is_admin', () => {
     const result = callSession({ user: {} }, { sub: 'user-uuid' });
     expect(result.user.is_admin).toBe(false);
+  });
+
+  it('sets session.user.locale and impersonating from token', () => {
+    const result = callSession(
+      { user: {} },
+      { sub: 'user-uuid', locale: 'cs', impersonating: true },
+    );
+    expect(result.user.locale).toBe('cs');
+    expect(result.user.impersonating).toBe(true);
+  });
+
+  it('defaults locale and impersonating when token omits them', () => {
+    const result = callSession({ user: {} }, { sub: 'user-uuid' });
+    expect(result.user.locale).toBeNull();
+    expect(result.user.impersonating).toBe(false);
   });
 });

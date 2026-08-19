@@ -5,6 +5,7 @@ import { Word } from '@/app/lib/definitions';
 
 import { Button } from './button';
 import { CONFIRM_DELAY_MS } from '../constants';
+import { useTranslation } from '@/app/lib/i18n/useTranslation';
 
 interface DeleteButtonProps {
   word: Word;
@@ -13,6 +14,7 @@ interface DeleteButtonProps {
 
 export function DeleteButton({ handleDelete }: DeleteButtonProps) {
   const [level, setLevel] = useState(0);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (level === 1) {
@@ -34,9 +36,9 @@ export function DeleteButton({ handleDelete }: DeleteButtonProps) {
 
   return (
     <>
-      <Button onClick={() => setLevel(0)}>Dismiss</Button>
+      <Button onClick={() => setLevel(0)}>{t('common.dismiss')}</Button>
       <Button disabled={level !== 2} variant="danger" onClick={handleDelete}>
-        Yes
+        {t('common.yes')}
       </Button>
     </>
   );

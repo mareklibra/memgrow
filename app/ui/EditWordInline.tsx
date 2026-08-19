@@ -7,6 +7,7 @@ import { ArrowDownCircleIcon } from '@heroicons/react/24/outline';
 import { Button } from './button';
 import { s } from '@/app/ui/styles';
 import { Typography } from '@/app/lib/material-tailwind-compat';
+import { useTranslation } from '@/app/lib/i18n/useTranslation';
 
 interface EditWordInlineProps {
   word: Word;
@@ -14,6 +15,7 @@ interface EditWordInlineProps {
 }
 
 export function EditWordInline({ word, onChange }: Readonly<EditWordInlineProps>) {
+  const { t } = useTranslation();
   const [changed, setChanged] = useState<Word>(word);
   const [error, setError] = useState<string>();
 
@@ -46,7 +48,7 @@ export function EditWordInline({ word, onChange }: Readonly<EditWordInlineProps>
           className={`${s.input} w-full`}
           value={changed.word}
           autoCapitalize="none"
-          placeholder="Word"
+          placeholder={t('edit.word')}
           onChange={(e) => setChanged({ ...changed, word: e.currentTarget.value })}
         />
       </label>
@@ -57,14 +59,14 @@ export function EditWordInline({ word, onChange }: Readonly<EditWordInlineProps>
           className={`${s.input} w-full`}
           value={changed.definition}
           autoCapitalize="none"
-          placeholder="Definition"
+          placeholder={t('edit.definition')}
           onChange={(e) => setChanged({ ...changed, definition: e.currentTarget.value })}
         />
       </label>
       <div className="flex justify-end">
         <Button disabled={!canSave} onClick={handleSave} type="button">
           <ArrowDownCircleIcon className="w-5" />
-          &nbsp;Save
+          &nbsp;{t('edit.save')}
         </Button>
       </div>
     </div>

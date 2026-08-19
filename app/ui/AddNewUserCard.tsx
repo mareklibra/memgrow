@@ -10,8 +10,10 @@ import {
 } from '@/app/lib/material-tailwind-compat';
 import { useState } from 'react';
 import { addNewUser } from '../lib/actions';
+import { useTranslation } from '@/app/lib/i18n/useTranslation';
 
 export function AddNewUserCard() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
@@ -28,7 +30,7 @@ export function AddNewUserCard() {
     } else {
       setPassword('');
       setRetypePassword('');
-      setStatus('Done');
+      setStatus(t('common.done'));
     }
   };
 
@@ -36,18 +38,18 @@ export function AddNewUserCard() {
     <Card className="w-96 h-fit" variant="gradient" shadow={true}>
       <CardBody className="flex flex-col gap-4">
         <Typography variant="small" className="font-normal uppercase">
-          Add New User
+          {t('settings.addNewUser')}
         </Typography>
 
         <Input
-          label="Name"
+          label={t('settings.name')}
           value={name}
           size="lg"
           onChange={(e) => setName(e.target.value)}
           minLength={2}
         />
         <Input
-          label="Email (will be used for login)"
+          label={t('settings.emailForLogin')}
           value={email}
           size="lg"
           onChange={(e) => setEmail(e.target.value)}
@@ -55,14 +57,14 @@ export function AddNewUserCard() {
         />
 
         <Input
-          label="New password"
+          label={t('settings.newPassword')}
           value={password}
           size="lg"
           onChange={(e) => setPassword(e.target.value)}
           minLength={6}
         />
         <Input
-          label="Retype"
+          label={t('settings.retype')}
           value={retypePassword}
           size="lg"
           error={password !== retypePassword}
@@ -88,7 +90,7 @@ export function AddNewUserCard() {
           disabled={!name || !email || !password || password !== retypePassword}
           onClick={handleAddNewUser}
         >
-          Create
+          {t('common.create')}
         </Button>
       </CardFooter>
     </Card>

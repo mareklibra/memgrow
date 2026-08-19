@@ -6,17 +6,20 @@ import { AuthError } from 'next-auth';
 
 import { auth, signIn } from '@/auth';
 import { isUserAdmin } from '@/app/lib/data';
+import { getI18n } from '@/app/lib/i18n/get-i18n';
+import { genericErrorMessage } from '@/app/lib/i18n/action-error';
 
 export async function authenticate(_: string | undefined, formData: FormData) {
   try {
     await signIn('credentials', formData);
   } catch (error) {
     if (error instanceof AuthError) {
+      const { t } = await getI18n();
       switch (error.type) {
         case 'CredentialsSignin':
-          return 'Invalid credentials.';
+          return t('auth.invalidCredentials');
         default:
-          return 'Something went wrong.';
+          return t('auth.somethingWentWrong');
       }
     }
     throw error;
@@ -33,7 +36,7 @@ export async function changeUserPassword(userId: string, newPassword: string) {
       `;
   } catch (e) {
     return {
-      message: `Database Error: Failed to change user password. ${JSON.stringify(e)}`,
+      message: await genericErrorMessage(e, 'Failed to change user password'),
     };
   }
 }
@@ -51,20 +54,21 @@ export async function addNewUser(user: {
       `;
   } catch (e) {
     return {
-      message: `Database Error: Failed to add new user. ${JSON.stringify(e)}`,
+      message: await genericErrorMessage(e, 'Failed to add new user'),
     };
   }
 }
 
 export async function impersonateUser(targetUserId: string) {
+  const { t } = await getI18n();
   const session = await auth();
   if (!session?.user?.id) {
-    return { message: 'Not authenticated.' };
+    return { message: t('errors.notAuthenticated') };
   }
 
   const adminValid = await isUserAdmin(session.user.id);
   if (!adminValid) {
-    return { message: 'Not authorized: admin privileges required.' };
+    return { message: t('errors.notAuthorizedAdmin') };
   }
 
   const result = await sql<{ email: string }>`
@@ -72,7 +76,7 @@ export async function impersonateUser(targetUserId: string) {
   `;
   const targetEmail = result.rows[0]?.email;
   if (!targetEmail) {
-    return { message: 'Target user not found.' };
+    return { message: t('errors.targetUserNotFound') };
   }
 
   try {
@@ -83,7 +87,7 @@ export async function impersonateUser(targetUserId: string) {
     });
   } catch (error) {
     if (error instanceof AuthError) {
-      return { message: 'Impersonation failed.' };
+      return { message: t('errors.impersonationFailed') };
     }
     throw error;
   }

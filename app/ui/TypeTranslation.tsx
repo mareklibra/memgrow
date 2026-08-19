@@ -9,6 +9,7 @@ import { WordStatic } from './ShowWord';
 import { Button } from './button';
 import { FieldStatus } from './types';
 import { WordDefinition } from './WordDefinition';
+import { useTranslation } from '@/app/lib/i18n/useTranslation';
 
 export interface TypeTranslationProps {
   word: Word;
@@ -25,6 +26,7 @@ export function TypeTranslation({
   specialKeys,
   guessing = 'word',
 }: Readonly<TypeTranslationProps>) {
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const [value, setValue] = useState<string>('');
 
@@ -77,7 +79,7 @@ export function TypeTranslation({
           type="submit"
           disabled={value === correctResponse}
         >
-          Hint
+          {t('common.hint')}
         </Button>
 
         <input
@@ -90,7 +92,7 @@ export function TypeTranslation({
           type="text"
           ref={inputRef}
           value={value}
-          placeholder="Enter your translation"
+          placeholder={t('learn.enterTranslation')}
           onChange={(e) => handleChange(e.currentTarget.value)}
           onKeyDown={handleKeyDown}
           autoFocus

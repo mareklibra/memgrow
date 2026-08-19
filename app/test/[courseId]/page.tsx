@@ -15,6 +15,7 @@ import {
   deleteWordImage,
   requestImageGeneration,
 } from '@/app/lib/actions';
+import { getI18n } from '@/app/lib/i18n/get-i18n';
 
 export default async function Page({
   params,
@@ -37,12 +38,13 @@ export default async function Page({
   const randomlyShuffledWords = [...words].sort(
     () => crypto.getRandomValues(new Uint32Array(1))[0]! / 2 ** 32 - 0.5,
   );
+  const { t } = await getI18n();
 
   return (
     <IterateWords
       words={randomlyShuffledWords}
       repetitionLimit={testRepetitionLimit}
-      title="Recall"
+      title={t('test.title')}
       specialKeys={getSpecialKeys(words)}
       isOffline={isOffline}
       queryExamples={queryExamples}

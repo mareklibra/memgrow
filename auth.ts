@@ -29,7 +29,7 @@ export async function authorize(credentials: unknown) {
     }
     const user = await getUserForAuth(email);
     if (!user) return null;
-    return user;
+    return { ...user, impersonating: true };
   }
 
   if (!password) {
@@ -41,7 +41,7 @@ export async function authorize(credentials: unknown) {
   if (!user) return null;
 
   const passwordsMatch = await bcrypt.compare(password, user.password);
-  if (passwordsMatch) return user;
+  if (passwordsMatch) return { ...user, impersonating: false };
 
   console.log('Invalid credentials');
   return null;

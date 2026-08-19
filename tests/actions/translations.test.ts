@@ -17,6 +17,7 @@ vi.mock('openai', () => {
 });
 
 import { suggestTranslation, reverseTranslation } from '@/app/lib/actions/examples';
+import { createTranslator } from '@/app/lib/i18n';
 
 function mockOpenAIResponse(content: string | null) {
   mockCreate.mockResolvedValue({
@@ -82,7 +83,7 @@ describe('actions/translations', () => {
         courseId: course.id,
       });
 
-      expect(result.message).toBe('No content returned from OpenAI');
+      expect(result.message).toBe(createTranslator('en')('errors.openaiNoContent'));
       expect(result.translations).toBeUndefined();
     });
 

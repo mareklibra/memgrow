@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
 import { fetchCourse, fetchPronunciation } from '@/app/lib/data';
 import { insertPronunciation } from '@/app/lib/actions';
+import { getI18n } from '@/app/lib/i18n/get-i18n';
 
 const voiceId = 'Xb7hH8MSUJpSbSDYk0k2';
 let elevenlabs: ElevenLabsClient | null = null;
@@ -28,8 +29,9 @@ export async function GET(
   _: NextRequest,
   { params }: { params: Promise<{ wordId: string; courseId: string }> },
 ) {
+  const { t } = await getI18n();
   if (!elevenlabs) {
-    return new Response('ElevenLabsClient not initialized', {
+    return new Response(t('errors.elevenLabsNotInitialized'), {
       status: 500,
     });
   }
@@ -38,21 +40,21 @@ export async function GET(
   const courseId = (await params).courseId;
 
   if (!wordId || !courseId) {
-    return new Response('[ROOT]/courseId/wordId', {
+    return new Response(t('errors.soundMissingPath'), {
       status: 401,
     });
   }
 
   const course = await fetchCourse(courseId);
   if (!course) {
-    return new Response(`course not found, id: ${courseId}`, {
+    return new Response(t('errors.courseNotFoundLower', { id: courseId }), {
       status: 404,
     });
   }
 
   const word = await fetchPronunciation({ id: wordId, courseId });
   if (!word) {
-    return new Response(`word not found, id: ${wordId}, courseId: ${courseId}`, {
+    return new Response(t('errors.wordNotFoundWithCourse', { wordId, courseId }), {
       status: 404,
     });
   }

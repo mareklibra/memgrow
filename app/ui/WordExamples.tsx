@@ -9,6 +9,7 @@ import {
   ListItem,
   Typography,
 } from '@/app/lib/material-tailwind-compat';
+import { useTranslation } from '@/app/lib/i18n/useTranslation';
 
 export type WordExamplesProps = {
   word: Word;
@@ -23,6 +24,7 @@ export const WordExamples = ({
   deleteExample,
   children,
 }: Readonly<WordExamplesProps>) => {
+  const { t } = useTranslation();
   const [examples, setExamples] = useState<string[]>([]);
   const [error, setError] = useState<string | undefined>(undefined);
   const [open, setOpen] = useState(false);
@@ -64,11 +66,11 @@ export const WordExamples = ({
       <Card onClick={toggleOpen} className="cursor-pointer" variant="filled">
         <CardBody>
           {open && examples.length === 0 && (
-            <Typography>Generating examples...</Typography>
+            <Typography>{t('learn.generatingExamples')}</Typography>
           )}
 
           {open && examples.length > 0 && (
-            <Typography>&lt; &nbsp; Hide examples</Typography>
+            <Typography>{t('learn.hideExamples')}</Typography>
           )}
 
           {open && children}
@@ -88,9 +90,11 @@ export const WordExamples = ({
             </List>
           )}
 
-          {!open && <Typography>&gt;&nbsp;Show examples</Typography>}
+          {!open && <Typography>{t('learn.showExamples')}</Typography>}
 
-          {error && <Typography>Error: {error}</Typography>}
+          {error && (
+            <Typography>{t('common.errorPrefix', { message: error })}</Typography>
+          )}
         </CardBody>
       </Card>
     </div>

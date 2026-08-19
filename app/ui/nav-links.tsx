@@ -11,8 +11,9 @@ import {
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
-import { Fragment } from 'react';
 import { s } from '@/app/ui/styles';
+import { Fragment } from 'react';
+import { useTranslation } from '@/app/lib/i18n/useTranslation';
 
 export default function NavLinks({
   isLoggedIn,
@@ -22,25 +23,24 @@ export default function NavLinks({
   userName: string;
 }) {
   const pathname = usePathname();
+  const { t } = useTranslation();
 
-  // Map of links to display in the side navigation.
-  // Depending on the size of the application, this would be stored in a database.
   const links = [
-    { name: 'Home', href: '/', icon: HomeIcon },
-    { name: 'Learn new', href: '/learn', icon: AcademicCapIcon },
-    { name: 'Test', href: '/test', icon: AdjustmentsVerticalIcon },
+    { name: t('nav.home'), href: '/', icon: HomeIcon },
+    { name: t('nav.learnNew'), href: '/learn', icon: AcademicCapIcon },
+    { name: t('nav.test'), href: '/test', icon: AdjustmentsVerticalIcon },
     {
-      name: 'Edit',
+      name: t('nav.edit'),
       href: '/edit',
       icon: PencilSquareIcon,
     },
     {
-      name: 'Media',
+      name: t('nav.media'),
       href: '/media',
       icon: PhotoIcon,
     },
     {
-      name: userName ? `Settings (${userName})` : 'Settings',
+      name: userName ? t('nav.settingsWithName', { name: userName }) : t('nav.settings'),
       href: '/settings',
       icon: Cog6ToothIcon,
       disabled: !isLoggedIn,

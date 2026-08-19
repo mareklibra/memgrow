@@ -8,6 +8,8 @@ import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { testWordsCountLimit } from '@/app/constants';
 import { runSimulation } from '@/app/lib/simulate';
 import type { SimulationWord, TimeSlot } from '@/app/lib/simulate';
+import { useTranslation } from '@/app/lib/i18n/useTranslation';
+import { formatSimDate } from '@/app/lib/i18n/format';
 
 const defaultSlot = (): TimeSlot => ({
   id: Date.now(),
@@ -17,6 +19,7 @@ const defaultSlot = (): TimeSlot => ({
 });
 
 export function SimulateProgress({ words }: { words: SimulationWord[] }) {
+  const { t, locale } = useTranslation();
   const [slots, setSlots] = useState<TimeSlot[]>([defaultSlot()]);
   const [hasRun, setHasRun] = useState(false);
   const [mountTime] = useState(() => Date.now());
@@ -55,30 +58,27 @@ export function SimulateProgress({ words }: { words: SimulationWord[] }) {
     setHasRun(false);
   };
 
-  const formatDate = (date: Date) => {
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    return `${days[date.getDay()]} ${date.getDate()}.${date.getMonth() + 1}.`;
-  };
+  const formatDate = (date: Date) => formatSimDate(date, locale);
 
   return (
     <div className="max-w-2xl">
       <p className={clsx(s.simLabel, 'mb-4')}>
-        {words.length} words in testing pool, {dueNow} currently due for review.
+        {t('test.poolSummary', { total: words.length, due: dueNow })}
       </p>
 
       <div className="mb-6">
-        <h2 className="text-lg font-semibold mb-3">Daily testing schedule</h2>
+        <h2 className="text-lg font-semibold mb-3">{t('test.dailySchedule')}</h2>
         <div className="space-y-3">
           {slots.map((slot) => (
             <div key={slot.id} className="flex items-center gap-3">
-              <label className={clsx(s.simLabel, 'w-10')}>Time</label>
+              <label className={clsx(s.simLabel, 'w-10')}>{t('test.time')}</label>
               <input
                 type="time"
                 value={`${String(slot.hour).padStart(2, '0')}:${String(slot.minute).padStart(2, '0')}`}
                 onChange={(e) => updateSlotTime(slot.id, e.target.value)}
                 className={s.simInput}
               />
-              <label className={clsx(s.simLabel, 'ml-2')}>Words</label>
+              <label className={clsx(s.simLabel, 'ml-2')}>{t('test.words')}</label>
               <input
                 type="number"
                 min={1}
@@ -109,36 +109,34 @@ export function SimulateProgress({ words }: { words: SimulationWord[] }) {
           className="mt-2 flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
         >
           <PlusIcon className="h-4 w-4" />
-          Add time slot
+          {t('test.addTimeSlot')}
         </button>
       </div>
 
       <Button onClick={() => setHasRun(true)} className="mb-6">
-        Run simulation
+        {t('test.runSimulation')}
       </Button>
 
       {results && (
         <div>
-          <h2 className="text-lg font-semibold mb-3">
-            14-day forecast (all answers correct)
-          </h2>
+          <h2 className="text-lg font-semibold mb-3">{t('test.forecast')}</h2>
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr className="border-b border-gray-300">
-                <th className="text-left py-2 pr-3">Day</th>
+                <th className="text-left py-2 pr-3">{t('test.day')}</th>
                 {results[0].slots.map((s, i) => (
                   <th key={i} className="text-right py-2 px-2" colSpan={2}>
                     {s.time}
                   </th>
                 ))}
-                <th className="text-right py-2 pl-3">Remaining</th>
+                <th className="text-right py-2 pl-3">{t('test.remaining')}</th>
               </tr>
               <tr className="border-b border-gray-200 text-xs text-gray-500">
                 <th></th>
                 {results[0].slots.map((_, i) => (
                   <Fragment key={i}>
-                    <th className="text-right px-1 pb-1">due</th>
-                    <th className="text-right px-1 pb-1">done</th>
+                    <th className="text-right px-1 pb-1">{t('test.due')}</th>
+                    <th className="text-right px-1 pb-1">{t('test.done')}</th>
                   </Fragment>
                 ))}
                 <th></th>

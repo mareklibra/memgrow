@@ -8,6 +8,7 @@ import { addWordBatch, updateWordProgress } from '../lib/actions';
 import { WordToAdd } from '../lib/definitions';
 import { DAY_MS } from '../constants';
 import { getMemLevelFromRepeat } from '../lib/utils';
+import { useTranslation } from '@/app/lib/i18n/useTranslation';
 
 export const BatchImport = ({
   className,
@@ -22,6 +23,7 @@ export const BatchImport = ({
   const [error, setError] = useState<string>();
   const delimiter = ',';
   const [inProgress, setInProgress] = useState(false);
+  const { t } = useTranslation();
 
   const handleImport = useCallback(async () => {
     setError(undefined);
@@ -38,9 +40,7 @@ export const BatchImport = ({
 
       const words: WordToAdd[] = records.map((record) => {
         if (!record.word || !record.definition) {
-          throw new Error(
-            `The record must have both word and definition: "${JSON.stringify(record)}"`,
-          );
+          throw new Error(t('edit.csvMissingFields'));
         }
 
         let repeat = -1;
@@ -89,7 +89,8 @@ export const BatchImport = ({
         }
       }
     } catch (err) {
-      setError(JSON.stringify(err));
+      console.error(err);
+      setError(err instanceof Error ? err.message : t('errors.generic'));
       return;
     } finally {
       setInProgress(false);
@@ -97,7 +98,7 @@ export const BatchImport = ({
         await forceDbReload();
       }
     }
-  }, [courseId, value, delimiter, forceDbReload]);
+  }, [courseId, value, delimiter, forceDbReload, t]);
 
   return (
     <div className="flex flex-col">
@@ -110,18 +111,18 @@ export const BatchImport = ({
         <Textarea
           variant="outlined"
           resize
-          label="Batch import (CSV)"
+          label={t('edit.batchImport')}
           onChange={(event) => setValue(event.target.value)}
           error={!!error}
         />
         <div className="flex flex-col ml-5">
           <Button onClick={handleImport} type="button" disabled={!value || inProgress}>
-            Import
+            {t('common.import')}
           </Button>
         </div>
       </div>
       <Typography variant="small" className="font-semibold">
-        Format: [WORD]{delimiter}[DEFINITION]{delimiter}[NEXT_REPEAT_IN_DAYS]\n
+        {t('edit.csvFormat')}
       </Typography>
     </div>
   );

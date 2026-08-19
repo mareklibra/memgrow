@@ -20,7 +20,11 @@ type DbWordProgress = DbWord & {
   is_priority: boolean;
   is_skipped: boolean;
 };
-type UserAuth = User & { password: string; is_admin: boolean };
+type UserAuth = User & {
+  password: string;
+  is_admin: boolean;
+  locale?: string | null;
+};
 
 export async function getUserForAuth(email: string): Promise<UserAuth | undefined> {
   try {
@@ -29,6 +33,18 @@ export async function getUserForAuth(email: string): Promise<UserAuth | undefine
   } catch (error) {
     console.error('Failed to fetch user:', error);
     throw new Error('Failed to fetch user.');
+  }
+}
+
+export async function fetchUserLocale(userId: string): Promise<string | null> {
+  try {
+    const result = await sql<{ locale: string | null }>`
+      SELECT locale FROM users WHERE id = ${userId}
+    `;
+    return result.rows[0]?.locale ?? null;
+  } catch (error) {
+    console.error('Failed to fetch user locale:', error);
+    return null;
   }
 }
 

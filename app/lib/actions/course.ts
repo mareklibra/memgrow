@@ -3,6 +3,8 @@
 import { sql } from '@/app/lib/db';
 import { revalidatePath } from 'next/cache';
 import { auth } from '@/auth';
+import { genericErrorMessage } from '@/app/lib/i18n/action-error';
+import { getI18n } from '@/app/lib/i18n/get-i18n';
 
 export async function updateCourse(courseId: string, course: { courseCode: string }) {
   try {
@@ -13,7 +15,7 @@ export async function updateCourse(courseId: string, course: { courseCode: strin
       `;
   } catch (e) {
     return {
-      message: `Database Error: Failed to update course. ${JSON.stringify(e)}`,
+      message: await genericErrorMessage(e, 'Failed to update course'),
     };
   }
 }
@@ -23,7 +25,8 @@ export async function upsertCoursePriority(courseId: string, priority: number) {
     const myAuth = await auth();
     const userId = myAuth?.user?.id;
     if (!userId) {
-      return { message: 'Not authenticated.' };
+      const { t } = await getI18n();
+      return { message: t('errors.notAuthenticated') };
     }
     await sql`
         INSERT INTO user_course (user_id, course_id, priority)
@@ -33,7 +36,7 @@ export async function upsertCoursePriority(courseId: string, priority: number) {
       `;
   } catch (e) {
     return {
-      message: `Database Error: Failed to upsert course priority. ${JSON.stringify(e)}`,
+      message: await genericErrorMessage(e, 'Failed to upsert course priority'),
     };
   }
 }
@@ -57,7 +60,7 @@ export async function createCourse(course: {
     revalidatePath('/edit');
   } catch (e) {
     return {
-      message: `Database Error: Failed to create course. ${JSON.stringify(e)}`,
+      message: await genericErrorMessage(e, 'Failed to create course'),
     };
   }
 }

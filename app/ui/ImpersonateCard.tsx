@@ -10,8 +10,10 @@ import {
 import { useState } from 'react';
 import { impersonateUser } from '../lib/actions';
 import type { UserListItem } from '../lib/data';
+import { useTranslation } from '@/app/lib/i18n/useTranslation';
 
 export function ImpersonateCard({ users }: { users: UserListItem[] }) {
+  const { t } = useTranslation();
   const [selectedUserId, setSelectedUserId] = useState('');
   const [error, setError] = useState<string | undefined>();
 
@@ -28,7 +30,7 @@ export function ImpersonateCard({ users }: { users: UserListItem[] }) {
     <Card className="w-96 h-fit" variant="gradient" shadow={true}>
       <CardBody className="flex flex-col gap-4">
         <Typography variant="small" className="font-normal uppercase">
-          Impersonate User
+          {t('settings.impersonateUser')}
         </Typography>
 
         <select
@@ -36,7 +38,7 @@ export function ImpersonateCard({ users }: { users: UserListItem[] }) {
           value={selectedUserId}
           onChange={(e) => setSelectedUserId(e.target.value)}
         >
-          <option value="">Select a user...</option>
+          <option value="">{t('settings.selectUser')}</option>
           {users.map((user) => (
             <option key={user.id} value={user.id}>
               {user.name} ({user.email})
@@ -58,7 +60,7 @@ export function ImpersonateCard({ users }: { users: UserListItem[] }) {
           disabled={!selectedUserId}
           onClick={handleImpersonate}
         >
-          Impersonate
+          {t('settings.impersonate')}
         </Button>
       </CardFooter>
     </Card>

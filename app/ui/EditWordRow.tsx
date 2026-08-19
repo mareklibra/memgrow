@@ -17,6 +17,9 @@ import { Button } from './button';
 import { Button as ButtonTailwind } from '@/app/lib/material-tailwind-compat';
 import { DeleteButton } from './DeleteButton';
 import { s } from '@/app/ui/styles';
+import { useTranslation } from '@/app/lib/i18n/useTranslation';
+import { teachingFormMessageKey } from '@/app/lib/i18n/teaching-forms';
+import { localeToBcp47 } from '@/app/lib/i18n';
 
 const UNUSED = '__not_used__';
 
@@ -40,6 +43,7 @@ export function WordRow({
   const [changed, setChanged] = useState<Word>(word);
   const [error, setError] = useState<string>();
   const [isSkipped, setIsSkipped] = useState<boolean>(word.isSkipped);
+  const { t, locale } = useTranslation();
 
   const handleReset = useCallback(
     (e: MouseEvent) => {
@@ -172,14 +176,14 @@ export function WordRow({
             >
               {TEACHING_FORMS.map((f) => (
                 <option key={f} value={f}>
-                  {f}
+                  {t(teachingFormMessageKey[f])}
                 </option>
               ))}
             </select>
           </td>
           <td className={clsx(s.td, 'whitespace-nowrap')}>
             <ButtonTailwind variant="text" onClick={handleRepeatAgain}>
-              {changed.repeatAgain?.toLocaleDateString()}
+              {changed.repeatAgain?.toLocaleDateString(localeToBcp47(locale))}
             </ButtonTailwind>
           </td>
         </>
@@ -191,7 +195,9 @@ export function WordRow({
           </Button>
           {!fastEntry && (
             <>
-              {isSkipped && <Button onClick={handleSkip}>Keep learning it</Button>}
+              {isSkipped && (
+                <Button onClick={handleSkip}>{t('learn.keepLearning')}</Button>
+              )}
               <Button disabled={isEqual(old, changed)} onClick={handleReset}>
                 <ArrowPathIcon className="w-5" />
               </Button>

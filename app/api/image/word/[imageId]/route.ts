@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { fetchWordImageById } from '@/app/lib/data';
+import { getI18n } from '@/app/lib/i18n/get-i18n';
 
 function detectContentType(buf: Buffer): string {
   if (
@@ -19,12 +20,14 @@ export async function GET(
   const imageId = (await params).imageId;
 
   if (!imageId) {
-    return new Response('imageId is required', { status: 400 });
+    const { t } = await getI18n();
+    return new Response(t('errors.imageIdRequired'), { status: 400 });
   }
 
   const image = await fetchWordImageById(imageId);
   if (!image) {
-    return new Response(`Image not found, id: ${imageId}`, { status: 404 });
+    const { t } = await getI18n();
+    return new Response(t('errors.imageNotFound', { id: imageId }), { status: 404 });
   }
 
   const body = new Uint8Array(image.content);

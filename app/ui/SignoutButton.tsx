@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import { s } from '@/app/ui/styles';
 import ConfirmationDialog from './ConfirmationDialog';
 import { useState } from 'react';
+import { useTranslation } from '@/app/lib/i18n/useTranslation';
 
 export default function SignoutButton({
   isLoggedIn,
@@ -16,6 +17,7 @@ export default function SignoutButton({
   className?: string;
 }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { t } = useTranslation();
   return (
     <>
       <button
@@ -26,16 +28,16 @@ export default function SignoutButton({
         onClick={() => setIsDialogOpen(true)}
       >
         <PowerIcon className="w-6" />
-        <div /*className="hidden md:block"*/>Sign Out</div>
+        <div /*className="hidden md:block"*/>{t('auth.signOut')}</div>
       </button>
       <ConfirmationDialog
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         onConfirm={handleSignOut}
-        title="Sign Out"
-        message="Are you sure you want to sign out?"
-        confirmText="Sign Out"
-        cancelText="Cancel"
+        title={t('auth.signOut')}
+        message={t('auth.signOutConfirm')}
+        confirmText={t('auth.signOut')}
+        cancelText={t('common.cancel')}
         variant="danger"
       />
     </>

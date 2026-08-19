@@ -8,6 +8,7 @@ import { Button } from './button';
 import { TranslationOption, TranslationOptionState } from './TranslationOption';
 import { useMobile } from './useMobile';
 import { Word } from '../lib/definitions';
+import { useTranslation } from '@/app/lib/i18n/useTranslation';
 
 interface ChooseTranslationProps {
   guessing: 'word' | 'definition';
@@ -28,6 +29,7 @@ export function ChooseTranslation({
   status,
   similarWords,
 }: Readonly<ChooseTranslationProps>) {
+  const { t } = useTranslation();
   const [value, setValue] = useState<string>();
   const { isMobile } = useMobile();
   const [isRevertClicked, setIsRevertClicked] = useState<boolean>(false);
@@ -62,7 +64,7 @@ export function ChooseTranslation({
 
       {status === 'mistake' && !isRevertClicked && (
         <Button className="mb-4 w-full" onClick={handleRevertClick}>
-          Soften Mistake
+          {t('learn.softenMistake')}
         </Button>
       )}
       <div className="grid grid-cols-12">

@@ -114,7 +114,7 @@ describe('authorize', () => {
       email: 'test@example.com',
       password: 'correct-password',
     });
-    expect(result).toEqual(mockUser);
+    expect(result).toEqual({ ...mockUser, impersonating: false });
     expect(mockGetUserForAuth).toHaveBeenCalledWith('test@example.com');
     expect(mockBcryptCompare).toHaveBeenCalledWith('correct-password', mockUser.password);
   });
@@ -149,7 +149,7 @@ describe('authorize', () => {
       email: 'test@example.com',
       impersonateByAdminId: VALID_UUID,
     });
-    expect(result).toEqual(mockUser);
+    expect(result).toEqual({ ...mockUser, impersonating: true });
     expect(mockIsUserAdmin).toHaveBeenCalledWith(VALID_UUID);
     expect(mockGetUserForAuth).toHaveBeenCalledWith('test@example.com');
     expect(mockBcryptCompare).not.toHaveBeenCalled();
@@ -180,7 +180,7 @@ describe('authorize', () => {
       password: 'some-password',
       impersonateByAdminId: VALID_UUID,
     });
-    expect(result).toEqual(mockUser);
+    expect(result).toEqual({ ...mockUser, impersonating: true });
     expect(mockBcryptCompare).not.toHaveBeenCalled();
   });
 });

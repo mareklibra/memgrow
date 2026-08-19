@@ -15,9 +15,12 @@ import { s } from '@/app/ui/styles';
 import { Button } from './button';
 import { Session } from 'next-auth';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from '@/app/lib/i18n/useTranslation';
+import { LanguageSwitcher } from '@/app/ui/LanguageSwitcher';
 
 export default function LoginForm({ auth }: Readonly<{ auth: Session | null }>) {
   const router = useRouter();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (auth?.user) {
@@ -33,13 +36,11 @@ export default function LoginForm({ auth }: Readonly<{ auth: Session | null }>) 
   return (
     <form className="space-y-3" action={formAction}>
       <div className="flex-1 rounded-lg bg-gray-50 px-6 pb-4 pt-8">
-        <h1 className={`${lusitana.className} mb-3 text-2xl`}>
-          Please log in to continue.
-        </h1>
+        <h1 className={`${lusitana.className} mb-3 text-2xl`}>{t('auth.pleaseLogIn')}</h1>
         <div className="w-full">
           <div>
             <label className={s.label} htmlFor="email">
-              Email
+              {t('auth.email')}
             </label>
             <div className="relative">
               <input
@@ -47,7 +48,7 @@ export default function LoginForm({ auth }: Readonly<{ auth: Session | null }>) 
                 id="email"
                 type="email"
                 name="email"
-                placeholder="Enter your email address"
+                placeholder={t('auth.emailPlaceholder')}
                 required
               />
               <AtSymbolIcon className={s.inputIcon} />
@@ -55,7 +56,7 @@ export default function LoginForm({ auth }: Readonly<{ auth: Session | null }>) 
           </div>
           <div className="mt-4">
             <label className={s.label} htmlFor="password">
-              Password
+              {t('auth.password')}
             </label>
             <div className="relative">
               <input
@@ -63,7 +64,7 @@ export default function LoginForm({ auth }: Readonly<{ auth: Session | null }>) 
                 id="password"
                 type="password"
                 name="password"
-                placeholder="Enter password"
+                placeholder={t('auth.passwordPlaceholder')}
                 required
               />
               <KeyIcon className={s.inputIcon} />
@@ -71,8 +72,11 @@ export default function LoginForm({ auth }: Readonly<{ auth: Session | null }>) 
           </div>
         </div>
         <Button className="mt-4 w-full">
-          Log in <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50" />
+          {t('auth.logIn')} <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50" />
         </Button>
+        <div className="mt-4">
+          <LanguageSwitcher />
+        </div>
         <div className="flex h-8 items-end space-x-1">
           {errorMessage && (
             <>

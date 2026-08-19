@@ -7,6 +7,7 @@ import { FastEntryForm } from '@/app/ui/FastEntryForm';
 import { WordToAdd } from '@/app/lib/definitions';
 import { addWord } from '@/app/lib/actions';
 import { UpdateWordResult } from '@/app/lib/types';
+import { getI18n } from '@/app/lib/i18n/get-i18n';
 
 export default async function Page({
   params,
@@ -14,12 +15,17 @@ export default async function Page({
   params: Promise<{ courseId: string }>;
 }) {
   const { courseId } = await params;
+  const { t } = await getI18n();
   if (!courseId) {
     return (
       <>
-        <h1 className={`${lusitana.className} ${s.pageTitle}`}>Missing course</h1>
+        <h1 className={`${lusitana.className} ${s.pageTitle}`}>
+          {t('edit.missingCourse')}
+        </h1>
         <p>
-          Go to <Link href="/edit">edit</Link> to choose and edit a course.
+          {t('edit.goToEditBefore')}
+          <Link href="/edit">{t('edit.editLink')}</Link>
+          {t('edit.goToEditAfterAndEdit')}
         </p>
       </>
     );
@@ -29,9 +35,13 @@ export default async function Page({
   if (!course) {
     return (
       <>
-        <h1 className={`${lusitana.className} ${s.pageTitle}`}>Missing course</h1>
+        <h1 className={`${lusitana.className} ${s.pageTitle}`}>
+          {t('edit.missingCourse')}
+        </h1>
         <p>
-          Go to <Link href="/edit">edit</Link> to choose and edit a course.
+          {t('edit.goToEditBefore')}
+          <Link href="/edit">{t('edit.editLink')}</Link>
+          {t('edit.goToEditAfterAndEdit')}
         </p>
       </>
     );
@@ -47,17 +57,17 @@ export default async function Page({
   return (
     <>
       <h1 className={`${lusitana.className} ${s.pageTitle}`}>
-        Fast entry for course {course.name}
+        {t('edit.fastEntryTitle', { name: course.name })}
       </h1>
       <div className="flex flex-col gap-2">
         <FastEntryForm course={course} addWord={handleAdd} allWords={allWords} />
       </div>
       <p>
-        For full features, go to the{' '}
+        {t('edit.fullFeaturesBefore')}{' '}
         <Link href={`/edit/${courseId}`}>
-          <strong>Edit</strong>
+          <strong>{t('nav.edit')}</strong>
         </Link>
-        &nbsp; page.
+        &nbsp; {t('edit.fullFeaturesAfter')}
       </p>
     </>
   );

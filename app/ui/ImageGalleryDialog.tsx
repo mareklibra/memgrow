@@ -3,6 +3,8 @@
 import { Spinner } from '@/app/lib/material-tailwind-compat';
 import { s } from '@/app/ui/styles';
 import { TrashIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useTranslation } from '@/app/lib/i18n/useTranslation';
+import { localeToBcp47 } from '@/app/lib/i18n';
 
 type ImageGalleryDialogProps = {
   word: string | undefined;
@@ -19,6 +21,8 @@ export function ImageGalleryDialog({
   onDelete,
   onClose,
 }: Readonly<ImageGalleryDialogProps>) {
+  const { t, locale } = useTranslation();
+  const bcp47 = localeToBcp47(locale);
   return (
     <div className={s.dialogOverlay}>
       <div className={s.dialogBackdrop} onClick={onClose} />
@@ -33,7 +37,7 @@ export function ImageGalleryDialog({
           </button>
         </div>
 
-        <h3 className={s.dialogTitle}>Images for &ldquo;{word}&rdquo;</h3>
+        <h3 className={s.dialogTitle}>{t('media.imagesFor', { word: word ?? '' })}</h3>
 
         {loading && (
           <div className="flex justify-center py-8">
@@ -42,7 +46,7 @@ export function ImageGalleryDialog({
         )}
 
         {!loading && images.length === 0 && (
-          <p className="text-sm text-gray-500 mt-4">No images.</p>
+          <p className="text-sm text-gray-500 mt-4">{t('media.noImages')}</p>
         )}
 
         {!loading && images.length > 0 && (
@@ -52,7 +56,7 @@ export function ImageGalleryDialog({
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={`/api/image/word/${img.id}`}
-                  alt="Word illustration"
+                  alt={t('learn.wordIllustration')}
                   className="w-full rounded-lg object-contain"
                 />
                 <button
@@ -63,7 +67,7 @@ export function ImageGalleryDialog({
                   <TrashIcon className="w-5 h-5" />
                 </button>
                 <p className="text-xs text-gray-500 mt-1 text-center tabular-nums">
-                  {img.sizeKb.toLocaleString()} KB
+                  {t('media.sizeKb', { size: img.sizeKb.toLocaleString(bcp47) })}
                 </p>
               </div>
             ))}
@@ -72,7 +76,7 @@ export function ImageGalleryDialog({
 
         <div className="mt-5 flex justify-end">
           <button type="button" className={s.dialogCancelBtn} onClick={onClose}>
-            Close
+            {t('common.close')}
           </button>
         </div>
       </div>

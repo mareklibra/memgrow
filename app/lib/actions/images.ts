@@ -5,6 +5,8 @@ import { DeleteImageResult, GenerateImageResult, RequestImageResult } from '../t
 import { WordImage } from '../definitions';
 import { fetchWord, fetchCourse } from '../data';
 import { generateImage } from '../image-provider';
+import { genericErrorMessage } from '@/app/lib/i18n/action-error';
+import { getI18n } from '@/app/lib/i18n/get-i18n';
 
 export async function insertWordImage(
   wordId: string,
@@ -25,7 +27,7 @@ export async function deleteWordImage(imageId: string): Promise<DeleteImageResul
     return undefined;
   } catch (e) {
     return {
-      message: `Database Error: Failed to delete image. ${JSON.stringify(e)}`,
+      message: await genericErrorMessage(e, 'Failed to delete image'),
     };
   }
 }
@@ -36,7 +38,7 @@ export async function deleteAllWordImages(wordId: string): Promise<DeleteImageRe
     return undefined;
   } catch (e) {
     return {
-      message: `Database Error: Failed to delete images. ${JSON.stringify(e)}`,
+      message: await genericErrorMessage(e, 'Failed to delete images'),
     };
   }
 }
@@ -54,17 +56,18 @@ async function clearInProgress(wordId: string) {
 
 export async function generateWordImage(wordId: string): Promise<GenerateImageResult> {
   console.log(`generateWordImage: starting for wordId=${wordId}`);
+  const { t } = await getI18n();
   try {
     const word = await fetchWord(wordId);
     if (!word) {
       console.error(`generateWordImage: word not found, id=${wordId}`);
-      return { message: `Word not found, id: ${wordId}` };
+      return { message: t('errors.wordNotFound', { id: wordId }) };
     }
 
     const course = await fetchCourse(word.courseId);
     if (!course) {
       console.error(`generateWordImage: course not found, id=${word.courseId}`);
-      return { message: `Course not found, id: ${word.courseId}` };
+      return { message: t('errors.courseNotFound', { id: word.courseId }) };
     }
 
     const prompt = [
@@ -80,9 +83,9 @@ export async function generateWordImage(wordId: string): Promise<GenerateImageRe
 
     const result = await generateImage(prompt);
     if (result.error || !result.images?.length) {
-      const message = result.error || 'No image data returned from the model';
+      const message = result.error || t('errors.noImageData');
       console.error(`generateWordImage: failed for wordId=${wordId}: ${message}`);
-      return { message };
+      return { message: result.error ? t('errors.generic') : t('errors.noImageData') };
     }
 
     let lastImageId: string | undefined;
@@ -98,11 +101,9 @@ export async function generateWordImage(wordId: string): Promise<GenerateImageRe
     return { imageId: lastImageId };
   } catch (e) {
     console.error(`generateWordImage: unhandled error for wordId=${wordId}:`, e);
-    await clearInProgress(wordId).catch(() => { });
+    await clearInProgress(wordId).catch(() => {});
 
-    const message =
-      e instanceof Error ? e.message : `Image generation failed: ${JSON.stringify(e)}`;
-    return { message };
+    return { message: await genericErrorMessage(e, `generateWordImage ${wordId}`) };
   }
 }
 
@@ -120,7 +121,7 @@ export async function requestImageGeneration(
     return {};
   } catch (e) {
     return {
-      message: `Failed to queue image request. ${JSON.stringify(e)}`,
+      message: await genericErrorMessage(e, 'Failed to queue image request'),
     };
   }
 }
@@ -146,7 +147,7 @@ export async function queryWordImages(
     };
   } catch (e) {
     return {
-      message: `Failed to fetch word images. ${JSON.stringify(e)}`,
+      message: await genericErrorMessage(e, 'Failed to fetch word images'),
     };
   }
 }

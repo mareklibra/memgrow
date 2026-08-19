@@ -19,6 +19,7 @@ import { Button } from './button';
 import { Course, Word, WordToAdd } from '../lib/definitions';
 import { UpdateWordResult, WordWithSimilarity } from '@/app/lib/types';
 import { getWordSimilarities } from '../lib/utils';
+import { useTranslation } from '@/app/lib/i18n/useTranslation';
 
 export function FastEntryForm({
   allWords,
@@ -29,6 +30,7 @@ export function FastEntryForm({
   addWord: (word: WordToAdd) => Promise<UpdateWordResult | undefined>;
   course: Course;
 }) {
+  const { t } = useTranslation();
   const [word, setWord] = useState('');
   const [definition, setDefinition] = useState('');
   const [error, setError] = useState<string | undefined>(undefined);
@@ -79,7 +81,7 @@ export function FastEntryForm({
         setDefinition(result?.translations?.join(', ') || '');
       }
     } catch (e) {
-      setError(`Error in queryTranslations: ${JSON.stringify(e)}`);
+      setError(t('errors.translationFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -99,7 +101,7 @@ export function FastEntryForm({
         setWord(result?.translations?.join(', ') || '');
       }
     } catch (e) {
-      setError(`Error in queryReverseTranslation: ${JSON.stringify(e)}`);
+      setError(t('errors.translationFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -119,7 +121,7 @@ export function FastEntryForm({
       <div className="flex flex-row items-end gap-2">
         <div className="flex-1">
           <Input
-            label={`Word (${course.learningLang})`}
+            label={t('edit.wordLang', { lang: course.learningLang })}
             size="lg"
             value={word}
             onChange={(e) => setWord(e.target.value)}
@@ -131,14 +133,14 @@ export function FastEntryForm({
           disabled={!word}
           onClick={handleSuggestTranslation}
         >
-          Suggest
+          {t('edit.suggest')}
         </Button>
       </div>
 
       <div className="flex flex-row items-end gap-2">
         <div className="flex-1">
           <Input
-            label={`Definition (${course.knownLang})`}
+            label={t('edit.definitionLang', { lang: course.knownLang })}
             size="lg"
             value={definition}
             onChange={(e) => setDefinition(e.target.value)}
@@ -150,18 +152,19 @@ export function FastEntryForm({
           disabled={!definition || isLoading}
           onClick={handleTranslate}
         >
-          Translate
+          {t('edit.translate')}
         </Button>
       </div>
 
       {error && <p className={s.errorText}>{error}</p>}
       {word && (
         <div className="flex flex-row gap-2 text-sm text-gray-600">
-          Similarity:{' '}
-          {similarities
-            .slice(0, 3)
-            .map((s) => `${s.word} (${s.similarity.toFixed(2)})`)
-            .join(', ')}
+          {t('edit.similarity', {
+            list: similarities
+              .slice(0, 3)
+              .map((s) => `${s.word} (${s.similarity.toFixed(2)})`)
+              .join(', '),
+          })}
         </div>
       )}
 
@@ -170,19 +173,19 @@ export function FastEntryForm({
         disabled={!word || !definition}
         onClick={handleAdd}
       >
-        Add Word
+        {t('edit.addWord')}
       </Button>
 
       <div className="flex flex-row justify-between items-center">
         <Button className="w-fit" onClick={handleGenerateExamples} disabled={!word}>
-          Generate examples
+          {t('edit.generateExamples')}
         </Button>
         <Button
           className="w-fit bg-transparent border border-gray-400 text-gray-700 hover:bg-gray-100"
           disabled={!word && !definition}
           onClick={handleClear}
         >
-          Clear
+          {t('edit.clear')}
         </Button>
       </div>
 
@@ -190,7 +193,7 @@ export function FastEntryForm({
         <Card>
           <CardBody>
             <Typography variant="h5" color="blue-gray" className="mb-2">
-              Examples
+              {t('edit.examples')}
             </Typography>
             <Typography>
               <List>

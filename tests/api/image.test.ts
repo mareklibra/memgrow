@@ -10,6 +10,7 @@ vi.mock('@/app/lib/actions/images', () => ({
 
 vi.mock('@/app/lib/data', () => ({
   fetchWordImageById: (...args: unknown[]) => mockFetchWordImageById(...args),
+  fetchUserLocale: vi.fn().mockResolvedValue(null),
 }));
 
 import { POST } from '@/app/api/image/generate/[wordId]/route';

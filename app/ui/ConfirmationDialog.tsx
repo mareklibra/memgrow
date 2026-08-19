@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import { s } from '@/app/ui/styles';
+import { useTranslation } from '@/app/lib/i18n/useTranslation';
 
 interface ConfirmationDialogProps {
   isOpen: boolean;
@@ -22,10 +23,13 @@ export default function ConfirmationDialog({
   onConfirm,
   title,
   message,
-  confirmText = 'Confirm',
-  cancelText = 'Cancel',
+  confirmText,
+  cancelText,
   variant = 'info',
 }: ConfirmationDialogProps) {
+  const { t } = useTranslation();
+  const resolvedConfirm = confirmText ?? t('common.confirm');
+  const resolvedCancel = cancelText ?? t('common.cancel');
   const dialogRef = useRef<HTMLDivElement>(null);
   const confirmButtonRef = useRef<HTMLButtonElement>(null);
   const [processing, setProcessing] = useState(false);
@@ -135,7 +139,7 @@ export default function ConfirmationDialog({
             onClick={handleCancel}
             disabled={processing}
           >
-            <span className="sr-only">Close</span>
+            <span className="sr-only">{t('common.close')}</span>
             <XMarkIcon className="h-6 w-6" aria-hidden="true" />
           </button>
         </div>
@@ -176,10 +180,10 @@ export default function ConfirmationDialog({
             {processing ? (
               <div className="flex items-center">
                 <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                Loading...
+                {t('common.loading')}
               </div>
             ) : (
-              confirmText
+              resolvedConfirm
             )}
           </button>
           <button
@@ -190,7 +194,7 @@ export default function ConfirmationDialog({
             onClick={handleCancel}
             disabled={processing}
           >
-            {cancelText}
+            {resolvedCancel}
           </button>
         </div>
       </div>

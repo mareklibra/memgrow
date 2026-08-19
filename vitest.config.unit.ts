@@ -10,6 +10,10 @@ export default defineConfig({
       'tests/word-transitions.test.ts',
       'tests/simulate.test.ts',
       'tests/utils.test.ts',
+      'tests/i18n/integrity.test.ts',
+      'tests/i18n/translator.test.ts',
+      'tests/i18n/resolve-locale.test.ts',
+      'tests/i18n/format.test.ts',
     ],
   },
   resolve: {

@@ -3,6 +3,7 @@ import clsx from 'clsx';
 import { s } from '@/app/ui/styles';
 import { SortColumn } from './types';
 import { ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import { useTranslation } from '@/app/lib/i18n/useTranslation';
 
 const SortIndicator = ({
   column,
@@ -36,6 +37,7 @@ export const EditWordHeader = ({
   sortDirection: 'asc' | 'desc';
   onSort: (column: SortColumn) => void;
 }) => {
+  const { t } = useTranslation();
   const sortable = (column: SortColumn, extra?: string) =>
     clsx(s.th, 'cursor-pointer select-none hover:text-blue-600', extra);
 
@@ -50,7 +52,7 @@ export const EditWordHeader = ({
           className={sortable('word', 'min-w-32')}
           onClick={() => onSort('word')}
         >
-          Word
+          {t('edit.word')}
           <SortIndicator
             column="word"
             activeColumn={sortColumn}
@@ -62,7 +64,7 @@ export const EditWordHeader = ({
           className={sortable('definition', 'min-w-32')}
           onClick={() => onSort('definition')}
         >
-          Definition
+          {t('edit.definition')}
           <SortIndicator
             column="definition"
             activeColumn={sortColumn}
@@ -76,7 +78,7 @@ export const EditWordHeader = ({
               className={sortable('memLevel')}
               onClick={() => onSort('memLevel')}
             >
-              Memory Level
+              {t('edit.memoryLevel')}
               <SortIndicator
                 column="memLevel"
                 activeColumn={sortColumn}
@@ -84,7 +86,7 @@ export const EditWordHeader = ({
               />
             </th>
             <th scope="col" className={sortable('form')} onClick={() => onSort('form')}>
-              Next Form
+              {t('edit.nextForm')}
               <SortIndicator
                 column="form"
                 activeColumn={sortColumn}
@@ -96,7 +98,7 @@ export const EditWordHeader = ({
               className={sortable('repeatAgain')}
               onClick={() => onSort('repeatAgain')}
             >
-              Repeat
+              {t('edit.repeat')}
               <SortIndicator
                 column="repeatAgain"
                 activeColumn={sortColumn}
@@ -106,7 +108,7 @@ export const EditWordHeader = ({
           </>
         )}
         <th scope="col" className={clsx(s.th, 'w-50')}>
-          Action
+          {t('edit.action')}
         </th>
       </tr>
     </thead>

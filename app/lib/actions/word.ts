@@ -7,6 +7,8 @@ import { revalidatePath } from 'next/cache';
 import { Word, WordToAdd } from '../definitions';
 import { countWordsToLearn, countWordsToTest } from '../data';
 import { UpdateWordResult, UpdateWordsResult } from '../types';
+import { genericErrorMessage } from '@/app/lib/i18n/action-error';
+import { getI18n } from '@/app/lib/i18n/get-i18n';
 
 export async function updateWordProgress(word: Word): Promise<UpdateWordResult> {
   const myAuth = await auth();
@@ -43,9 +45,11 @@ export async function updateWordProgress(word: Word): Promise<UpdateWordResult> 
       throw new Error(`Update rowCount is higher than 1 (${result.rowCount})`);
     }
   } catch (error) {
-    console.error(error);
     return {
-      message: `Database Error: Failed to update "${word.word}" (${word.id}) word progress. ${error}`,
+      message: await genericErrorMessage(
+        error,
+        `Failed to update word progress ${word.id}`,
+      ),
       id: word.id,
     };
   }
@@ -58,8 +62,9 @@ export const updateWordsProgress = async (words: Word[]): Promise<UpdateWordsRes
     .map((r) => r?.id)
     .filter((id): id is string => id !== undefined);
 
+  const { t } = await getI18n();
   return {
-    message: `Failed to update ${failedWordIds.length} words.`,
+    message: t('errors.updateWordsFailed', { count: failedWordIds.length }),
     failedWordIds,
   };
 };
@@ -77,7 +82,7 @@ export async function addWord(word: WordToAdd): Promise<UpdateWordResult> {
     return { id: result.rows[0].id };
   } catch (e) {
     return {
-      message: `Database Error: Failed to insert new word. ${JSON.stringify(e)}`,
+      message: await genericErrorMessage(e, 'Failed to insert new word'),
     };
   }
 }
@@ -97,16 +102,16 @@ export async function addWordBatch(words: WordToAdd[]): Promise<UpdateWordResult
     const results = await Promise.allSettled(promises);
 
     revalidatePath('/edit');
-    return results.map((r, idx) => {
+    const { t } = await getI18n();
+    return results.map((r) => {
       if (r.status === 'fulfilled') {
         return { id: r.value.rows[0].id };
       }
-      return {
-        message: `Database Error: Failed to insert new word "${JSON.stringify(words[idx])}". ${JSON.stringify(r.reason)}`,
-      };
+      console.error('Failed to insert word in batch', r.reason);
+      return { message: t('errors.generic') };
     });
   } catch (e) {
-    return [{ message: `Generic DB error: ${JSON.stringify(e)}` }];
+    return [{ message: await genericErrorMessage(e, 'Failed to insert word batch') }];
   }
 }
 
@@ -119,15 +124,16 @@ export async function deleteWord(word: Word): Promise<UpdateWordResult> {
     revalidatePath('/edit');
   } catch (e) {
     return {
-      message: `Database Error: Failed to delete the word. ${JSON.stringify(e)}`,
+      message: await genericErrorMessage(e, 'Failed to delete word'),
     };
   }
 }
 
 export async function autoLearnWords(courseId: string): Promise<UpdateWordsResult> {
+  const { t } = await getI18n();
   const myAuth = await auth();
   if (!myAuth?.user?.id) {
-    return { message: 'Not authenticated', failedWordIds: [] };
+    return { message: t('errors.notAuthenticatedShort'), failedWordIds: [] };
   }
 
   try {
@@ -150,7 +156,7 @@ export async function autoLearnWords(courseId: string): Promise<UpdateWordsResul
 
     const wordsToLearn = result.rows;
     if (wordsToLearn.length === 0) {
-      return { message: 'No words to auto-learn.', failedWordIds: [] };
+      return { message: t('errors.noWordsToAutoLearn'), failedWordIds: [] };
     }
 
     const now = Date.now();
@@ -188,18 +194,21 @@ export async function autoLearnWords(courseId: string): Promise<UpdateWordsResul
 
     if (failedWordIds.length > 0) {
       return {
-        message: `Auto-learned ${shuffled.length - failedWordIds.length} words, ${failedWordIds.length} failed.`,
+        message: t('errors.autoLearnPartial', {
+          ok: shuffled.length - failedWordIds.length,
+          failed: failedWordIds.length,
+        }),
         failedWordIds,
       };
     }
 
     return {
-      message: `Auto-learned ${shuffled.length} words successfully.`,
+      message: t('errors.autoLearnSuccess', { count: shuffled.length }),
       failedWordIds: [],
     };
   } catch (error) {
     console.error('autoLearnWords error:', error);
-    return { message: `Failed to auto-learn words: ${error}`, failedWordIds: [] };
+    return { message: t('errors.autoLearnFailed'), failedWordIds: [] };
   }
 }
 
@@ -223,7 +232,7 @@ export async function updateWord(changed: Word): Promise<UpdateWordResult> {
     await updateWordProgress(changed);
   } catch (e) {
     return {
-      message: `Database Error: Failed to update word. ${JSON.stringify(e)}`,
+      message: await genericErrorMessage(e, 'Failed to update word'),
     };
   }
 }

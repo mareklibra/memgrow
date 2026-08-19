@@ -28,8 +28,8 @@ function deserializeWord(raw: Record<string, unknown>): Word {
   } as Word;
 }
 
-/** Returns an error message on failure, or undefined on success. */
-export function savePendingBatch(batch: PendingBatch): string | undefined {
+/** Returns true on success. */
+export function savePendingBatch(batch: PendingBatch): boolean {
   const key = getBatchKey(batch.courseId, batch.isLearning);
   const payload: PendingBatch = {
     ...batch,
@@ -38,11 +38,10 @@ export function savePendingBatch(batch: PendingBatch): string | undefined {
   try {
     localStorage.setItem(key, JSON.stringify(payload));
   } catch (e) {
-    const msg = `Failed to save progress backup: ${e instanceof Error ? e.message : e}`;
-    console.error(msg);
-    return msg;
+    console.error('Failed to save progress backup:', e);
+    return false;
   }
-  return undefined;
+  return true;
 }
 
 /** Returns the batch entry, or null if not found / parse error. */
@@ -57,8 +56,8 @@ export function loadPendingBatch(key: string): PendingBatchEntry | null {
       key,
     };
   } catch (e) {
-    const msg = `Failed to load progress backup: ${e instanceof Error ? e.message : e}`;
-    console.error(msg);
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error('Failed to load progress backup:', msg);
     return null;
   }
 }
@@ -74,10 +73,10 @@ export function clearPendingBatch(key: string): void {
 /** Returns all valid pending batches and an array of errors for any that failed to load. */
 export function loadAllPendingBatches(): {
   batches: PendingBatchEntry[];
-  errors: string[];
+  hadAccessError: boolean;
 } {
   const batches: PendingBatchEntry[] = [];
-  const errors: string[] = [];
+  let hadAccessError = false;
   try {
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
@@ -89,7 +88,8 @@ export function loadAllPendingBatches(): {
       }
     }
   } catch (e) {
-    errors.push(`Failed to access localStorage: ${e instanceof Error ? e.message : e}`);
+    console.error('Failed to access localStorage:', e);
+    hadAccessError = true;
   }
-  return { batches, errors };
+  return { batches, hadAccessError };
 }
