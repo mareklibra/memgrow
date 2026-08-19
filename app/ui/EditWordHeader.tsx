@@ -15,7 +15,7 @@ const SortIndicator = ({
 }) => {
   if (column !== activeColumn) return null;
   return direction === 'asc' ? (
-    <ChevronUpIcon className="w-3 h-3 inline ml-1" />
+    <ChevronUpIcon className="h-3 w-3 inline ml-1" />
   ) : (
     <ChevronDownIcon className="w-3 h-3 inline ml-1" />
   );
