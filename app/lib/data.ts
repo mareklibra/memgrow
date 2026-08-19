@@ -1,6 +1,7 @@
 import { stringSimilarity } from 'string-similarity-js';
 import { sql } from '@/app/lib/db';
 import { User } from 'next-auth';
+import { unstable_rethrow } from 'next/navigation';
 import { auth } from '@/auth';
 import {
   Course,
@@ -440,6 +441,7 @@ export async function fetchCourses(): Promise<Course[]> {
 
     return courses;
   } catch (error) {
+    unstable_rethrow(error);
     console.error('Database Error:', error);
     throw new Error('Failed to fetch all courses.');
   }

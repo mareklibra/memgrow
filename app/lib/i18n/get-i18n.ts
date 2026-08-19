@@ -1,6 +1,7 @@
 import { auth } from '@/auth';
 import { fetchUserLocale } from '@/app/lib/data';
 import { cookies, headers } from 'next/headers';
+import { unstable_rethrow } from 'next/navigation';
 
 import { catalogs } from './translator';
 import { createTranslator, type TFunction } from './translator';
@@ -20,7 +21,8 @@ async function readCookieLocale(): Promise<string | undefined> {
   try {
     const store = await cookies();
     return store.get(LOCALE_COOKIE)?.value;
-  } catch {
+  } catch (error) {
+    unstable_rethrow(error);
     return undefined;
   }
 }
@@ -29,7 +31,8 @@ async function readAcceptLanguage(): Promise<string | null> {
   try {
     const headerStore = await headers();
     return headerStore.get('accept-language');
-  } catch {
+  } catch (error) {
+    unstable_rethrow(error);
     return null;
   }
 }
@@ -51,7 +54,8 @@ export async function getI18n(): Promise<I18n> {
         dbLocale = null;
       }
     }
-  } catch {
+  } catch (error) {
+    unstable_rethrow(error);
     // Tests and non-request contexts may not have a session.
   }
 
