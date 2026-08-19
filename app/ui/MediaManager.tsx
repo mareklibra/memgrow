@@ -20,6 +20,8 @@ import {
   TrashIcon,
 } from '@heroicons/react/24/outline';
 import { ImageGalleryDialog } from '@/app/ui/ImageGalleryDialog';
+import { useTranslation } from '@/app/lib/i18n/useTranslation';
+import { localeToBcp47 } from '@/app/lib/i18n';
 
 type MediaManagerProps = {
   courses: Course[];
@@ -45,6 +47,8 @@ export function MediaManager({
   deleteAllImages,
   deleteSound,
 }: Readonly<MediaManagerProps>) {
+  const { t, locale } = useTranslation();
+  const bcp47 = localeToBcp47(locale);
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
   const [summaries, setSummaries] = useState<WordMediaSummary[]>([]);
   const [loading, setLoading] = useState(false);
@@ -86,10 +90,10 @@ export function MediaManager({
       let cmp: number;
       switch (sortKey) {
         case 'word':
-          cmp = a.word.localeCompare(b.word);
+          cmp = a.word.localeCompare(b.word, bcp47);
           break;
         case 'definition':
-          cmp = a.definition.localeCompare(b.definition);
+          cmp = a.definition.localeCompare(b.definition, bcp47);
           break;
         case 'imageRequested':
           cmp = Number(a.imageRequested) - Number(b.imageRequested);
@@ -110,7 +114,7 @@ export function MediaManager({
       return sortDir === 'asc' ? cmp : -cmp;
     });
     return sorted;
-  }, [summaries, sortKey, sortDir]);
+  }, [summaries, sortKey, sortDir, bcp47]);
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -180,7 +184,7 @@ export function MediaManager({
       if (!res.ok || genResult.message) {
         setRowErrors((prev) => ({
           ...prev,
-          [wordId]: genResult.message ?? 'Image generation failed',
+          [wordId]: genResult.message ?? t('media.imageGenerationFailed'),
         }));
       } else {
         setSummaries((prev) =>
@@ -199,7 +203,7 @@ export function MediaManager({
     } catch (e) {
       setRowErrors((prev) => ({
         ...prev,
-        [wordId]: `Generation failed: ${e}`,
+        [wordId]: t('errors.generic'),
       }));
     } finally {
       setRowInProgress((prev) => ({ ...prev, [wordId]: false }));
@@ -260,7 +264,7 @@ export function MediaManager({
     } catch (e) {
       setRowErrors((prev) => ({
         ...prev,
-        [wordId]: `Delete failed: ${e}`,
+        [wordId]: t('errors.generic'),
       }));
     } finally {
       setRowInProgress((prev) => ({ ...prev, [wordId]: false }));
@@ -280,7 +284,7 @@ export function MediaManager({
         const text = await res.text();
         setRowErrors((prev) => ({
           ...prev,
-          [wordId]: text || 'Sound generation failed',
+          [wordId]: text || t('media.soundGenerationFailed'),
         }));
       } else {
         setSummaries((prev) =>
@@ -290,7 +294,7 @@ export function MediaManager({
     } catch (e) {
       setRowErrors((prev) => ({
         ...prev,
-        [wordId]: `Generation failed: ${e}`,
+        [wordId]: t('errors.generic'),
       }));
     } finally {
       setRowInProgress((prev) => ({ ...prev, [wordId]: false }));
@@ -329,7 +333,7 @@ export function MediaManager({
     } catch (e) {
       setRowErrors((prev) => ({
         ...prev,
-        [wordId]: `Delete failed: ${e}`,
+        [wordId]: t('errors.generic'),
       }));
     } finally {
       setRowInProgress((prev) => ({ ...prev, [wordId]: false }));
@@ -343,7 +347,7 @@ export function MediaManager({
     <div>
       <div className="mb-6">
         <label htmlFor="course-select" className={s.label}>
-          Course
+          {t('media.course')}
         </label>
         <div className="flex items-center gap-2 max-w-md">
           <select
@@ -352,7 +356,7 @@ export function MediaManager({
             onChange={(e) => handleCourseChange(e.target.value)}
             className={`${s.input} flex-1`}
           >
-            <option value="">-- Select a course --</option>
+            <option value="">{t('media.selectCourse')}</option>
             {courses.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -385,52 +389,52 @@ export function MediaManager({
                   className={`${s.th} cursor-pointer select-none`}
                   onClick={() => toggleSort('word')}
                 >
-                  Word
+                  {t('media.word')}
                   <SortIcon column="word" />
                 </th>
                 <th
                   className={`${s.th} cursor-pointer select-none`}
                   onClick={() => toggleSort('definition')}
                 >
-                  Translation
+                  {t('media.translation')}
                   <SortIcon column="definition" />
                 </th>
                 <th
                   className={`${s.th} cursor-pointer select-none`}
                   onClick={() => toggleSort('imageRequested')}
                 >
-                  Img Req
+                  {t('media.imgReq')}
                   <SortIcon column="imageRequested" />
                 </th>
                 <th
                   className={`${s.th} cursor-pointer select-none`}
                   onClick={() => toggleSort('imageCount')}
                 >
-                  Images
+                  {t('media.images')}
                   <SortIcon column="imageCount" />
                 </th>
                 <th
                   className={`${s.th} cursor-pointer select-none`}
                   onClick={() => toggleSort('totalImageSizeKb')}
                 >
-                  Img KB ({totalImageSizeKb.toLocaleString()})
+                  {t('media.imgKb', { total: totalImageSizeKb.toLocaleString(bcp47) })}
                   <SortIcon column="totalImageSizeKb" />
                 </th>
                 <th
                   className={`${s.th} cursor-pointer select-none`}
                   onClick={() => toggleSort('hasSound')}
                 >
-                  Sound
+                  {t('media.sound')}
                   <SortIcon column="hasSound" />
                 </th>
                 <th
                   className={`${s.th} cursor-pointer select-none`}
                   onClick={() => toggleSort('soundSizeKb')}
                 >
-                  Snd KB ({totalSoundSizeKb.toLocaleString()})
+                  {t('media.sndKb', { total: totalSoundSizeKb.toLocaleString(bcp47) })}
                   <SortIcon column="soundSizeKb" />
                 </th>
-                <th className={s.th}>Actions</th>
+                <th className={s.th}>{t('media.actions')}</th>
               </tr>
             </thead>
             <tbody className={s.tableDivider}>
@@ -466,7 +470,7 @@ export function MediaManager({
                   {/* Image size */}
                   <td className={`${s.td} text-right tabular-nums`}>
                     {item.totalImageSizeKb > 0
-                      ? item.totalImageSizeKb.toLocaleString()
+                      ? item.totalImageSizeKb.toLocaleString(bcp47)
                       : ''}
                   </td>
 
@@ -488,7 +492,7 @@ export function MediaManager({
 
                   {/* Sound size */}
                   <td className={`${s.td} text-right tabular-nums`}>
-                    {item.soundSizeKb > 0 ? item.soundSizeKb.toLocaleString() : ''}
+                    {item.soundSizeKb > 0 ? item.soundSizeKb.toLocaleString(bcp47) : ''}
                   </td>
 
                   {/* Actions */}
@@ -505,7 +509,7 @@ export function MediaManager({
                         ) : (
                           <PhotoIcon className="w-4 h-4" />
                         )}
-                        Gen Image
+                        {t('media.genImage')}
                       </button>
                       {item.imageCount > 0 && (
                         <button
@@ -515,7 +519,7 @@ export function MediaManager({
                           className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <TrashIcon className="w-4 h-4" />
-                          Del Images
+                          {t('media.delImages')}
                         </button>
                       )}
                       <button
@@ -529,7 +533,7 @@ export function MediaManager({
                         ) : (
                           <SpeakerWaveIcon className="w-4 h-4" />
                         )}
-                        Gen Sound
+                        {t('media.genSound')}
                       </button>
                       {item.hasSound && (
                         <button
@@ -539,7 +543,7 @@ export function MediaManager({
                           className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <TrashIcon className="w-4 h-4" />
-                          Del Sound
+                          {t('media.delSound')}
                         </button>
                       )}
                       {rowErrors[item.wordId] && (
@@ -557,7 +561,7 @@ export function MediaManager({
       )}
 
       {!loading && selectedCourseId && summaries.length === 0 && (
-        <p className="text-sm text-gray-500">No words found for this course.</p>
+        <p className="text-sm text-gray-500">{t('media.noWords')}</p>
       )}
 
       {galleryWordId && (

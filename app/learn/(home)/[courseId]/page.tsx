@@ -15,6 +15,7 @@ import {
 } from '@/app/lib/actions';
 import { getSpecialKeys } from '@/app/lib/utils';
 import { IterateWords } from '@/app/ui/IterateWords';
+import { getI18n } from '@/app/lib/i18n/get-i18n';
 
 export default async function Page({
   params,
@@ -31,13 +32,14 @@ export default async function Page({
     isOffline ? learnWordsCountLimitOffline : learnWordsCountLimit,
   );
   const words = await fetchSimilarWords(courseId, wordsToLearn, maxSimilarWords);
+  const { t } = await getI18n();
 
   return (
     <IterateWords
       words={words}
       repetitionLimit={isOffline ? learnRepetitionLimitOffline : learnRepetitionLimit}
       isLearning
-      title="Learn"
+      title={t('learn.title')}
       specialKeys={getSpecialKeys(words)}
       isOffline={isOffline}
       queryExamples={queryExamples}

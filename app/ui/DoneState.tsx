@@ -12,6 +12,8 @@ import {
 } from '@/app/lib/pending-batch';
 import { s } from '@/app/ui/styles';
 import { WordTeachingStatus } from './WordTeachingStatus';
+import { useTranslation } from '@/app/lib/i18n/useTranslation';
+import { localeToBcp47 } from '@/app/lib/i18n';
 
 interface DoneStateProps {
   words: Word[];
@@ -33,6 +35,7 @@ function RepeatCell({
   onChange,
 }: Readonly<{ date: Date; onChange: (d: Date) => void }>) {
   const [isEditing, setIsEditing] = useState(false);
+  const { locale } = useTranslation();
 
   const toInputValue = (d: Date) => {
     const pad = (n: number) => n.toString().padStart(2, '0');
@@ -63,7 +66,7 @@ function RepeatCell({
 
   return (
     <td className={clsx(s.td, 'cursor-pointer')} onClick={() => setIsEditing(true)}>
-      {date.toLocaleDateString()}
+      {date.toLocaleDateString(localeToBcp47(locale))}
     </td>
   );
 }
@@ -110,6 +113,7 @@ export function DoneState({
   storeProgress,
   isLearning,
 }: Readonly<DoneStateProps>) {
+  const { t } = useTranslation();
   const [progress, setProgress] = useState<ProgressType[]>([]);
   const [wordsToPersist, setWordsToPersist] = useState<Word[]>([]);
   const wordsToPersistRef = useRef<Word[]>([]);
@@ -123,15 +127,15 @@ export function DoneState({
 
   const doSavePendingBatch = useCallback(
     (words: Word[]) => {
-      const err = savePendingBatch({
+      const ok = savePendingBatch({
         words,
         courseId: courseId ?? '',
         isLearning: !!isLearning,
         timestamp: Date.now(),
       });
-      setLocalStorageError(err ?? null);
+      setLocalStorageError(ok ? null : t('errors.localStorageSave'));
     },
-    [courseId, isLearning],
+    [courseId, isLearning, t],
   );
 
   const doPersist = useCallback(async () => {
@@ -245,7 +249,7 @@ export function DoneState({
       {isRetrigger && (
         <div className={clsx(s.centered, 'mb-10')}>
           <Spinner className="h-6 w-6" />
-          &nbsp;Persisting...
+          &nbsp;{t('learn.persist')}
         </div>
       )}
       {localStorageError && (
@@ -260,7 +264,7 @@ export function DoneState({
             onClick={() => setIsRetrigger(true)}
             disabled={isRetrigger}
           >
-            Failed to persist {wordsToPersist.length} words. Try again.
+            {t('learn.persistFailed', { count: wordsToPersist.length })}
           </Button>
         </div>
       )}
@@ -268,22 +272,27 @@ export function DoneState({
       {!isRetrigger && hasUnsavedChanges && (
         <div className={s.centered}>
           <Button variant="outlined" onClick={handleSave}>
-            Save changes
+            {t('learn.saveChanges')}
           </Button>
         </div>
       )}
 
       {wordsToPersist.length === 0 && !hasUnsavedChanges && (
-        <div className={s.centered}>All words have been persisted.</div>
+        <div className={s.centered}>{t('learn.allPersisted')}</div>
       )}
 
       {wordsToPersist.length === 0 && !hasUnsavedChanges && (
         <div className={s.centered}>
           <Link href={`/${isLearning ? 'learn' : 'test'}/${courseId ?? ''}/next`} replace>
             <Button variant="outlined">
-              {isLearning ? 'Learn' : 'Test'} more
-              {remainingCount !== null && ` (${remainingCount})`}
-              ...
+              {remainingCount !== null
+                ? t('learn.moreWithCount', {
+                    mode: isLearning ? t('learn.title') : t('test.title'),
+                    count: remainingCount,
+                  })
+                : t('learn.more', {
+                    mode: isLearning ? t('learn.title') : t('test.title'),
+                  })}
             </Button>
           </Link>
         </div>
@@ -293,19 +302,19 @@ export function DoneState({
         <thead>
           <tr>
             <th scope="col" className={s.th}>
-              Word
+              {t('edit.word')}
             </th>
             <th scope="col" className={s.th}>
-              Definition
+              {t('edit.definition')}
             </th>
             <th scope="col" className={s.th}>
-              Status
+              {t('edit.status')}
             </th>
             <th scope="col" className={s.th}>
-              Next
+              {t('common.next')}
             </th>
             <th scope="col" className={s.th}>
-              Level
+              {t('learn.level')}
             </th>
           </tr>
         </thead>

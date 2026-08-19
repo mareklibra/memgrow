@@ -10,15 +10,17 @@ import {
 } from '@/app/lib/material-tailwind-compat';
 import { useState } from 'react';
 import { changeUserPassword } from '../lib/actions';
+import { useTranslation } from '@/app/lib/i18n/useTranslation';
 
 export function ChangePasswordCard({ userId }: { userId?: string }) {
+  const { t } = useTranslation();
   const [newPassword, setNewPassword] = useState('');
   const [retypePassword, setRetypePassword] = useState('');
   const [error, setError] = useState<string | undefined>();
   const [status, setStatus] = useState<string | undefined>();
 
   if (!userId) {
-    return <div>No user id</div>;
+    return <div>{t('settings.noUserId')}</div>;
   }
 
   const handleChangePassword = async () => {
@@ -30,7 +32,7 @@ export function ChangePasswordCard({ userId }: { userId?: string }) {
     } else {
       setNewPassword('');
       setRetypePassword('');
-      setStatus('Done');
+      setStatus(t('common.done'));
     }
   };
 
@@ -38,18 +40,18 @@ export function ChangePasswordCard({ userId }: { userId?: string }) {
     <Card className="w-96 h-fit" variant="gradient" shadow={true}>
       <CardBody className="flex flex-col gap-4">
         <Typography variant="small" className="font-normal uppercase">
-          Change Password
+          {t('settings.changePassword')}
         </Typography>
 
         <Input
-          label="New password"
+          label={t('settings.newPassword')}
           value={newPassword}
           size="lg"
           onChange={(e) => setNewPassword(e.target.value)}
           minLength={6}
         />
         <Input
-          label="Retype"
+          label={t('settings.retype')}
           value={retypePassword}
           size="lg"
           error={newPassword !== retypePassword}
@@ -75,7 +77,7 @@ export function ChangePasswordCard({ userId }: { userId?: string }) {
           disabled={!newPassword || newPassword !== retypePassword}
           onClick={handleChangePassword}
         >
-          Change
+          {t('settings.change')}
         </Button>
       </CardFooter>
     </Card>

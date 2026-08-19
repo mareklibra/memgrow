@@ -71,9 +71,9 @@ describe('getBatchKey', () => {
 });
 
 describe('savePendingBatch', () => {
-  it('saves a batch and returns undefined on success', () => {
+  it('saves a batch and returns true on success', () => {
     const result = savePendingBatch(makeBatch());
-    expect(result).toBeUndefined();
+    expect(result).toBe(true);
     expect(storage.size).toBe(1);
 
     const key = getBatchKey('c1', true);
@@ -101,15 +101,14 @@ describe('savePendingBatch', () => {
     expect(stored.words[0].repeatAgain).toBe('2025-01-15T10:30:00.000Z');
   });
 
-  it('returns error message when localStorage throws', () => {
+  it('returns false when localStorage throws', () => {
     const original = localStorageMock.setItem;
     localStorageMock.setItem = () => {
       throw new Error('QuotaExceededError');
     };
 
     const result = savePendingBatch(makeBatch());
-    expect(result).toContain('QuotaExceededError');
-    expect(result).toContain('Failed to save progress backup');
+    expect(result).toBe(false);
 
     localStorageMock.setItem = original;
   });
@@ -205,9 +204,9 @@ describe('clearPendingBatch', () => {
 
 describe('loadAllPendingBatches', () => {
   it('returns empty when no batches exist', () => {
-    const { batches, errors } = loadAllPendingBatches();
+    const { batches, hadAccessError } = loadAllPendingBatches();
     expect(batches).toEqual([]);
-    expect(errors).toEqual([]);
+    expect(hadAccessError).toBe(false);
   });
 
   it('ignores non-memgrow localStorage keys', () => {
@@ -240,8 +239,8 @@ describe('loadAllPendingBatches', () => {
       }),
     );
 
-    const { batches, errors } = loadAllPendingBatches();
-    expect(errors).toEqual([]);
+    const { batches, hadAccessError } = loadAllPendingBatches();
+    expect(hadAccessError).toBe(false);
     expect(batches).toHaveLength(3);
 
     const keys = batches.map((b) => b.key).sort();

@@ -22,6 +22,7 @@ import { WordPictures, WordPicturesProps } from './WordPictures';
 import { FORM_CORRECT_ANSWER } from '../lib/form-config';
 import { assertNever } from '../lib/utils';
 import { RequestImageResult } from '../lib/types';
+import { useTranslation } from '@/app/lib/i18n/useTranslation';
 
 interface TeachWordProps {
   word: WordWithMeta;
@@ -60,6 +61,7 @@ export function TeachWord({
   skipWord,
   onPreviewMemLevel,
 }: Readonly<TeachWordProps>) {
+  const { t } = useTranslation();
   const [status, setStatus] = useState<FieldStatus>('normal');
   const [isAnyText, setIsAnyText] = useState<boolean>(false);
   const [isEdit, setIsEdit] = useState<boolean>(false);
@@ -281,11 +283,7 @@ export function TeachWord({
             </div>
           </div>
         )}
-        {isSkipped && (
-          <div className="text-center">
-            The word will be skipped from your further learning.
-          </div>
-        )}
+        {isSkipped && <div className="text-center">{t('learn.skipped')}</div>}
 
         <div className="py-5 w-full">
           <WordExamples
@@ -300,12 +298,12 @@ export function TeachWord({
             {word.isPriority ? (
               <>
                 <BoltSlashIcon className="w-5" />
-                &nbsp;Remove priority
+                &nbsp;{t('learn.removePriority')}
               </>
             ) : (
               <>
                 <BoltIcon className="w-5" />
-                &nbsp;Set priority
+                &nbsp;{t('learn.setPriority')}
               </>
             )}
           </Button>
@@ -317,7 +315,7 @@ export function TeachWord({
               }}
               type="button"
             >
-              Skip from learning
+              {t('learn.skipFromLearning')}
             </Button>
           )}
           {isSkipped && (
@@ -327,7 +325,7 @@ export function TeachWord({
               }}
               type="button"
             >
-              Keep learning it
+              {t('learn.keepLearning')}
             </Button>
           )}
         </div>
@@ -336,7 +334,7 @@ export function TeachWord({
 
         <div className="flex justify-between">
           <Button onClick={editWord} type="button">
-            Edit
+            {t('common.edit')}
           </Button>
 
           <Button
@@ -344,7 +342,7 @@ export function TeachWord({
             disabled={isCheckButtonDisabled}
             type="button"
           >
-            {word.form === 'show' ? 'Next' : 'Check'}
+            {word.form === 'show' ? t('common.next') : t('common.check')}
           </Button>
         </div>
 

@@ -12,6 +12,8 @@ import {
   SuggestTranslationResult,
 } from '../types';
 import { EXAMPLE_AI_REQUEST_COUNT, OPENAI_MODEL } from '../../constants';
+import { genericErrorMessage } from '@/app/lib/i18n/action-error';
+import { getI18n } from '@/app/lib/i18n/get-i18n';
 
 let client: OpenAI | undefined;
 try {
@@ -47,7 +49,7 @@ export async function insertExamples(
     };
   } catch (e) {
     return {
-      message: `Database Error: Failed to insert new example. ${JSON.stringify(e)}`,
+      message: await genericErrorMessage(e, 'Failed to insert examples'),
     };
   }
 }
@@ -64,15 +66,16 @@ export async function deleteWordExample(
     return undefined;
   } catch (e) {
     return {
-      message: `Database Error: Failed to delete example. ${JSON.stringify({ wordId, example, e })}`,
+      message: await genericErrorMessage(e, 'Failed to delete example'),
     };
   }
 }
 
 const getLLMResponse = async (prompt: string): Promise<string | { message: string }> => {
+  const { t } = await getI18n();
   if (!client) {
     return {
-      message: 'OpenAI Client not initialized',
+      message: t('errors.openaiNotInitialized'),
     };
   }
 
@@ -92,36 +95,40 @@ const getLLMResponse = async (prompt: string): Promise<string | { message: strin
   const content = response.choices[0].message.content?.trim();
   if (!content) {
     return {
-      message: 'No content returned from OpenAI',
+      message: t('errors.openaiNoContent'),
     };
   }
   return content;
 };
 
 export async function getWordExamples(wordId: string): Promise<GetWordExamplesResult> {
+  const { t } = await getI18n();
   if (!client) {
     return {
-      message: 'OpenAI Client not initialized',
+      message: t('errors.openaiNotInitialized'),
     };
   }
 
   if (!wordId) {
     return {
-      message: 'wordId is required',
+      message: t('errors.wordIdRequired'),
     };
   }
 
   const wordWithExamples = await fetchExamples({ wordId });
   if (!wordWithExamples) {
     return {
-      message: `Word not found, id: ${wordId}`,
+      message: t('errors.wordNotFound', { id: wordId }),
     };
   }
 
   const course = await fetchCourse(wordWithExamples.courseId);
   if (!course) {
     return {
-      message: `Course not found, id: ${wordWithExamples.courseId} for word: ${wordId}`,
+      message: t('errors.courseNotFoundForWord', {
+        courseId: wordWithExamples.courseId,
+        wordId,
+      }),
     };
   }
 
@@ -188,22 +195,23 @@ export async function getWordExamplesRaw({
   word,
   courseId,
 }: GetWordExamplesRawProps): Promise<GetWordExamplesRawResult> {
+  const { t } = await getI18n();
   if (!client) {
     return {
-      message: 'OpenAI Client not initialized',
+      message: t('errors.openaiNotInitialized'),
     };
   }
 
   if (!word) {
     return {
-      message: 'word is required',
+      message: t('errors.wordRequired'),
     };
   }
 
   const course = await fetchCourse(courseId);
   if (!course) {
     return {
-      message: `Course not found, id: ${courseId}`,
+      message: t('errors.courseNotFound', { id: courseId }),
     };
   }
 
@@ -252,16 +260,17 @@ export async function suggestTranslation({
   word,
   courseId,
 }: SuggestTranslationProps): Promise<SuggestTranslationResult> {
+  const { t } = await getI18n();
   if (!client) {
     return {
-      message: 'OpenAI Client not initialized',
+      message: t('errors.openaiNotInitialized'),
     };
   }
 
   const course = await fetchCourse(courseId);
   if (!course) {
     return {
-      message: `Course not found, id: ${courseId}.`,
+      message: t('errors.courseNotFoundDot', { id: courseId }),
     };
   }
 
@@ -288,14 +297,16 @@ export async function suggestTranslation({
   console.log('Received translation content: ', content);
   if (!content) {
     return {
-      message: 'No content returned from OpenAI',
+      message: t('errors.openaiNoContent'),
     };
   }
 
   const translations = content.split('\n').map((e) => e.trim());
   const translationsDeduplicated = Array.from(
     new Map(
-      translations.filter((t) => t.length > 0).map((t) => [t.toLowerCase(), t]),
+      translations
+        .filter((line) => line.length > 0)
+        .map((line) => [line.toLowerCase(), line]),
     ).values(),
   );
 
@@ -308,16 +319,17 @@ export async function reverseTranslation({
   word,
   courseId,
 }: SuggestTranslationProps): Promise<SuggestTranslationResult> {
+  const { t } = await getI18n();
   if (!client) {
     return {
-      message: 'OpenAI Client not initialized',
+      message: t('errors.openaiNotInitialized'),
     };
   }
 
   const course = await fetchCourse(courseId);
   if (!course) {
     return {
-      message: `Course not found, id: ${courseId}.`,
+      message: t('errors.courseNotFoundDot', { id: courseId }),
     };
   }
 
@@ -344,14 +356,16 @@ export async function reverseTranslation({
   console.log('Received reverse translation content: ', content);
   if (!content) {
     return {
-      message: 'No content returned from OpenAI',
+      message: t('errors.openaiNoContent'),
     };
   }
 
   const translations = content.split('\n').map((e) => e.trim());
   const translationsDeduplicated = Array.from(
     new Map(
-      translations.filter((t) => t.length > 0).map((t) => [t.toLowerCase(), t]),
+      translations
+        .filter((line) => line.length > 0)
+        .map((line) => [line.toLowerCase(), line]),
     ).values(),
   );
 
@@ -365,9 +379,8 @@ export const queryReverseTranslation = async (args: SuggestTranslationProps) => 
   try {
     return await reverseTranslation(args);
   } catch (e) {
-    console.error('Error in queryReverseTranslation: ', e);
     return {
-      message: `Error in queryReverseTranslation: ${JSON.stringify(e)}`,
+      message: await genericErrorMessage(e, 'Error in queryReverseTranslation'),
     };
   }
 };
@@ -392,9 +405,8 @@ export const queryTranslations = async (args: SuggestTranslationProps) => {
   try {
     return await suggestTranslation(args);
   } catch (e) {
-    console.error('Error in queryTranslations: ', e);
     return {
-      message: `Error in queryTranslations: ${JSON.stringify(e)}`,
+      message: await genericErrorMessage(e, 'Error in queryTranslations'),
     };
   }
 };

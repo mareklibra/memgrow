@@ -6,6 +6,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { DeleteImageResult } from '../lib/types';
 import { Typography } from '@/app/lib/material-tailwind-compat';
+import { useTranslation } from '@/app/lib/i18n/useTranslation';
 
 export type WordPicturesProps = {
   wordId: string;
@@ -20,6 +21,7 @@ export const WordPictures = ({
   queryImages,
   deleteImage,
 }: Readonly<WordPicturesProps>) => {
+  const { t } = useTranslation();
   const [images, setImages] = useState<{ id: string; createdAt: Date }[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | undefined>();
@@ -73,7 +75,11 @@ export const WordPictures = ({
   }
 
   if (error) {
-    return <Typography className="text-red-500 text-sm">Error: {error}</Typography>;
+    return (
+      <Typography className="text-red-500 text-sm">
+        {t('common.errorPrefix', { message: error })}
+      </Typography>
+    );
   }
 
   if (images.length === 0) {
@@ -87,7 +93,7 @@ export const WordPictures = ({
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={`/api/image/word/${currentImage.id}`}
-        alt="Word illustration"
+        alt={t('learn.wordIllustration')}
         className="max-w-full max-h-64 rounded-lg object-contain"
       />
       <div className="flex items-center gap-3">

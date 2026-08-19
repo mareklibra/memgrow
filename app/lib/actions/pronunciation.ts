@@ -2,6 +2,7 @@
 
 import { sql } from '@/app/lib/db';
 import { DeleteSoundResult } from '../types';
+import { genericErrorMessage } from '@/app/lib/i18n/action-error';
 
 export async function insertPronunciation(wordId: string, content: Buffer) {
   const result = await sql.query(
@@ -20,7 +21,7 @@ export async function deletePronunciation(wordId: string): Promise<DeleteSoundRe
     return undefined;
   } catch (e) {
     return {
-      message: `Database Error: Failed to delete sound. ${JSON.stringify(e)}`,
+      message: await genericErrorMessage(e, 'Failed to delete sound'),
     };
   }
 }

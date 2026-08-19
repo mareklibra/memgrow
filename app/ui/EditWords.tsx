@@ -10,6 +10,8 @@ import { BatchImport } from './BatchImport';
 import { SearchBar } from './SearchBar';
 import { getWordSimilarity } from '../lib/utils';
 import { s } from '@/app/ui/styles';
+import { useTranslation } from '@/app/lib/i18n/useTranslation';
+import { localeToBcp47 } from '@/app/lib/i18n';
 
 export type EditWordsProps = {
   words: Word[];
@@ -35,6 +37,8 @@ export function EditWords({
   const setSearchThrottled = useThrottledCallback(setSearch, SEARCH_DELAY_MS);
   const [sortColumn, setSortColumn] = useState<SortColumn>('word');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const { locale } = useTranslation();
+  const bcp47 = localeToBcp47(locale);
 
   const enriched = useMemo(() => {
     if (!isEnriched) return {};
@@ -53,12 +57,12 @@ export function EditWords({
         case 'similarity': {
           const sa = enriched[a.id]?.similarity ?? 0;
           const sb = enriched[b.id]?.similarity ?? 0;
-          return (sb - sa) * dir || a.word.localeCompare(b.word);
+          return (sb - sa) * dir || a.word.localeCompare(b.word, bcp47);
         }
         case 'word':
-          return a.word.localeCompare(b.word) * dir;
+          return a.word.localeCompare(b.word, bcp47) * dir;
         case 'definition':
-          return a.definition.localeCompare(b.definition) * dir;
+          return a.definition.localeCompare(b.definition, bcp47) * dir;
         case 'memLevel':
           return (a.memLevel - b.memLevel) * dir;
         case 'form': {
@@ -85,7 +89,7 @@ export function EditWords({
     return words
       .filter((w) => w.word.includes(search) || w.definition.includes(search))
       .sort(compareFn);
-  }, [words, enriched, search, sortColumn, sortDirection]);
+  }, [words, enriched, search, sortColumn, sortDirection, bcp47]);
 
   const handleSort = (column: SortColumn) => {
     if (column === sortColumn) {

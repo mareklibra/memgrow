@@ -6,6 +6,7 @@ import { ArrowPathIcon, ChevronDoubleRightIcon } from '@heroicons/react/24/outli
 import { Switch } from '@/app/lib/material-tailwind-compat';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useTranslation } from '@/app/lib/i18n/useTranslation';
 
 const Course = ({
   course,
@@ -25,6 +26,7 @@ const Course = ({
   const [isPriorityFirst, setIsPriorityFirst] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
   const [navigating, setNavigating] = useState(false);
+  const { t } = useTranslation();
 
   let link = `${pathPrefix}/${course.id}`;
   if (showPriority) {
@@ -55,22 +57,32 @@ const Course = ({
               src={`/${course.courseCode}_flag.svg`}
               width={20}
               height={20}
-              alt={`${course.learningLang} (${course.courseCode}) flag`}
+              alt={t('course.flagAlt', {
+                learning: course.learningLang,
+                code: course.courseCode,
+              })}
             />
           </h5>
           <p className="text-slate-600 leading-normal font-light">
-            Learning {course.learningLang} from {course.knownLang}
+            {t('course.learningFrom', {
+              learning: course.learningLang,
+              known: course.knownLang,
+            })}
           </p>
         </Link>
 
         <p className="text-slate-600 leading-normal font-light text-xs">
-          {course.toTest} to refresh, {course.toLearn} new to learn, {course.total} total
+          {t('course.stats', {
+            toTest: course.toTest,
+            toLearn: course.toLearn,
+            total: course.total,
+          })}
         </p>
 
         <div className="flex justify-between mt-3">
           {showPriority && (
             <Switch
-              label={`Priorities (${course.withPriority})`}
+              label={t('course.priorities', { count: course.withPriority })}
               checked={isPriorityFirst}
               onChange={() => setIsPriorityFirst(!isPriorityFirst)}
               disabled={course.withPriority <= 0}
@@ -79,7 +91,7 @@ const Course = ({
 
           {showForOffline && (
             <Switch
-              label="Batch mode"
+              label={t('course.batchMode')}
               checked={isOffline}
               onChange={() => setIsOffline(!isOffline)}
             />
@@ -88,7 +100,7 @@ const Course = ({
 
         {showFastEntry && (
           <div className="flex justify-end mt-2">
-            <Link href={`/edit/fastentry/${course.id}`}>&gt;&gt; Fast entry</Link>
+            <Link href={`/edit/fastentry/${course.id}`}>{t('course.fastEntry')}</Link>
           </div>
         )}
 
@@ -98,7 +110,7 @@ const Course = ({
               href={`/test/simulate/${course.id}`}
               className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
             >
-              Simulate progress &raquo;
+              {t('course.simulateProgress')}
             </Link>
           </div>
         )}
@@ -123,6 +135,7 @@ export const ChooseCourse = ({
   showSimulate?: boolean;
 }) => {
   const [showAll, setShowAll] = useState(false);
+  const { t } = useTranslation();
 
   const visibleCourses = showAll
     ? courses
@@ -131,7 +144,11 @@ export const ChooseCourse = ({
   return (
     <div className="w-10/12" id="choose-course">
       <div className="flex justify-end mb-2">
-        <Switch label="All" checked={showAll} onChange={() => setShowAll(!showAll)} />
+        <Switch
+          label={t('course.all')}
+          checked={showAll}
+          onChange={() => setShowAll(!showAll)}
+        />
       </div>
       <div className="flex flex-wrap">
         {visibleCourses.map((course) => (

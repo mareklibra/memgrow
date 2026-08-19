@@ -4,6 +4,7 @@ export type User = {
   email: string;
   password: string;
   is_admin: boolean;
+  locale: string | null;
 };
 
 export const TEACHING_FORMS = [

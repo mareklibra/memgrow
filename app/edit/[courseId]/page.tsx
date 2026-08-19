@@ -7,6 +7,7 @@ import { EditCourse } from '@/app/ui/EditCourse';
 import { AutoLearnButton } from '@/app/ui/AutoLearnButton';
 import { updateCourse, upsertCoursePriority } from '@/app/lib/actions';
 import { revalidatePath } from 'next/cache';
+import { getI18n } from '@/app/lib/i18n/get-i18n';
 
 export default async function Page({
   params,
@@ -14,12 +15,17 @@ export default async function Page({
   params: Promise<{ courseId: string }>;
 }) {
   const { courseId } = await params;
+  const { t } = await getI18n();
   if (!courseId) {
     return (
       <>
-        <h1 className={`${lusitana.className} ${s.pageTitle}`}>Missing course</h1>
+        <h1 className={`${lusitana.className} ${s.pageTitle}`}>
+          {t('edit.missingCourse')}
+        </h1>
         <p>
-          Go to <Link href="/edit">edit</Link> to choose course.
+          {t('edit.goToEditBefore')}
+          <Link href="/edit">{t('edit.editLink')}</Link>
+          {t('edit.goToEditAfter')}
         </p>
       </>
     );
@@ -29,9 +35,13 @@ export default async function Page({
   if (!course) {
     return (
       <>
-        <h1 className={`${lusitana.className} ${s.pageTitle}`}>Missing course</h1>
+        <h1 className={`${lusitana.className} ${s.pageTitle}`}>
+          {t('edit.missingCourse')}
+        </h1>
         <p>
-          Go to <Link href="/edit">edit</Link> to choose a course.
+          {t('edit.goToEditBefore')}
+          <Link href="/edit">{t('edit.editLink')}</Link>
+          {t('edit.goToEditAfterA')}
         </p>
       </>
     );
@@ -61,13 +71,17 @@ export default async function Page({
   return (
     <>
       <h1 className={`${lusitana.className} ${s.pageTitle}`}>
-        All words ({words.length}) of course {course.name} ({course.courseCode})
+        {t('edit.allWords', {
+          count: words.length,
+          name: course.name,
+          code: course.courseCode,
+        })}
       </h1>
       <AutoLearnButton courseId={courseId} toLearnCount={toLearnCount} className="mr-4" />
       <EditWords words={words} courseId={courseId} forceDbReload={forceDbReload} />
       <hr className={s.sectionSeparator} />
       <h2 className={`${lusitana.className} text-xl font-semibold mb-4`}>
-        Configuration
+        {t('edit.configuration')}
       </h2>
       <EditCourse course={course} priority={priority} onSave={handleSave} />
     </>

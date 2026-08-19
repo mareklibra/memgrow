@@ -4,6 +4,7 @@ import { s } from '@/app/ui/styles';
 import { SimulateProgress } from '@/app/ui/SimulateProgress';
 import type { SimulationWord } from '@/app/lib/simulate';
 import Link from 'next/link';
+import { getI18n } from '@/app/lib/i18n/get-i18n';
 
 export default async function Page({
   params,
@@ -11,6 +12,7 @@ export default async function Page({
   params: Promise<{ courseId: string }>;
 }) {
   const { courseId } = await params;
+  const { t } = await getI18n();
   const [course, allWords] = await Promise.all([
     fetchCourse(courseId),
     fetchAllWords(courseId),
@@ -26,10 +28,10 @@ export default async function Page({
   return (
     <div className={s.pageContainer}>
       <Link href="/test" className="text-sm text-blue-600 hover:underline">
-        &laquo; Back to courses
+        {t('test.backToCourses')}
       </Link>
       <h1 className={`${lusitana.className} mt-2 ${s.pageTitle}`}>
-        Simulate progress: {course?.name}
+        {t('test.simulateTitle', { name: course?.name ?? '' })}
       </h1>
       <SimulateProgress words={wordsForSimulation} />
     </div>

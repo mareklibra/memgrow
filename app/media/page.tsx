@@ -11,9 +11,11 @@ import { lusitana } from '@/app/ui/fonts';
 import { s } from '@/app/ui/styles';
 import { MediaManager } from '@/app/ui/MediaManager';
 import { WordMediaSummary } from '@/app/lib/types';
+import { getI18n } from '@/app/lib/i18n/get-i18n';
 
 export default async function Page() {
   const courses = await fetchCourses();
+  const { t } = await getI18n();
 
   const fetchSummaries = async (courseId: string): Promise<WordMediaSummary[]> => {
     'use server';
@@ -35,13 +37,15 @@ export default async function Page() {
     try {
       await deletePronunciation(wordId);
     } catch (e) {
-      return { message: `Delete failed: ${e}` };
+      console.error(e);
+      const { t: translate } = await getI18n();
+      return { message: translate('errors.generic') };
     }
   };
 
   return (
     <div className={s.pageContainer}>
-      <h1 className={`${lusitana.className} ${s.pageTitle}`}>Media Management</h1>
+      <h1 className={`${lusitana.className} ${s.pageTitle}`}>{t('media.title')}</h1>
       <MediaManager
         courses={courses}
         fetchSummaries={fetchSummaries}

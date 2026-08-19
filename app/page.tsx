@@ -3,9 +3,11 @@ import Link from 'next/link';
 
 import { auth } from '@/auth';
 import { lusitana } from './ui/fonts';
+import { getI18n } from '@/app/lib/i18n/get-i18n';
 
 export default async function Page() {
   const myAuth = await auth();
+  const { t } = await getI18n();
   const isLoggedIn = !!myAuth;
 
   return (
@@ -15,14 +17,14 @@ export default async function Page() {
           <p
             className={`text-xl text-gray-800 md:text-3xl md:leading-normal ${lusitana.className}`}
           >
-            <strong>Welcome to the MemGrow app</strong>
+            <strong>{t('home.welcome')}</strong>
           </p>
           {!isLoggedIn && (
             <Link
               href="/login"
               className="flex items-center gap-5 self-start rounded-lg bg-blue-500 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-400 md:text-base"
             >
-              <span>Log in</span> <ArrowRightIcon className="w-5 md:w-6" />
+              <span>{t('home.logIn')}</span> <ArrowRightIcon className="w-5 md:w-6" />
             </Link>
           )}
         </div>
