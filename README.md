@@ -256,3 +256,4 @@ and is not subject to the same org policy.
 3. Set `GEMINI_API_KEY` in `.env` to the generated key.
 4. Set `IMAGE_PROVIDER=gemini` in `.env`. Defaults to the
    `gemini-2.5-flash-image` model; override with `LLM_MODEL` if needed.
+
