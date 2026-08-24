@@ -9,4 +9,6 @@ export const mockAuthUser = {
 // Must be at module level for vi.mock to be hoisted
 vi.mock('@/auth', () => ({
   auth: vi.fn().mockResolvedValue({ user: mockAuthUser }),
+  signIn: vi.fn(),
+  signOut: vi.fn(),
 }));

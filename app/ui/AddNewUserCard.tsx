@@ -9,28 +9,41 @@ import {
   Button,
 } from '@/app/lib/material-tailwind-compat';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { addNewUser } from '../lib/actions';
 import { useTranslation } from '@/app/lib/i18n/useTranslation';
+import { PASSWORD_MIN_LENGTH } from '@/app/constants';
 
 export function AddNewUserCard() {
   const { t } = useTranslation();
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [retypePassword, setRetypePassword] = useState('');
   const [error, setError] = useState<string | undefined>();
   const [status, setStatus] = useState<string | undefined>();
+  const [submitting, setSubmitting] = useState(false);
 
   const handleAddNewUser = async () => {
+    if (submitting) return;
     setError(undefined);
     setStatus(undefined);
-    const result = await addNewUser({ name, email, password });
-    if (result?.message) {
-      setError(result.message);
-    } else {
-      setPassword('');
-      setRetypePassword('');
-      setStatus(t('common.done'));
+    setSubmitting(true);
+    try {
+      const result = await addNewUser({ name, email, password });
+      if (result?.message) {
+        setError(result.message);
+      } else {
+        setName('');
+        setEmail('');
+        setPassword('');
+        setRetypePassword('');
+        setStatus(t('common.done'));
+        router.refresh();
+      }
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -57,13 +70,15 @@ export function AddNewUserCard() {
         />
 
         <Input
+          type="password"
           label={t('settings.newPassword')}
           value={password}
           size="lg"
           onChange={(e) => setPassword(e.target.value)}
-          minLength={6}
+          minLength={PASSWORD_MIN_LENGTH}
         />
         <Input
+          type="password"
           label={t('settings.retype')}
           value={retypePassword}
           size="lg"
@@ -87,7 +102,14 @@ export function AddNewUserCard() {
         <Button
           variant="gradient"
           fullWidth
-          disabled={!name || !email || !password || password !== retypePassword}
+          disabled={
+            submitting ||
+            !name ||
+            !email ||
+            !password ||
+            password !== retypePassword ||
+            password.length < PASSWORD_MIN_LENGTH
+          }
           onClick={handleAddNewUser}
         >
           {t('common.create')}

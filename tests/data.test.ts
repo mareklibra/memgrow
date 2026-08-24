@@ -1,5 +1,6 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  fetchAllUsers,
   fetchAllWords,
   fetchCourse,
   fetchCourses,
@@ -10,6 +11,7 @@ import {
   fetchWordsToTest,
   getUserForAuth,
 } from '@/app/lib/data';
+import { auth } from '@/auth';
 import { truncateAll } from './setup/db';
 import {
   createTestCourse,
@@ -17,6 +19,7 @@ import {
   createTestUserProgress,
   createTestWord,
 } from './fixtures/factories';
+import { mockAuthUser } from './setup/auth-mock';
 
 describe('data', () => {
   beforeEach(async () => {
@@ -39,6 +42,40 @@ describe('data', () => {
     it('returns undefined when user does not exist', async () => {
       const user = await getUserForAuth('nonexistent@test.com');
       expect(user).toBeUndefined();
+    });
+  });
+
+  describe('fetchAllUsers', () => {
+    afterEach(() => {
+      vi.mocked(auth).mockResolvedValue({ user: mockAuthUser } as never);
+    });
+
+    it('returns all users without passwords when caller is admin', async () => {
+      await createTestUser({ is_admin: true, name: 'Admin' });
+      await createTestUser({
+        id: crypto.randomUUID(),
+        name: 'Beta',
+        email: 'beta@test.com',
+        is_admin: false,
+      });
+
+      const users = await fetchAllUsers();
+      expect(users.map((u) => u.name)).toEqual(['Admin', 'Beta']);
+      expect(users.every((u) => !('password' in u))).toBe(true);
+      expect(users[0]).toMatchObject({ is_admin: true });
+      expect(users[1]).toMatchObject({ is_admin: false });
+      expect(users[0].created_at).toBeDefined();
+    });
+
+    it('returns empty array when caller is not admin', async () => {
+      await createTestUser({ is_admin: false });
+      expect(await fetchAllUsers()).toEqual([]);
+    });
+
+    it('returns empty array when unauthenticated', async () => {
+      vi.mocked(auth).mockResolvedValue(null as never);
+      await createTestUser({ is_admin: true });
+      expect(await fetchAllUsers()).toEqual([]);
     });
   });
 

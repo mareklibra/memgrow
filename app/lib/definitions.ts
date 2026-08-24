@@ -7,6 +7,14 @@ export type User = {
   locale: string | null;
 };
 
+export type UserListItem = {
+  id: string;
+  name: string;
+  email: string;
+  is_admin: boolean;
+  created_at: Date | string;
+};
+
 export const TEACHING_FORMS = [
   'show',
   'choose_4_word',

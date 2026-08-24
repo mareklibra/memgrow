@@ -9,27 +9,26 @@ import {
   Button,
 } from '@/app/lib/material-tailwind-compat';
 import { useState } from 'react';
-import { changeUserPassword } from '../lib/actions';
+import { changeOwnPassword } from '../lib/actions';
 import { useTranslation } from '@/app/lib/i18n/useTranslation';
+import { PASSWORD_MIN_LENGTH } from '@/app/constants';
 
-export function ChangePasswordCard({ userId }: { userId?: string }) {
+export function ChangePasswordCard() {
   const { t } = useTranslation();
+  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [retypePassword, setRetypePassword] = useState('');
   const [error, setError] = useState<string | undefined>();
   const [status, setStatus] = useState<string | undefined>();
 
-  if (!userId) {
-    return <div>{t('settings.noUserId')}</div>;
-  }
-
   const handleChangePassword = async () => {
     setError(undefined);
     setStatus(undefined);
-    const result = await changeUserPassword(userId, newPassword);
+    const result = await changeOwnPassword(currentPassword, newPassword);
     if (result?.message) {
       setError(result.message);
     } else {
+      setCurrentPassword('');
       setNewPassword('');
       setRetypePassword('');
       setStatus(t('common.done'));
@@ -44,13 +43,22 @@ export function ChangePasswordCard({ userId }: { userId?: string }) {
         </Typography>
 
         <Input
+          type="password"
+          label={t('settings.currentPassword')}
+          value={currentPassword}
+          size="lg"
+          onChange={(e) => setCurrentPassword(e.target.value)}
+        />
+        <Input
+          type="password"
           label={t('settings.newPassword')}
           value={newPassword}
           size="lg"
           onChange={(e) => setNewPassword(e.target.value)}
-          minLength={6}
+          minLength={PASSWORD_MIN_LENGTH}
         />
         <Input
+          type="password"
           label={t('settings.retype')}
           value={retypePassword}
           size="lg"
@@ -74,7 +82,12 @@ export function ChangePasswordCard({ userId }: { userId?: string }) {
         <Button
           variant="gradient"
           fullWidth
-          disabled={!newPassword || newPassword !== retypePassword}
+          disabled={
+            !currentPassword ||
+            !newPassword ||
+            newPassword !== retypePassword ||
+            newPassword.length < PASSWORD_MIN_LENGTH
+          }
           onClick={handleChangePassword}
         >
           {t('settings.change')}
