@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import { s } from '@/app/ui/styles';
@@ -9,12 +9,14 @@ import { useTranslation } from '@/app/lib/i18n/useTranslation';
 interface ConfirmationDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void | Promise<void>;
+  onConfirm: () => void | boolean | Promise<void | boolean>;
   title: string;
-  message: string;
+  message?: string;
   confirmText?: string;
   cancelText?: string;
   variant?: 'danger' | 'warning' | 'info';
+  children?: ReactNode;
+  confirmDisabled?: boolean;
 }
 
 export default function ConfirmationDialog({
@@ -26,6 +28,8 @@ export default function ConfirmationDialog({
   confirmText,
   cancelText,
   variant = 'info',
+  children,
+  confirmDisabled = false,
 }: ConfirmationDialogProps) {
   const { t } = useTranslation();
   const resolvedConfirm = confirmText ?? t('common.confirm');
@@ -56,9 +60,11 @@ export default function ConfirmationDialog({
       document.addEventListener('mousedown', handleClickOutside);
       document.body.style.overflow = 'hidden';
 
-      setTimeout(() => {
-        confirmButtonRef.current?.focus();
-      }, 100);
+      if (!children) {
+        setTimeout(() => {
+          confirmButtonRef.current?.focus();
+        }, 100);
+      }
     }
 
     return () => {
@@ -66,7 +72,7 @@ export default function ConfirmationDialog({
       document.removeEventListener('mousedown', handleClickOutside);
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen, close]);
+  }, [isOpen, close, children]);
 
   useEffect(() => {
     if (!isOpen) setProcessing(false);
@@ -75,13 +81,14 @@ export default function ConfirmationDialog({
   if (!isOpen) return null;
 
   const handleConfirm = async () => {
-    if (processing) return;
+    if (processing || confirmDisabled) return;
     setProcessing(true);
     try {
-      await onConfirm();
+      const result = await onConfirm();
+      if (result === false) return;
+      onClose();
     } finally {
       setProcessing(false);
-      onClose();
     }
   };
 
@@ -116,22 +123,20 @@ export default function ConfirmationDialog({
   };
 
   const variantStyles = getVariantStyles();
+  const describedBy = message ? 'dialog-description' : undefined;
 
   return (
     <div className={s.dialogOverlay}>
-      {/* Backdrop */}
       <div className={s.dialogBackdrop} />
 
-      {/* Dialog */}
       <div
         ref={dialogRef}
         className={s.dialogPanel}
         role="dialog"
         aria-modal="true"
         aria-labelledby="dialog-title"
-        aria-describedby="dialog-description"
+        aria-describedby={describedBy}
       >
-        {/* Close button */}
         <div className="absolute right-0 top-0 pr-4 pt-4">
           <button
             type="button"
@@ -144,38 +149,37 @@ export default function ConfirmationDialog({
           </button>
         </div>
 
-        {/* Content */}
         <div className="sm:flex sm:items-start">
-          {/* Icon */}
           <div className="mx-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-100 sm:mx-0 sm:h-10 sm:w-10">
             <span className="text-2xl" aria-hidden="true">
               {variantStyles.icon}
             </span>
           </div>
 
-          {/* Text content */}
-          <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+          <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left grow">
             <h3 className={s.dialogTitle} id="dialog-title">
               {title}
             </h3>
-            <div className="mt-2">
-              <p className={s.dialogDescription} id="dialog-description">
-                {message}
-              </p>
-            </div>
+            {message ? (
+              <div className="mt-2">
+                <p className={s.dialogDescription} id="dialog-description">
+                  {message}
+                </p>
+              </div>
+            ) : null}
+            {children ? <div className="mt-4">{children}</div> : null}
           </div>
         </div>
 
-        {/* Actions */}
         <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
           <button
             ref={confirmButtonRef}
             type="button"
             className={clsx(s.dialogConfirmBtn, variantStyles.confirmButton, {
-              [s.disabledState]: processing,
+              [s.disabledState]: processing || confirmDisabled,
             })}
             onClick={handleConfirm}
-            disabled={processing}
+            disabled={processing || confirmDisabled}
           >
             {processing ? (
               <div className="flex items-center">

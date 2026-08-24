@@ -8,6 +8,7 @@ import {
   DbCourse,
   DbWord,
   TeachingForm,
+  UserListItem,
   Word,
   WordImage,
 } from '@/app/lib/definitions';
@@ -61,12 +62,17 @@ export async function isUserAdmin(userId: string): Promise<boolean> {
   }
 }
 
-export type UserListItem = { id: string; name: string; email: string };
+export type { UserListItem };
 
 export async function fetchAllUsers(): Promise<UserListItem[]> {
   try {
+    const session = await auth();
+    const userId = session?.user?.id;
+    if (!userId || !(await isUserAdmin(userId))) {
+      return [];
+    }
     const result = await sql<UserListItem>`
-      SELECT id, name, email FROM users ORDER BY name ASC
+      SELECT id, name, email, is_admin, created_at FROM users ORDER BY name ASC
     `;
     return result.rows;
   } catch (error) {

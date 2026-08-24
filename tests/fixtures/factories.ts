@@ -7,20 +7,27 @@ export async function createTestUser(overrides?: {
   name?: string;
   email?: string;
   password?: string;
+  is_admin?: boolean;
 }) {
   const password = overrides?.password ?? 'password123';
   const hashedPassword = await bcrypt.hash(password, 2); // low rounds for speed
   const result = await sql`
-    INSERT INTO users (id, name, email, password)
+    INSERT INTO users (id, name, email, password, is_admin)
     VALUES (
       ${overrides?.id ?? mockAuthUser.id},
       ${overrides?.name ?? mockAuthUser.name},
       ${overrides?.email ?? mockAuthUser.email},
-      ${hashedPassword}
+      ${hashedPassword},
+      ${overrides?.is_admin ?? false}
     )
-    RETURNING id, name, email
+    RETURNING id, name, email, is_admin
   `;
-  return result.rows[0] as { id: string; name: string; email: string };
+  return result.rows[0] as {
+    id: string;
+    name: string;
+    email: string;
+    is_admin: boolean;
+  };
 }
 
 export async function createTestCourse(overrides?: {

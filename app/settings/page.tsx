@@ -1,29 +1,29 @@
 import { lusitana } from '@/app/ui/fonts';
 import { s } from '@/app/ui/styles';
 import { signOut, auth } from '@/auth';
-import { fetchAllUsers } from '@/app/lib/data';
+import { Suspense } from 'react';
+import { fetchAllUsers, isUserAdmin } from '@/app/lib/data';
 import { getI18n } from '@/app/lib/i18n/get-i18n';
 
 import SignoutButton from '../ui/SignoutButton';
 import { ChangePasswordCard } from '../ui/ChangePasswordCard';
 import { AddNewUserCard } from '../ui/AddNewUserCard';
-import { ImpersonateCard } from '../ui/ImpersonateCard';
 import { LanguageCard } from '../ui/LanguageCard';
+import { SettingsTabs } from '../ui/SettingsTabs';
+import { UsersTable } from '../ui/UsersTable';
 
 export default async function Page() {
   const myAuth = await auth();
   const { t } = await getI18n();
   const isLoggedIn = !!myAuth;
-  const isAdmin = myAuth?.user?.is_admin ?? false;
+  const isAdmin = myAuth?.user?.id ? await isUserAdmin(myAuth.user.id) : false;
 
   const handleSignOut = async () => {
     'use server';
     await signOut();
   };
 
-  const otherUsers = isAdmin
-    ? (await fetchAllUsers()).filter((u) => u.id !== myAuth?.user?.id)
-    : [];
+  const users = isAdmin ? await fetchAllUsers() : [];
 
   return (
     <div className="flex flex-col">
@@ -39,37 +39,32 @@ export default async function Page() {
         />
       </div>
 
-      <div className="flex flex-col space-y-4">
-        <div className="flex">
-          <LanguageCard />
-        </div>
+      <Suspense>
+        <SettingsTabs
+          general={<LanguageCard />}
+          me={<ChangePasswordCard />}
+          users={
+            isAdmin ? (
+              <div className="flex flex-col gap-6">
+                <AddNewUserCard />
+                <UsersTable users={users} currentUserId={myAuth?.user?.id ?? ''} />
+              </div>
+            ) : undefined
+          }
+        />
+      </Suspense>
 
-        <div className="flex">
-          <ChangePasswordCard userId={myAuth?.user?.id} />
-        </div>
-
-        <div className="flex">
-          <AddNewUserCard />
-        </div>
-
-        {isAdmin && (
-          <div className="flex">
-            <ImpersonateCard users={otherUsers} />
-          </div>
-        )}
-
-        <div className="flex flex-col gap-1 text-sm text-gray-500">
-          <span>
-            {t('settings.buildCommit', {
-              commit: process.env.NEXT_PUBLIC_BUILD_COMMIT ?? t('settings.development'),
-            })}
-          </span>
-          <span>
-            {t('settings.buildTime', {
-              time: process.env.NEXT_PUBLIC_BUILD_TIME ?? '—',
-            })}
-          </span>
-        </div>
+      <div className="flex flex-col gap-1 text-sm text-gray-500 mt-4">
+        <span>
+          {t('settings.buildCommit', {
+            commit: process.env.NEXT_PUBLIC_BUILD_COMMIT ?? t('settings.development'),
+          })}
+        </span>
+        <span>
+          {t('settings.buildTime', {
+            time: process.env.NEXT_PUBLIC_BUILD_TIME ?? '—',
+          })}
+        </span>
       </div>
     </div>
   );
