@@ -20,7 +20,7 @@ describe('setLocale', () => {
         const value = cookieJar.get(name);
         return value !== undefined ? { name, value } : undefined;
       },
-      set: (name: string, value: string, _options?: unknown) => {
+      set: (name: string, value: string) => {
         cookieJar.set(name, value);
       },
     } as never);

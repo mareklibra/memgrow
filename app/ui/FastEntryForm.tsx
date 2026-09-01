@@ -80,7 +80,7 @@ export function FastEntryForm({
       } else {
         setDefinition(result?.translations?.join(', ') || '');
       }
-    } catch (e) {
+    } catch {
       setError(t('errors.translationFailed'));
     } finally {
       setIsLoading(false);
@@ -100,7 +100,7 @@ export function FastEntryForm({
       } else {
         setWord(result?.translations?.join(', ') || '');
       }
-    } catch (e) {
+    } catch {
       setError(t('errors.translationFailed'));
     } finally {
       setIsLoading(false);
