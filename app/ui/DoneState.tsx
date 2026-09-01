@@ -10,6 +10,7 @@ import {
   clearPendingBatch,
   getBatchKey,
 } from '@/app/lib/pending-batch';
+import { gatherLastProgress, type WordProgressPair } from '@/app/lib/iterate-words-logic';
 import { s } from '@/app/ui/styles';
 import { WordTeachingStatus } from './WordTeachingStatus';
 import { useTranslation } from '@/app/lib/i18n/useTranslation';
@@ -21,14 +22,6 @@ interface DoneStateProps {
   storeProgress: (words: Word[]) => Promise<UpdateWordsResult>;
   isLearning?: boolean;
 }
-
-const findLast = (queue: Word[], wordId: Word['id']) =>
-  queue.findLast((w) => w.id === wordId);
-
-type ProgressType = {
-  start: Word;
-  end: Word;
-};
 
 function RepeatCell({
   date,
@@ -114,7 +107,7 @@ export function DoneState({
   isLearning,
 }: Readonly<DoneStateProps>) {
   const { t } = useTranslation();
-  const [progress, setProgress] = useState<ProgressType[]>([]);
+  const [progress, setProgress] = useState<WordProgressPair[]>([]);
   const [wordsToPersist, setWordsToPersist] = useState<Word[]>([]);
   const wordsToPersistRef = useRef<Word[]>([]);
   const [isRetrigger, setIsRetrigger] = useState<boolean>(true);
@@ -198,20 +191,8 @@ export function DoneState({
 
   useEffect(
     () => {
-      const progress: ProgressType[] = [];
-
-      const lastWords: Word[] = [];
-      words.forEach((word) => {
-        const last = findLast(wordQueue, word.id);
-        if (!last) return;
-
-        // storeProgress(last);
-        lastWords.push(last);
-        progress.push({
-          start: word,
-          end: last,
-        });
-      });
+      const progress = gatherLastProgress(words, wordQueue);
+      const lastWords = progress.map((p) => p.end);
 
       setProgress(progress);
       setWordsToPersist(lastWords);

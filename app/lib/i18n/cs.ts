@@ -210,7 +210,7 @@ export const csMessages = {
   },
   pending: {
     sessionUnsaved:
-      'Relace {mode} — {count, plural, one {# neuložené slovo} few {# neuložená slova} other {# neuložených slov}} ({timeAgo})',
+      '{mode} — {count, plural, one {# slovo z poslední relace bude uloženo} few {# slova z poslední relace budou uložena} other {# slov z poslední relace bude uloženo}} ({timeAgo})',
     stillFailed:
       '{count, plural, one {# slovo se stále nepodařilo uložit. Zkuste to znovu.} few {# slova se stále nepodařilo uložit. Zkuste to znovu.} other {# slov se stále nepodařilo uložit. Zkuste to znovu.}}',
     networkError: 'Chyba sítě. Zkuste to znovu.',

@@ -2,7 +2,10 @@ import '@/app/ui/global.css';
 import { inter } from '@/app/ui/fonts';
 import SideNav from '@/app/ui/sidenav';
 import { MobileNavWrapper } from '@/app/ui/MobileNavWrapper';
-import { PendingBatchRecovery } from '@/app/ui/PendingBatchRecovery';
+import {
+  PendingBatchProvider,
+  PendingBatchRecovery,
+} from '@/app/ui/PendingBatchRecovery';
 import { getI18n } from '@/app/lib/i18n/get-i18n';
 import { I18nProvider } from '@/app/lib/i18n/I18nProvider';
 import { LocaleSync } from '@/app/lib/i18n/LocaleSync';
@@ -22,8 +25,10 @@ export default async function RootLayout({
               <SideNav />
             </MobileNavWrapper>
             <div className="flex-group-2 w-full">
-              <PendingBatchRecovery />
-              {children}
+              <PendingBatchProvider>
+                <PendingBatchRecovery />
+                {children}
+              </PendingBatchProvider>
             </div>
           </div>
         </I18nProvider>
