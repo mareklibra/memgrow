@@ -50,7 +50,9 @@ Leave `DB_PROVIDER` unset (defaults to the Neon driver).
 below to set up `.env` first, then run `pnpm db:seed` the same way.
 
 Either way, this creates the schema (idempotent - safe to re-run on every
-deploy) and interactively prompts for a real admin name/email/password.
+deploy). On a fresh database it interactively prompts for a real admin
+name/email/password. On re-run, if an admin already exists, that step is
+skipped unless you choose to create another.
 Add `--with-demo-data` to additionally insert the hardcoded demo
 user/courses/words from `app/lib/seed-data.ts` - local development only,
 never on a deployment anyone else can reach.

@@ -10,21 +10,20 @@
  * anyway (see proxy.ts + auth.config.ts's `authorized()` callback, which
  * blocks all unauthenticated requests except `/`). This script runs the
  * same schema-creation logic directly, then prompts for a real admin
- * account.
+ * account if none exists yet.
  *
  * Usage:
- *   pnpm db:seed                  Create schema, then prompt for an admin account.
- *   pnpm db:seed --with-demo-data Create schema + hardcoded demo data (local dev/testing only).
+ *   pnpm db:seed                  Create schema, then prompt for an admin
+ *                                 account if none exists. If an admin already
+ *                                 exists, creation is optional (default: skip).
+ *   pnpm db:seed --with-demo-data Create schema + hardcoded demo data (local
+ *                                 dev/testing only).
  */
 import dotenv from 'dotenv';
 
 dotenv.config({ quiet: true });
 
-async function promptAdminUser(): Promise<{
-  name: string;
-  email: string;
-  password: string;
-}> {
+async function promptLines(prompts: string[]): Promise<string[]> {
   // Uses the classic (non-promises) readline API: calling rl.question()
   // repeatedly via readline/promises loses subsequent answers when stdin is
   // a pipe (the process's event loop can drain and exit before the next
@@ -32,8 +31,7 @@ async function promptAdminUser(): Promise<{
   // piped and interactive stdin.
   const readline = await import('node:readline');
   const { stdin, stdout } = await import('node:process');
-  const prompts = ['Admin name: ', 'Admin email: ', 'Admin password: '];
-  const answers = await new Promise<string[]>((resolve, reject) => {
+  return new Promise<string[]>((resolve) => {
     const rl = readline.createInterface({ input: stdin, output: stdout });
     const collected: string[] = [];
     rl.setPrompt(prompts[0]);
@@ -48,15 +46,36 @@ async function promptAdminUser(): Promise<{
       }
     });
     rl.on('close', () => {
-      if (collected.length < prompts.length || collected.some((a) => !a)) {
-        reject(new Error('Name, email, and password are all required.'));
-        return;
+      // rl.close() pauses stdin; resume so a later prompt (e.g. credentials
+      // after the yes/no confirm) can still read remaining piped input.
+      if (stdin.isPaused()) {
+        stdin.resume();
       }
       resolve(collected);
     });
   });
+}
+
+async function promptAdminUser(): Promise<{
+  name: string;
+  email: string;
+  password: string;
+}> {
+  const prompts = ['Admin name: ', 'Admin email: ', 'Admin password: '];
+  const answers = await promptLines(prompts);
+  if (answers.length < prompts.length || answers.some((a) => !a)) {
+    throw new Error('Name, email, and password are all required.');
+  }
   const [name, email, password] = answers;
   return { name, email, password };
+}
+
+async function confirmCreateAnotherAdmin(): Promise<boolean> {
+  const [answer] = await promptLines([
+    'An admin account already exists. Create another? [y/N] ',
+  ]);
+  const normalized = (answer ?? '').toLowerCase();
+  return normalized === 'y' || normalized === 'yes';
 }
 
 async function main() {
@@ -96,6 +115,17 @@ async function main() {
   if (withDemoData) {
     console.info('Done.');
     return;
+  }
+
+  const existingAdmin = await client.sql`
+    SELECT 1 FROM users WHERE is_admin = TRUE LIMIT 1
+  `;
+  if (existingAdmin.rows.length > 0) {
+    const createAnother = await confirmCreateAnotherAdmin();
+    if (!createAnother) {
+      console.info('Skipping admin creation.');
+      return;
+    }
   }
 
   console.info('Create your admin account:');
