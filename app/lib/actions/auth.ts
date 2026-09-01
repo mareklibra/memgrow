@@ -87,7 +87,8 @@ export async function changeOwnPassword(currentPassword: string, newPassword: st
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     await sql`
       UPDATE users
-      SET password = ${hashedPassword}
+      SET password = ${hashedPassword},
+          token_version = token_version + 1
       WHERE id = ${sessionResult.userId}
     `;
   } catch (e) {
@@ -122,7 +123,8 @@ export async function adminSetUserPassword(userId: string, newPassword: string) 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     await sql`
       UPDATE users
-      SET password = ${hashedPassword}
+      SET password = ${hashedPassword},
+          token_version = token_version + 1
       WHERE id = ${userId}
     `;
   } catch (e) {
@@ -142,7 +144,7 @@ export async function addNewUser(user: {
 
   const { t } = await getI18n();
   const name = user.name.trim();
-  const email = user.email.trim();
+  const email = user.email.trim().toLowerCase();
   if (!name) {
     return { message: t('errors.emptyName') };
   }

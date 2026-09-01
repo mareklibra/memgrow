@@ -43,7 +43,9 @@ export async function generateImageBedrock(prompt: string): Promise<ProviderResp
     accept: 'application/json',
   });
 
-  console.log(`Bedrock: invoking model '${BEDROCK_MODEL}' region='${process.env.AWS_REGION}'`);
+  console.log(
+    `Bedrock: invoking model '${BEDROCK_MODEL}' region='${process.env.AWS_REGION}'`,
+  );
 
   const startedAt = Date.now();
   let response;
@@ -51,7 +53,9 @@ export async function generateImageBedrock(prompt: string): Promise<ProviderResp
     response = await client.send(command);
   } catch (e) {
     console.error('Bedrock: request failed:', e);
-    return { error: `Bedrock request failed: ${e instanceof Error ? e.message : String(e)}` };
+    return {
+      error: `Bedrock request failed: ${e instanceof Error ? e.message : String(e)}`,
+    };
   }
   console.log(`Bedrock: responded in ${Date.now() - startedAt}ms`);
 

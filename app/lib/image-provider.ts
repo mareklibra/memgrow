@@ -54,6 +54,8 @@ export async function generateImage(prompt: string): Promise<ImageGenerationResp
   }
 
   const buffers = await Promise.all(result.images.map(toWebpBuffer));
-  console.log(`Image provider '${IMAGE_PROVIDER}': converted ${buffers.length} image(s) to webp`);
+  console.log(
+    `Image provider '${IMAGE_PROVIDER}': converted ${buffers.length} image(s) to webp`,
+  );
   return { images: buffers };
 }

@@ -41,7 +41,9 @@ export async function generateImageGemini(prompt: string): Promise<ProviderRespo
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
-  console.log(`Gemini API: invoking model '${GEMINI_MODEL}', requesting ${IMAGE_COUNT} image(s)`);
+  console.log(
+    `Gemini API: invoking model '${GEMINI_MODEL}', requesting ${IMAGE_COUNT} image(s)`,
+  );
 
   const startedAt = Date.now();
   const result = await generateImageBatch('Gemini API', IMAGE_COUNT, () =>

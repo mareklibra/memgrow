@@ -62,6 +62,7 @@ export function AddNewUserCard() {
           minLength={2}
         />
         <Input
+          type="email"
           label={t('settings.emailForLogin')}
           value={email}
           size="lg"

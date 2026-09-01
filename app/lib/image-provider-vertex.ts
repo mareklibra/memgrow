@@ -49,7 +49,9 @@ export async function generateImageVertex(prompt: string): Promise<ProviderRespo
     });
   } catch (e) {
     console.error('Vertex AI: request failed before receiving a response:', e);
-    return { error: `Vertex AI request failed: ${e instanceof Error ? e.message : String(e)}` };
+    return {
+      error: `Vertex AI request failed: ${e instanceof Error ? e.message : String(e)}`,
+    };
   }
 
   const elapsedMs = Date.now() - startedAt;

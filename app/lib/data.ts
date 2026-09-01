@@ -26,15 +26,33 @@ type UserAuth = User & {
   password: string;
   is_admin: boolean;
   locale?: string | null;
+  token_version?: number;
 };
 
 export async function getUserForAuth(email: string): Promise<UserAuth | undefined> {
   try {
-    const user = await sql<UserAuth>`SELECT * FROM users WHERE email=${email}`;
+    const normalized = email.trim().toLowerCase();
+    const user = await sql<UserAuth>`
+      SELECT * FROM users WHERE lower(email) = ${normalized}
+    `;
     return user.rows[0];
   } catch (error) {
     console.error('Failed to fetch user:', error);
     throw new Error('Failed to fetch user.');
+  }
+}
+
+export async function fetchUserTokenVersion(userId: string): Promise<number | null> {
+  try {
+    const result = await sql<{ token_version: number }>`
+      SELECT token_version FROM users WHERE id = ${userId}
+    `;
+    const row = result.rows[0];
+    if (!row) return null;
+    return Number(row.token_version);
+  } catch (error) {
+    console.error('Failed to fetch token version:', error);
+    throw new Error('Failed to fetch token version.');
   }
 }
 
@@ -61,8 +79,6 @@ export async function isUserAdmin(userId: string): Promise<boolean> {
     return false;
   }
 }
-
-export type { UserListItem };
 
 export async function fetchAllUsers(): Promise<UserListItem[]> {
   try {

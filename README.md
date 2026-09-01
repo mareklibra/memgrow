@@ -215,12 +215,12 @@ through `.env` - see [.env.example](.env.example) for the full variable
 list. `LLM_MODEL` overrides the model name for the active provider; leave it
 unset to use that provider's default.
 
-| `IMAGE_PROVIDER` | Service | Required env vars |
-| --- | --- | --- |
-| `bedrock` (default) | AWS Bedrock | `AWS_REGION`, `AWS_BEARER_TOKEN_BEDROCK` (or `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`) |
-| `vertex` | Google Vertex AI (Imagen) | `VERTEXAI_PROJECT`, `VERTEXAI_LOCATION`, `VERTEXAI_ACCESS_TOKEN` |
-| `cloudflare` | Cloudflare Workers AI | `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` |
-| `gemini` | Google Gemini API | `GEMINI_API_KEY` |
+| `IMAGE_PROVIDER`    | Service                   | Required env vars                                                                         |
+| ------------------- | ------------------------- | ----------------------------------------------------------------------------------------- |
+| `bedrock` (default) | AWS Bedrock               | `AWS_REGION`, `AWS_BEARER_TOKEN_BEDROCK` (or `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`) |
+| `vertex`            | Google Vertex AI (Imagen) | `VERTEXAI_PROJECT`, `VERTEXAI_LOCATION`, `VERTEXAI_ACCESS_TOKEN`                          |
+| `cloudflare`        | Cloudflare Workers AI     | `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN`                                           |
+| `gemini`            | Google Gemini API         | `GEMINI_API_KEY`                                                                          |
 
 Note: `IMAGE_COUNT` (`app/constants.ts`, currently 4) is how many image
 variants are generated per request. Bedrock/Vertex generate all of them in a

@@ -10,6 +10,7 @@ import {
   fetchWordsToLearn,
   fetchWordsToTest,
   getUserForAuth,
+  fetchUserTokenVersion,
 } from '@/app/lib/data';
 import { auth } from '@/auth';
 import { truncateAll } from './setup/db';
@@ -42,6 +43,24 @@ describe('data', () => {
     it('returns undefined when user does not exist', async () => {
       const user = await getUserForAuth('nonexistent@test.com');
       expect(user).toBeUndefined();
+    });
+
+    it('matches email case-insensitively', async () => {
+      await createTestUser({ email: 'Auth@Test.com' });
+      const user = await getUserForAuth('auth@test.com');
+      expect(user).toBeDefined();
+      expect(user?.email?.toLowerCase()).toBe('auth@test.com');
+    });
+  });
+
+  describe('fetchUserTokenVersion', () => {
+    it('returns 0 for a new user', async () => {
+      const user = await createTestUser();
+      expect(await fetchUserTokenVersion(user.id)).toBe(0);
+    });
+
+    it('returns null when the user does not exist', async () => {
+      expect(await fetchUserTokenVersion(crypto.randomUUID())).toBeNull();
     });
   });
 

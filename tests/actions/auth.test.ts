@@ -8,8 +8,9 @@ import {
 import { auth, signOut } from '@/auth';
 import { truncateAll } from '../setup/db';
 import { createTestUser } from '../fixtures/factories';
-import { getUserForAuth } from '@/app/lib/data';
+import { getUserForAuth, fetchUserTokenVersion } from '@/app/lib/data';
 import { mockAuthUser } from '../setup/auth-mock';
+import { PASSWORD_MIN_LENGTH } from '@/app/constants';
 import { createTranslator } from '@/app/lib/i18n';
 
 const defaultSession = {
@@ -67,6 +68,22 @@ describe('actions/auth', () => {
       expect(user?.is_admin).toBe(false);
     });
 
+    it('stores emails in lowercase', async () => {
+      await createTestUser({ is_admin: true });
+      const result = await addNewUser({
+        name: 'Mixed Case',
+        email: 'Admin@Test.com',
+        password: 'secret123',
+      });
+      expect(result?.message).toBeUndefined();
+
+      const user = await getUserForAuth('admin@test.com');
+      expect(user?.email).toBe('admin@test.com');
+      expect(await getUserForAuth('ADMIN@TEST.COM')).toMatchObject({
+        email: 'admin@test.com',
+      });
+    });
+
     it('rejects passwords shorter than the minimum', async () => {
       await createTestUser({ is_admin: true });
       const result = await addNewUser({
@@ -74,7 +91,9 @@ describe('actions/auth', () => {
         email: 'short@test.com',
         password: '12345',
       });
-      expect(result?.message).toBe(t('errors.passwordTooShort', { min: 6 }));
+      expect(result?.message).toBe(
+        t('errors.passwordTooShort', { min: PASSWORD_MIN_LENGTH }),
+      );
       expect(await getUserForAuth('short@test.com')).toBeUndefined();
     });
 
@@ -122,6 +141,7 @@ describe('actions/auth', () => {
       expect(fetched).toBeDefined();
       const bcrypt = await import('bcrypt');
       expect(await bcrypt.compare('newpass1', fetched!.password)).toBe(true);
+      expect(await fetchUserTokenVersion(mockAuthUser.id)).toBe(1);
     });
 
     it('rejects an incorrect current password', async () => {
@@ -139,7 +159,9 @@ describe('actions/auth', () => {
     it('rejects a too-short new password', async () => {
       await createTestUser({ password: 'oldpass1' });
       const result = await changeOwnPassword('oldpass1', '12345');
-      expect(result?.message).toBe(t('errors.passwordTooShort', { min: 6 }));
+      expect(result?.message).toBe(
+        t('errors.passwordTooShort', { min: PASSWORD_MIN_LENGTH }),
+      );
       expect(signOut).not.toHaveBeenCalled();
     });
   });
@@ -170,6 +192,7 @@ describe('actions/auth', () => {
       const fetched = await getUserForAuth('other@test.com');
       const bcrypt = await import('bcrypt');
       expect(await bcrypt.compare('newpass1', fetched!.password)).toBe(true);
+      expect(await fetchUserTokenVersion(other.id)).toBe(1);
     });
 
     it('cannot set the caller own password', async () => {

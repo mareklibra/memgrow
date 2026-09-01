@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { authConfig } from '@/auth.config';
+import { authConfig, isJwtTokenCurrent } from '@/auth.config';
 
 type AuthParam = Parameters<
   NonNullable<NonNullable<typeof authConfig.callbacks>['authorized']>
@@ -95,7 +95,16 @@ describe('auth.config jwt callback', () => {
       is_admin: true,
       locale: 'cs',
       impersonating: true,
+      tokenVersion: 0,
     });
+  });
+
+  it('copies token_version from the user onto the token', () => {
+    const token = { sub: 'user-id' } as Record<string, unknown>;
+    const account = {} as Record<string, unknown>;
+    const user = { id: 'u1', token_version: 4 } as Record<string, unknown>;
+    const result = jwtCallback({ token, account, user } as never);
+    expect(result).toMatchObject({ tokenVersion: 4 });
   });
 
   it('defaults is_admin to false when user has no is_admin', () => {
@@ -107,6 +116,7 @@ describe('auth.config jwt callback', () => {
       is_admin: false,
       locale: null,
       impersonating: false,
+      tokenVersion: 0,
     });
   });
 
@@ -114,6 +124,28 @@ describe('auth.config jwt callback', () => {
     const token = { sub: 'user-id', existing: 'data' } as Record<string, unknown>;
     const result = jwtCallback({ token, account: null, user: undefined } as never);
     expect(result).toEqual(token);
+  });
+});
+
+describe('isJwtTokenCurrent', () => {
+  it('treats a missing claim as 0', () => {
+    expect(isJwtTokenCurrent(undefined, 0)).toBe(true);
+  });
+
+  it('accepts matching versions', () => {
+    expect(isJwtTokenCurrent(1, 1)).toBe(true);
+  });
+
+  it('rejects a stale claim after a password bump', () => {
+    expect(isJwtTokenCurrent(0, 1)).toBe(false);
+  });
+
+  it('rejects when the user row is missing', () => {
+    expect(isJwtTokenCurrent(0, null)).toBe(false);
+  });
+
+  it('coerces numeric strings from the driver', () => {
+    expect(isJwtTokenCurrent('2', 2)).toBe(true);
   });
 });
 

@@ -39,7 +39,7 @@ export default async function Page() {
         />
       </div>
 
-      <Suspense>
+      <Suspense fallback={<div className="h-40 animate-pulse rounded-md bg-gray-100" />}>
         <SettingsTabs
           general={<LanguageCard />}
           me={<ChangePasswordCard />}
