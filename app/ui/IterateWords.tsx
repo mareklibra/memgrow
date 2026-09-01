@@ -195,9 +195,7 @@ export function IterateWords({
         window.onbeforeunload = null;
       };
     },
-    [
-      /* just once*/
-    ],
+    [t],
   );
 
   useEffect(() => {

@@ -200,7 +200,7 @@ export function MediaManager({
           ),
         );
       }
-    } catch (e) {
+    } catch {
       setRowErrors((prev) => ({
         ...prev,
         [wordId]: t('errors.generic'),
@@ -261,7 +261,7 @@ export function MediaManager({
           item.wordId === wordId ? { ...item, imageCount: 0, totalImageSizeKb: 0 } : item,
         ),
       );
-    } catch (e) {
+    } catch {
       setRowErrors((prev) => ({
         ...prev,
         [wordId]: t('errors.generic'),
@@ -291,7 +291,7 @@ export function MediaManager({
           prev.map((s) => (s.wordId === wordId ? { ...s, hasSound: true } : s)),
         );
       }
-    } catch (e) {
+    } catch {
       setRowErrors((prev) => ({
         ...prev,
         [wordId]: t('errors.generic'),
@@ -330,7 +330,7 @@ export function MediaManager({
           item.wordId === wordId ? { ...item, hasSound: false, soundSizeKb: 0 } : item,
         ),
       );
-    } catch (e) {
+    } catch {
       setRowErrors((prev) => ({
         ...prev,
         [wordId]: t('errors.generic'),
