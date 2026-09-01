@@ -9,6 +9,7 @@ const mockBcryptCompare = vi.fn();
 vi.mock('@/app/lib/data', () => ({
   getUserForAuth: (...args: unknown[]) => mockGetUserForAuth(...args),
   isUserAdmin: (...args: unknown[]) => mockIsUserAdmin(...args),
+  fetchUserTokenVersion: vi.fn().mockResolvedValue(0),
 }));
 
 vi.mock('bcrypt', () => ({

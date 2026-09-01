@@ -48,7 +48,9 @@ async function generateOne(prompt: string, url: string): Promise<string> {
     response = await requestMultipart(url, prompt);
     if (!response.ok) {
       const retryErrorText = await response.text();
-      throw new Error(`Cloudflare Workers AI error (${response.status}): ${retryErrorText}`);
+      throw new Error(
+        `Cloudflare Workers AI error (${response.status}): ${retryErrorText}`,
+      );
     }
   }
 

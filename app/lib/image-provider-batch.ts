@@ -13,7 +13,9 @@ export async function generateImageBatch(
   const images = results
     .filter((r): r is PromiseFulfilledResult<string> => r.status === 'fulfilled')
     .map((r) => r.value);
-  const failures = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
+  const failures = results.filter(
+    (r): r is PromiseRejectedResult => r.status === 'rejected',
+  );
 
   if (failures.length > 0) {
     console.error(

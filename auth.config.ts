@@ -1,10 +1,29 @@
 import type { NextAuthConfig } from 'next-auth';
+import type { JWT } from 'next-auth/jwt';
+
+declare module 'next-auth/jwt' {
+  interface JWT {
+    tokenVersion?: number;
+  }
+}
+
+/** True when the JWT's tokenVersion matches the DB (missing claim counts as 0). */
+export function isJwtTokenCurrent(
+  tokenVersion: unknown,
+  dbVersion: number | null,
+): boolean {
+  if (dbVersion == null) return false;
+  const claimed = Number(tokenVersion ?? 0);
+  if (!Number.isFinite(claimed)) return false;
+  return claimed === dbVersion;
+}
 
 declare module 'next-auth' {
   interface User {
     is_admin?: boolean;
     locale?: string | null;
     impersonating?: boolean;
+    token_version?: number;
   }
   interface Session {
     user: {
@@ -47,8 +66,9 @@ export const authConfig: NextAuthConfig = {
         token.is_admin = user?.is_admin ?? false;
         token.locale = user?.locale ?? null;
         token.impersonating = user?.impersonating ?? false;
+        token.tokenVersion = Number(user?.token_version ?? 0);
       }
-      return token;
+      return token as JWT;
     },
     session({ session, token }) {
       session.user.id = token.sub as string;

@@ -50,22 +50,23 @@ export function UsersTable({
   };
 
   const handleDelete = async () => {
-    if (pending?.type !== 'delete') return;
+    if (pending?.type !== 'delete') return false;
     setError(undefined);
     const result = await deleteUser(pending.user.id);
     if (result?.message) {
       setError(result.message);
-    } else {
-      router.refresh();
+      return false;
     }
+    router.refresh();
   };
 
   const handleImpersonate = async () => {
-    if (pending?.type !== 'impersonate') return;
+    if (pending?.type !== 'impersonate') return false;
     setError(undefined);
     const result = await impersonateUser(pending.user.id);
     if (result?.message) {
       setError(result.message);
+      return false;
     }
   };
 

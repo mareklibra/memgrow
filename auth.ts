@@ -2,9 +2,9 @@ import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import { z } from 'zod';
 import bcrypt from 'bcrypt';
-import { getUserForAuth, isUserAdmin } from '@/app/lib/data';
+import { getUserForAuth, isUserAdmin, fetchUserTokenVersion } from '@/app/lib/data';
 
-import { authConfig } from './auth.config';
+import { authConfig, isJwtTokenCurrent } from './auth.config';
 
 export const loginSchema = z.object({
   email: z.string().email(),
@@ -49,6 +49,21 @@ export async function authorize(credentials: unknown) {
 
 export const { auth, signIn, signOut } = NextAuth({
   ...authConfig,
+  callbacks: {
+    ...authConfig.callbacks,
+    async jwt(params) {
+      const token = await authConfig.callbacks!.jwt!(params);
+      if (!token) return null;
+      if (params.account) return token;
+      const userId = token.sub;
+      if (!userId) return null;
+      const dbVersion = await fetchUserTokenVersion(userId);
+      if (!isJwtTokenCurrent(token.tokenVersion, dbVersion)) {
+        return null;
+      }
+      return token;
+    },
+  },
   providers: [
     Credentials({
       authorize,
