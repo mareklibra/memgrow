@@ -1,9 +1,9 @@
 'use client';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { lusitana } from '@/app/ui/fonts';
 import { cn, s } from '@/app/ui/styles';
 import Link from 'next/link';
-import { Button } from '@/app/lib/material-tailwind-compat';
+import { Button, Spinner } from '@/app/lib/material-tailwind-compat';
 import { decreaseMemLevel } from '@/app/lib/word-transitions';
 import { Word, WordWithMeta } from '@/app/lib/definitions';
 import { updateWordsProgress } from '@/app/lib/actions';
@@ -12,14 +12,22 @@ import {
   calculateProgress,
   checkIsDone,
   computeNewMemLevel,
+  gatherPassedProgress,
   handleCorrect,
   handleMistake,
   handleOnChange,
   handleSkipWord,
   initializeQueue,
 } from '@/app/lib/iterate-words-logic';
+import {
+  getBatchKey,
+  loadPendingBatch,
+  savePendingBatch,
+  type PendingBatchEntry,
+} from '@/app/lib/pending-batch';
 import { TeachWord } from './TeachWord';
 import { DoneState } from './DoneState';
+import { BatchBanner, usePendingBatchContext } from './PendingBatchRecovery';
 import { TypeTranslationProps } from './TypeTranslation';
 import {
   learnBatchLimit,
@@ -63,16 +71,47 @@ export function IterateWords({
   requestImageGeneration,
 }: Readonly<IterateWordsProps>) {
   const { t } = useTranslation();
+  const { claim, unclaim, removeBatch, rescan } = usePendingBatchContext();
   const [wordQueue, setWordQueue] = useState<WordWithMeta[]>([]);
   const [wordIdx, setWordIdx] = useState<number>(-1);
   const [isDone, setIsDone] = useState<boolean>(false);
   const [previewMemLevel, setPreviewMemLevel] = useState<number | null>(null);
   const previewMemLevelRef = useRef<number | null>(null);
+  const [gate, setGate] = useState<'checking' | 'blocked' | 'open' | 'refreshing'>(
+    'checking',
+  );
+  const [blockedBatch, setBlockedBatch] = useState<PendingBatchEntry | null>(null);
+
+  const courseId = words[0]?.courseId;
+  const batchKey = courseId ? getBatchKey(courseId, !!isLearning) : '';
 
   let maxWordsInBatch = isOffline ? testBatchLimitOffline : testBatchLimit;
   if (isLearning) {
     maxWordsInBatch = isOffline ? learnBatchLimitOffline : learnBatchLimit;
   }
+
+  useLayoutEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- localStorage is client-only */
+    let cleanup: (() => void) | undefined;
+    if (!batchKey) {
+      setGate('open');
+    } else {
+      claim(batchKey);
+      const pending = loadPendingBatch(batchKey);
+      if (pending && pending.words.length > 0) {
+        setBlockedBatch(pending);
+        setGate('blocked');
+      } else {
+        setGate('open');
+      }
+      cleanup = () => {
+        unclaim(batchKey);
+        rescan();
+      };
+    }
+    /* eslint-enable react-hooks/set-state-in-effect */
+    return cleanup;
+  }, [batchKey, claim, unclaim, rescan]);
 
   useEffect(
     () => {
@@ -90,6 +129,7 @@ export function IterateWords({
   );
 
   useEffect(() => {
+    if (gate !== 'open') return;
     if (words.length === 0) return;
 
     if (wordQueue.length === 0) {
@@ -99,13 +139,29 @@ export function IterateWords({
         setWordIdx(initial.wordIdx);
       });
     }
-  }, [words, wordQueue]);
+  }, [gate, words, wordQueue]);
 
   useEffect(() => {
+    if (gate !== 'open') return;
     if (checkIsDone(wordIdx, wordQueue.length, maxWordsInBatch)) {
       queueMicrotask(() => setIsDone(true));
     }
-  }, [wordIdx, wordQueue.length, maxWordsInBatch]);
+  }, [gate, wordIdx, wordQueue.length, maxWordsInBatch]);
+
+  const persistPassed = useCallback(
+    (queue: WordWithMeta[], idx: number) => {
+      if (!courseId) return;
+      const passed = gatherPassedProgress(queue, idx);
+      if (passed.length === 0) return;
+      savePendingBatch({
+        words: passed,
+        courseId,
+        isLearning: !!isLearning,
+        timestamp: Date.now(),
+      });
+    },
+    [courseId, isLearning],
+  );
 
   const resetPreview = () => {
     setPreviewMemLevel(null);
@@ -120,6 +176,7 @@ export function IterateWords({
       overrideMemLevel: previewMemLevelRef.current ?? undefined,
     });
     resetPreview();
+    persistPassed(newState.wordQueue, newState.wordIdx);
     setWordQueue(newState.wordQueue);
     setWordIdx(newState.wordIdx);
   };
@@ -131,6 +188,7 @@ export function IterateWords({
       overrideMemLevel: previewMemLevelRef.current ?? undefined,
     });
     resetPreview();
+    persistPassed(newState.wordQueue, newState.wordIdx);
     setWordQueue(newState.wordQueue);
     setWordIdx(newState.wordIdx);
   };
@@ -161,10 +219,11 @@ export function IterateWords({
       console.log('skipWord', word);
       const newState = handleSkipWord({ wordQueue, wordIdx }, word);
       resetPreview();
+      persistPassed(newState.wordQueue, newState.wordIdx);
       setWordQueue(newState.wordQueue);
       setWordIdx(newState.wordIdx);
     },
-    [wordIdx, wordQueue],
+    [wordIdx, wordQueue, persistPassed],
   );
 
   const onLeave = () => {
@@ -191,6 +250,34 @@ export function IterateWords({
       };
     }
   };
+
+  if (gate === 'checking' || gate === 'refreshing') {
+    return (
+      <div className={cn(s.centered, 'p-4')}>
+        <Spinner className="h-6 w-6" />
+      </div>
+    );
+  }
+
+  if (gate === 'blocked' && blockedBatch) {
+    return (
+      <div className="p-2">
+        <BatchBanner
+          batch={blockedBatch}
+          onDone={(key, action) => {
+            removeBatch(key);
+            if (action === 'discard') {
+              setBlockedBatch(null);
+              setGate('open');
+            } else {
+              setGate('refreshing');
+              window.location.reload();
+            }
+          }}
+        />
+      </div>
+    );
+  }
 
   if (!words.length) {
     return (

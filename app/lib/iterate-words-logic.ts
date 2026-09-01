@@ -190,3 +190,44 @@ export function handleOnChange(wordQueue: WordWithMeta[], word: Word): WordWithM
     return w;
   });
 }
+
+export type WordProgressPair = {
+  start: Word;
+  end: Word;
+};
+
+/** Last queue occurrence of every original batch word (including never-reached). */
+export function gatherLastProgress(words: Word[], wordQueue: Word[]): WordProgressPair[] {
+  const progress: WordProgressPair[] = [];
+  for (const word of words) {
+    const last = wordQueue.findLast((w) => w.id === word.id);
+    if (!last) continue;
+    progress.push({ start: word, end: last });
+  }
+  return progress;
+}
+
+/**
+ * Unique words that already appear before the cursor. For each, the last
+ * occurrence in the full queue — the same snapshot end-session would persist
+ * for that word.
+ */
+export function gatherPassedProgress(wordQueue: Word[], wordIdx: number): Word[] {
+  if (wordIdx <= 0) return [];
+
+  const seenIds: string[] = [];
+  const seen = new Set<string>();
+  const limit = Math.min(wordIdx, wordQueue.length);
+  for (let i = 0; i < limit; i++) {
+    const id = wordQueue[i].id;
+    if (!seen.has(id)) {
+      seen.add(id);
+      seenIds.push(id);
+    }
+  }
+
+  return seenIds.flatMap((id) => {
+    const last = wordQueue.findLast((w) => w.id === id);
+    return last ? [last] : [];
+  });
+}

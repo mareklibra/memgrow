@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   calculateProgress,
   checkIsDone,
+  gatherLastProgress,
+  gatherPassedProgress,
   handleCorrect,
   handleMistake,
   handleOnChange,
@@ -924,6 +926,94 @@ describe('iterate-words-logic', () => {
           expect(TEACHING_FORMS as readonly string[]).toContain(inserted.form);
         }
       }
+    });
+  });
+
+  // ── gatherLastProgress / gatherPassedProgress ────────────────────────
+  describe('gatherLastProgress / gatherPassedProgress', () => {
+    const original = [
+      makeWord({ id: 'w1', form: 'show', memLevel: 0 }),
+      makeWord({ id: 'w2', form: 'show', memLevel: 0 }),
+      makeWord({ id: 'w3', form: 'show', memLevel: 0 }),
+    ];
+
+    it('gatherLastProgress includes never-reached original words', () => {
+      const queue = original.map((w) => ({ ...w, repeated: 0 }));
+      const progress = gatherLastProgress(original, queue);
+      expect(progress.map((p) => p.end.id)).toEqual(['w1', 'w2', 'w3']);
+      expect(progress[2].start).toBe(original[2]);
+      expect(progress[2].end.id).toBe('w3');
+    });
+
+    it('gatherPassedProgress returns empty at the start of a session', () => {
+      const queue = original.map((w) => ({ ...w, repeated: 0 }));
+      expect(gatherPassedProgress(queue, 0)).toEqual([]);
+      expect(gatherPassedProgress(queue, -1)).toEqual([]);
+    });
+
+    it('gatherPassedProgress excludes never-reached words', () => {
+      const queue = original.map((w) => ({ ...w, repeated: 0 }));
+      const passed = gatherPassedProgress(queue, 1);
+      expect(passed.map((w) => w.id)).toEqual(['w1']);
+    });
+
+    it('after correct that inserts a future copy, stored state is that copy not the stale slot', () => {
+      const word = makeWordMeta({ id: 'w1', form: 'show', memLevel: 5, repeated: 0 });
+      const w2 = makeWordMeta({ id: 'w2', form: 'show', memLevel: 5 });
+      const w3 = makeWordMeta({ id: 'w3', form: 'show', memLevel: 5 });
+      const result = handleCorrect({ wordQueue: [word, w2, w3], wordIdx: 0 }, word, {
+        isLearning: true,
+        repetitionLimit: 3,
+        maxDistForRandom: 10,
+        randomFn: () => 0,
+      });
+      // passed slot is unchanged (still show); future copy is choose_4_word
+      expect(result.wordQueue[0].form).toBe('show');
+      const inserted = result.wordQueue.findLast((w) => w.id === 'w1');
+      expect(inserted?.form).toBe('choose_4_word');
+
+      const passed = gatherPassedProgress(result.wordQueue, result.wordIdx);
+      expect(passed).toHaveLength(1);
+      expect(passed[0].form).toBe('choose_4_word');
+      expect(passed[0]).toBe(inserted);
+
+      const last = gatherLastProgress([word, w2, w3], result.wordQueue);
+      expect(last.find((p) => p.end.id === 'w1')?.end.form).toBe('choose_4_word');
+    });
+
+    it('after mistake, stored state is the inserted review copy', () => {
+      const word = makeWordMeta({ id: 'w1', form: 'write', memLevel: 5 });
+      const result = handleMistake(
+        { wordQueue: [word, makeWordMeta({ id: 'w2' })], wordIdx: 0 },
+        word,
+        { isLearning: false, isShortenOnly: false },
+      );
+      const passed = gatherPassedProgress(result.wordQueue, result.wordIdx);
+      expect(passed).toHaveLength(1);
+      expect(passed[0].form).toBe('show');
+      expect(passed[0].memLevel).toBe(1);
+    });
+
+    it('after skip, stored state is the skipped copy and future copies are gone', () => {
+      const w1 = makeWordMeta({ id: 'w1', form: 'show' });
+      const w2 = makeWordMeta({ id: 'w2', form: 'show' });
+      const laterW1 = makeWordMeta({ id: 'w1', form: 'choose_4_word' });
+      const result = handleSkipWord({ wordQueue: [w1, w2, laterW1], wordIdx: 0 }, w1);
+      const passed = gatherPassedProgress(result.wordQueue, result.wordIdx);
+      expect(passed).toHaveLength(1);
+      expect(passed[0].id).toBe('w1');
+      expect(passed[0].isSkipped).toBe(true);
+      expect(result.wordQueue.filter((w) => w.id === 'w1')).toHaveLength(1);
+    });
+
+    it('dedupes a word that appears twice before the cursor', () => {
+      const w1a = makeWordMeta({ id: 'w1', form: 'show' });
+      const w2 = makeWordMeta({ id: 'w2', form: 'show' });
+      const w1b = makeWordMeta({ id: 'w1', form: 'choose_4_word' });
+      const queue = [w1a, w1b, w2];
+      const passed = gatherPassedProgress(queue, 2);
+      expect(passed.map((w) => w.id)).toEqual(['w1']);
+      expect(passed[0].form).toBe('choose_4_word');
     });
   });
 });

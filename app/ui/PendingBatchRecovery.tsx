@@ -1,6 +1,13 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 import { Button, Spinner } from '@/app/lib/material-tailwind-compat';
 import { updateWordsProgress } from '@/app/lib/actions';
 import {
@@ -20,12 +27,85 @@ function loadInitialBatches(): {
   return loadAllPendingBatches();
 }
 
-function BatchBanner({
+export type PendingResolveAction = 'save' | 'discard';
+
+type PendingBatchContextValue = {
+  batches: PendingBatchEntry[];
+  hadAccessError: boolean;
+  claimedKeys: ReadonlySet<string>;
+  claim: (key: string) => void;
+  unclaim: (key: string) => void;
+  removeBatch: (key: string) => void;
+  rescan: () => void;
+};
+
+const PendingBatchContext = createContext<PendingBatchContextValue | null>(null);
+
+export function PendingBatchProvider({ children }: Readonly<{ children: ReactNode }>) {
+  const [initial] = useState(loadInitialBatches);
+  const [batches, setBatches] = useState<PendingBatchEntry[]>(initial.batches);
+  const [hadAccessError] = useState(initial.hadAccessError);
+  const [claimedKeys, setClaimedKeys] = useState<Set<string>>(() => new Set());
+
+  const claim = useCallback((key: string) => {
+    setClaimedKeys((prev) => {
+      if (prev.has(key)) return prev;
+      const next = new Set(prev);
+      next.add(key);
+      return next;
+    });
+  }, []);
+
+  const unclaim = useCallback((key: string) => {
+    setClaimedKeys((prev) => {
+      if (!prev.has(key)) return prev;
+      const next = new Set(prev);
+      next.delete(key);
+      return next;
+    });
+  }, []);
+
+  const removeBatch = useCallback((key: string) => {
+    setBatches((prev) => prev.filter((b) => b.key !== key));
+  }, []);
+
+  const rescan = useCallback(() => {
+    const result = loadAllPendingBatches();
+    setBatches(result.batches);
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      batches,
+      hadAccessError,
+      claimedKeys,
+      claim,
+      unclaim,
+      removeBatch,
+      rescan,
+    }),
+    [batches, hadAccessError, claimedKeys, claim, unclaim, removeBatch, rescan],
+  );
+
+  return (
+    <PendingBatchContext.Provider value={value}>{children}</PendingBatchContext.Provider>
+  );
+}
+
+export function usePendingBatchContext(): PendingBatchContextValue {
+  const ctx = useContext(PendingBatchContext);
+  if (!ctx) {
+    throw new Error('usePendingBatchContext must be used within PendingBatchProvider');
+  }
+  return ctx;
+}
+
+export function BatchBanner({
   batch,
   onDone,
 }: Readonly<{
   batch: PendingBatchEntry;
-  onDone: (key: string) => void;
+  onDone: (key: string, action: PendingResolveAction) => void;
 }>) {
   const { t, locale } = useTranslation();
   const [saving, setSaving] = useState(false);
@@ -48,7 +128,7 @@ function BatchBanner({
         setError(t('pending.stillFailed', { count: failedIds.length }));
       } else {
         clearPendingBatch(batch.key);
-        onDone(batch.key);
+        onDone(batch.key, 'save');
       }
     } catch {
       setError(t('pending.networkError'));
@@ -59,7 +139,7 @@ function BatchBanner({
 
   const handleDiscard = useCallback(() => {
     clearPendingBatch(batch.key);
-    onDone(batch.key);
+    onDone(batch.key, 'discard');
   }, [batch.key, onDone]);
 
   const mode = batch.isLearning ? t('learn.title') : t('test.title');
@@ -92,15 +172,18 @@ function BatchBanner({
 
 export function PendingBatchRecovery() {
   const { t } = useTranslation();
-  const [initial] = useState(loadInitialBatches);
-  const [batches, setBatches] = useState<PendingBatchEntry[]>(initial.batches);
-  const hadAccessError = initial.hadAccessError;
+  const { batches, hadAccessError, claimedKeys, removeBatch } = usePendingBatchContext();
 
-  const handleDone = useCallback((key: string) => {
-    setBatches((prev) => prev.filter((b) => b.key !== key));
-  }, []);
+  const handleDone = useCallback(
+    (key: string) => {
+      removeBatch(key);
+    },
+    [removeBatch],
+  );
 
-  if (batches.length === 0 && !hadAccessError) return null;
+  const visible = batches.filter((b) => !claimedKeys.has(b.key));
+
+  if (visible.length === 0 && !hadAccessError) return null;
 
   return (
     <div className="flex flex-col gap-2 p-2">
@@ -109,7 +192,7 @@ export function PendingBatchRecovery() {
           {t('errors.localStorageAccess')}
         </div>
       )}
-      {batches.map((batch) => (
+      {visible.map((batch) => (
         <BatchBanner key={batch.key} batch={batch} onDone={handleDone} />
       ))}
     </div>
