@@ -1,5 +1,12 @@
 'use client';
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import { lusitana } from '@/app/ui/fonts';
 import { cn, s } from '@/app/ui/styles';
 import Link from 'next/link';
@@ -21,13 +28,18 @@ import {
 } from '@/app/lib/iterate-words-logic';
 import {
   getBatchKey,
-  loadPendingBatch,
+  getPendingBatchesServerSnapshot,
+  getPendingBatchesSnapshot,
   savePendingBatch,
-  type PendingBatchEntry,
+  subscribePendingBatches,
 } from '@/app/lib/pending-batch';
 import { TeachWord } from './TeachWord';
 import { DoneState } from './DoneState';
-import { BatchBanner, usePendingBatchContext } from './PendingBatchRecovery';
+import {
+  BatchBanner,
+  usePendingBatchContext,
+  type PendingResolveAction,
+} from './PendingBatchRecovery';
 import { TypeTranslationProps } from './TypeTranslation';
 import {
   learnBatchLimit,
@@ -42,6 +54,87 @@ import { WordPicturesProps } from './WordPictures';
 import { DonutProgressChart } from './DonutProgressChart';
 import { RequestImageResult } from '../lib/types';
 import { useTranslation } from '@/app/lib/i18n/useTranslation';
+import type { TFunction } from '@/app/lib/i18n';
+
+const subscribeIsClient = () => () => {};
+
+function useSessionBackupGate(
+  batchKey: string,
+  persistCourseId: string | undefined,
+  isLearning: boolean | undefined,
+  t: TFunction,
+) {
+  const { claim, unclaim } = usePendingBatchContext();
+  const isClient = useSyncExternalStore(
+    subscribeIsClient,
+    () => true,
+    () => false,
+  );
+  const { batches } = useSyncExternalStore(
+    subscribePendingBatches,
+    getPendingBatchesSnapshot,
+    getPendingBatchesServerSnapshot,
+  );
+  const [unlocked, setUnlocked] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [localStorageError, setLocalStorageError] = useState<string | null>(null);
+
+  const pending = batchKey ? (batches.find((b) => b.key === batchKey) ?? null) : null;
+  const hasPending = !!(pending && pending.words.length > 0);
+
+  // Adjusting state during render (React-sanctioned pattern, not an effect):
+  // once there's nothing left to resume, latch "unlocked" so the session
+  // stays open even if a pending batch reappears later (e.g. another tab).
+  // Guarded by `!unlocked` so it fires at most once and can't loop.
+  if (isClient && !hasPending && !unlocked) {
+    setUnlocked(true);
+  }
+
+  const sessionOpen = isClient && !refreshing && (unlocked || !hasPending);
+
+  // Must be useLayoutEffect, not useEffect: claiming here flips
+  // PendingBatchProvider's claimedKeys before the browser paints, hiding
+  // this batch from the global <PendingBatchRecovery/> banner in the same
+  // commit that renders our own inline BatchBanner below. useEffect would
+  // let both banners paint for a frame before the claim takes effect.
+  useLayoutEffect(() => {
+    if (!batchKey) return;
+    claim(batchKey);
+    return () => unclaim(batchKey);
+  }, [batchKey, claim, unclaim]);
+
+  const persistPassed = useCallback(
+    (queue: WordWithMeta[], idx: number) => {
+      if (!persistCourseId) return;
+      const passed = gatherPassedProgress(queue, idx);
+      if (passed.length === 0) return;
+      const ok = savePendingBatch({
+        words: passed,
+        courseId: persistCourseId,
+        isLearning: !!isLearning,
+        timestamp: Date.now(),
+      });
+      setLocalStorageError(ok ? null : t('errors.localStorageSave'));
+    },
+    [persistCourseId, isLearning, t],
+  );
+
+  const onBannerDone = useCallback((_key: string, action: PendingResolveAction) => {
+    if (action === 'save') {
+      setRefreshing(true);
+      window.location.reload();
+    }
+  }, []);
+
+  return {
+    sessionOpen,
+    showSpinner: refreshing || !isClient,
+    blockedBatch: hasPending && !unlocked ? pending : null,
+    localStorageError,
+    persistPassed,
+    onBannerDone,
+  };
+}
 
 interface IterateWordsProps {
   words: Word[];
@@ -71,47 +164,26 @@ export function IterateWords({
   requestImageGeneration,
 }: Readonly<IterateWordsProps>) {
   const { t } = useTranslation();
-  const { claim, unclaim, removeBatch, rescan } = usePendingBatchContext();
+  const courseId = words[0]?.courseId;
+  const batchKey = courseId ? getBatchKey(courseId, !!isLearning) : '';
+  const {
+    sessionOpen,
+    showSpinner,
+    blockedBatch,
+    localStorageError,
+    persistPassed,
+    onBannerDone,
+  } = useSessionBackupGate(batchKey, courseId, isLearning, t);
   const [wordQueue, setWordQueue] = useState<WordWithMeta[]>([]);
   const [wordIdx, setWordIdx] = useState<number>(-1);
   const [isDone, setIsDone] = useState<boolean>(false);
   const [previewMemLevel, setPreviewMemLevel] = useState<number | null>(null);
   const previewMemLevelRef = useRef<number | null>(null);
-  const [gate, setGate] = useState<'checking' | 'blocked' | 'open' | 'refreshing'>(
-    'checking',
-  );
-  const [blockedBatch, setBlockedBatch] = useState<PendingBatchEntry | null>(null);
-
-  const courseId = words[0]?.courseId;
-  const batchKey = courseId ? getBatchKey(courseId, !!isLearning) : '';
 
   let maxWordsInBatch = isOffline ? testBatchLimitOffline : testBatchLimit;
   if (isLearning) {
     maxWordsInBatch = isOffline ? learnBatchLimitOffline : learnBatchLimit;
   }
-
-  useLayoutEffect(() => {
-    /* eslint-disable react-hooks/set-state-in-effect -- localStorage is client-only */
-    let cleanup: (() => void) | undefined;
-    if (!batchKey) {
-      setGate('open');
-    } else {
-      claim(batchKey);
-      const pending = loadPendingBatch(batchKey);
-      if (pending && pending.words.length > 0) {
-        setBlockedBatch(pending);
-        setGate('blocked');
-      } else {
-        setGate('open');
-      }
-      cleanup = () => {
-        unclaim(batchKey);
-        rescan();
-      };
-    }
-    /* eslint-enable react-hooks/set-state-in-effect */
-    return cleanup;
-  }, [batchKey, claim, unclaim, rescan]);
 
   useEffect(
     () => {
@@ -129,7 +201,7 @@ export function IterateWords({
   );
 
   useEffect(() => {
-    if (gate !== 'open') return;
+    if (!sessionOpen) return;
     if (words.length === 0) return;
 
     if (wordQueue.length === 0) {
@@ -139,29 +211,14 @@ export function IterateWords({
         setWordIdx(initial.wordIdx);
       });
     }
-  }, [gate, words, wordQueue]);
+  }, [sessionOpen, words, wordQueue]);
 
   useEffect(() => {
-    if (gate !== 'open') return;
+    if (!sessionOpen) return;
     if (checkIsDone(wordIdx, wordQueue.length, maxWordsInBatch)) {
       queueMicrotask(() => setIsDone(true));
     }
-  }, [gate, wordIdx, wordQueue.length, maxWordsInBatch]);
-
-  const persistPassed = useCallback(
-    (queue: WordWithMeta[], idx: number) => {
-      if (!courseId) return;
-      const passed = gatherPassedProgress(queue, idx);
-      if (passed.length === 0) return;
-      savePendingBatch({
-        words: passed,
-        courseId,
-        isLearning: !!isLearning,
-        timestamp: Date.now(),
-      });
-    },
-    [courseId, isLearning],
-  );
+  }, [sessionOpen, wordIdx, wordQueue.length, maxWordsInBatch]);
 
   const resetPreview = () => {
     setPreviewMemLevel(null);
@@ -251,7 +308,7 @@ export function IterateWords({
     }
   };
 
-  if (gate === 'checking' || gate === 'refreshing') {
+  if (showSpinner) {
     return (
       <div className={cn(s.centered, 'p-4')}>
         <Spinner className="h-6 w-6" />
@@ -259,22 +316,10 @@ export function IterateWords({
     );
   }
 
-  if (gate === 'blocked' && blockedBatch) {
+  if (blockedBatch) {
     return (
       <div className="p-2">
-        <BatchBanner
-          batch={blockedBatch}
-          onDone={(key, action) => {
-            removeBatch(key);
-            if (action === 'discard') {
-              setBlockedBatch(null);
-              setGate('open');
-            } else {
-              setGate('refreshing');
-              window.location.reload();
-            }
-          }}
-        />
+        <BatchBanner batch={blockedBatch} onDone={onBannerDone} />
       </div>
     );
   }
@@ -309,6 +354,11 @@ export function IterateWords({
 
   return (
     <div className="w-full p-1 md:p-2 md:pt-5">
+      {localStorageError && (
+        <div className="mx-auto mt-2 max-w-xl rounded border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-900">
+          {localStorageError}
+        </div>
+      )}
       <h1
         className={cn(
           lusitana.className,

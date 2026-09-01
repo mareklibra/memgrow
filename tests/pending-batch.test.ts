@@ -6,6 +6,10 @@ import {
   loadPendingBatch,
   clearPendingBatch,
   loadAllPendingBatches,
+  refreshPendingBatchesSnapshot,
+  getPendingBatchesSnapshot,
+  getPendingBatchesServerSnapshot,
+  subscribePendingBatches,
   PendingBatch,
 } from '@/app/lib/pending-batch';
 
@@ -54,6 +58,7 @@ const localStorageMock: Storage = {
 beforeEach(() => {
   storage.clear();
   vi.stubGlobal('localStorage', localStorageMock);
+  refreshPendingBatchesSnapshot();
 });
 
 afterEach(() => {
@@ -280,5 +285,59 @@ describe('loadAllPendingBatches', () => {
     expect(batches).toHaveLength(1);
     expect(batches[0].words).toHaveLength(3);
     expect(batches[0].words.map((w) => w.id)).toEqual(['w1', 'w2', 'w3']);
+  });
+});
+
+describe('pending-batch snapshot store', () => {
+  it('returns the same snapshot object until a mutation', () => {
+    const first = getPendingBatchesSnapshot();
+    expect(getPendingBatchesSnapshot()).toBe(first);
+
+    savePendingBatch(makeBatch());
+    const afterSave = getPendingBatchesSnapshot();
+    expect(afterSave).not.toBe(first);
+    expect(afterSave.batches).toHaveLength(1);
+    expect(getPendingBatchesSnapshot()).toBe(afterSave);
+  });
+
+  it('notifies subscribers on save and clear', () => {
+    const listener = vi.fn();
+    const unsub = subscribePendingBatches(listener);
+    expect(listener).not.toHaveBeenCalled();
+
+    savePendingBatch(makeBatch());
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(getPendingBatchesSnapshot().batches).toHaveLength(1);
+
+    clearPendingBatch(getBatchKey('c1', true));
+    expect(listener).toHaveBeenCalledTimes(2);
+    expect(getPendingBatchesSnapshot().batches).toHaveLength(0);
+    unsub();
+  });
+
+  it('does not notify or change the snapshot when save fails', () => {
+    const listener = vi.fn();
+    const unsub = subscribePendingBatches(listener);
+    const original = localStorageMock.setItem;
+    localStorageMock.setItem = () => {
+      throw new Error('QuotaExceededError');
+    };
+
+    const before = getPendingBatchesSnapshot();
+    expect(savePendingBatch(makeBatch())).toBe(false);
+    expect(listener).not.toHaveBeenCalled();
+    expect(getPendingBatchesSnapshot()).toBe(before);
+
+    localStorageMock.setItem = original;
+    unsub();
+  });
+
+  it('getPendingBatchesServerSnapshot is a stable empty snapshot', () => {
+    savePendingBatch(makeBatch());
+    const server = getPendingBatchesServerSnapshot();
+    expect(server).toBe(getPendingBatchesServerSnapshot());
+    expect(server.batches).toEqual([]);
+    expect(server.hadAccessError).toBe(false);
+    expect(getPendingBatchesSnapshot().batches).toHaveLength(1);
   });
 });

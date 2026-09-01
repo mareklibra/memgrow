@@ -5,6 +5,7 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: [
+      'tests/pending-batch.test.ts',
       'tests/test-session-simulation.test.ts',
       'tests/iterate-words-logic.test.ts',
       'tests/word-transitions.test.ts',

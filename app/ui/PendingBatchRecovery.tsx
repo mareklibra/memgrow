@@ -6,26 +6,21 @@ import {
   useContext,
   useMemo,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from 'react';
 import { Button, Spinner } from '@/app/lib/material-tailwind-compat';
 import { updateWordsProgress } from '@/app/lib/actions';
 import {
-  loadAllPendingBatches,
   clearPendingBatch,
+  getPendingBatchesServerSnapshot,
+  getPendingBatchesSnapshot,
   savePendingBatch,
+  subscribePendingBatches,
   type PendingBatchEntry,
 } from '@/app/lib/pending-batch';
 import { useTranslation } from '@/app/lib/i18n/useTranslation';
 import { formatRelativeTime } from '@/app/lib/i18n/format';
-
-function loadInitialBatches(): {
-  batches: PendingBatchEntry[];
-  hadAccessError: boolean;
-} {
-  if (typeof window === 'undefined') return { batches: [], hadAccessError: false };
-  return loadAllPendingBatches();
-}
 
 export type PendingResolveAction = 'save' | 'discard';
 
@@ -35,16 +30,16 @@ type PendingBatchContextValue = {
   claimedKeys: ReadonlySet<string>;
   claim: (key: string) => void;
   unclaim: (key: string) => void;
-  removeBatch: (key: string) => void;
-  rescan: () => void;
 };
 
 const PendingBatchContext = createContext<PendingBatchContextValue | null>(null);
 
 export function PendingBatchProvider({ children }: Readonly<{ children: ReactNode }>) {
-  const [initial] = useState(loadInitialBatches);
-  const [batches, setBatches] = useState<PendingBatchEntry[]>(initial.batches);
-  const [hadAccessError] = useState(initial.hadAccessError);
+  const { batches, hadAccessError } = useSyncExternalStore(
+    subscribePendingBatches,
+    getPendingBatchesSnapshot,
+    getPendingBatchesServerSnapshot,
+  );
   const [claimedKeys, setClaimedKeys] = useState<Set<string>>(() => new Set());
 
   const claim = useCallback((key: string) => {
@@ -65,15 +60,6 @@ export function PendingBatchProvider({ children }: Readonly<{ children: ReactNod
     });
   }, []);
 
-  const removeBatch = useCallback((key: string) => {
-    setBatches((prev) => prev.filter((b) => b.key !== key));
-  }, []);
-
-  const rescan = useCallback(() => {
-    const result = loadAllPendingBatches();
-    setBatches(result.batches);
-  }, []);
-
   const value = useMemo(
     () => ({
       batches,
@@ -81,10 +67,8 @@ export function PendingBatchProvider({ children }: Readonly<{ children: ReactNod
       claimedKeys,
       claim,
       unclaim,
-      removeBatch,
-      rescan,
     }),
-    [batches, hadAccessError, claimedKeys, claim, unclaim, removeBatch, rescan],
+    [batches, hadAccessError, claimedKeys, claim, unclaim],
   );
 
   return (
@@ -119,13 +103,17 @@ export function BatchBanner({
       const failedIds = result?.failedWordIds ?? [];
       if (failedIds.length > 0) {
         const failedWords = batch.words.filter((w) => failedIds.includes(w.id));
-        savePendingBatch({
+        const ok = savePendingBatch({
           words: failedWords,
           courseId: batch.courseId,
           isLearning: batch.isLearning,
           timestamp: batch.timestamp,
         });
-        setError(t('pending.stillFailed', { count: failedIds.length }));
+        setError(
+          ok
+            ? t('pending.stillFailed', { count: failedIds.length })
+            : t('errors.localStorageSave'),
+        );
       } else {
         clearPendingBatch(batch.key);
         onDone(batch.key, 'save');
@@ -172,14 +160,11 @@ export function BatchBanner({
 
 export function PendingBatchRecovery() {
   const { t } = useTranslation();
-  const { batches, hadAccessError, claimedKeys, removeBatch } = usePendingBatchContext();
+  const { batches, hadAccessError, claimedKeys } = usePendingBatchContext();
 
-  const handleDone = useCallback(
-    (key: string) => {
-      removeBatch(key);
-    },
-    [removeBatch],
-  );
+  const handleDone = useCallback(() => {
+    /* storage + snapshot store already updated */
+  }, []);
 
   const visible = batches.filter((b) => !claimedKeys.has(b.key));
 
