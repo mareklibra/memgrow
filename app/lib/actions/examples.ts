@@ -44,9 +44,7 @@ export async function insertExamples(
       ),
     );
     await Promise.allSettled(promises);
-    return {
-      /* So far no need for the IDs */
-    };
+    return {/* So far no need for the IDs */};
   } catch (e) {
     return {
       message: await genericErrorMessage(e, 'Failed to insert examples'),

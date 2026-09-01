@@ -214,9 +214,7 @@ export function DoneState({
       };
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      /* just once*/
-    ],
+    [/* just once*/],
   );
 
   useEffect(() => {

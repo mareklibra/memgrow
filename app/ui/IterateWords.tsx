@@ -185,18 +185,15 @@ export function IterateWords({
     maxWordsInBatch = isOffline ? learnBatchLimitOffline : learnBatchLimit;
   }
 
-  useEffect(
-    () => {
-      window.onbeforeunload = confirmExit;
-      function confirmExit() {
-        return t('learn.beforeUnload');
-      }
-      return () => {
-        window.onbeforeunload = null;
-      };
-    },
-    [t],
-  );
+  useEffect(() => {
+    window.onbeforeunload = confirmExit;
+    function confirmExit() {
+      return t('learn.beforeUnload');
+    }
+    return () => {
+      window.onbeforeunload = null;
+    };
+  }, [t]);
 
   useEffect(() => {
     if (!sessionOpen) return;
