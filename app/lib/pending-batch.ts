@@ -9,6 +9,11 @@ export type PendingBatch = {
 
 export type PendingBatchEntry = PendingBatch & { key: string };
 
+export type PendingBatchesSnapshot = {
+  batches: PendingBatchEntry[];
+  hadAccessError: boolean;
+};
+
 const STORAGE_PREFIX = 'memgrow_pending_batch_';
 
 export function getBatchKey(courseId: string, isLearning: boolean): string {
@@ -41,6 +46,7 @@ export function savePendingBatch(batch: PendingBatch): boolean {
     console.error('Failed to save progress backup:', e);
     return false;
   }
+  afterMutation();
   return true;
 }
 
@@ -68,13 +74,11 @@ export function clearPendingBatch(key: string): void {
   } catch (e) {
     console.error('Failed to clear pending batch from localStorage:', e);
   }
+  afterMutation();
 }
 
 /** Returns all valid pending batches and an array of errors for any that failed to load. */
-export function loadAllPendingBatches(): {
-  batches: PendingBatchEntry[];
-  hadAccessError: boolean;
-} {
+export function loadAllPendingBatches(): PendingBatchesSnapshot {
   const batches: PendingBatchEntry[] = [];
   let hadAccessError = false;
   try {
@@ -92,4 +96,65 @@ export function loadAllPendingBatches(): {
     hadAccessError = true;
   }
   return { batches, hadAccessError };
+}
+
+const EMPTY_SNAPSHOT: PendingBatchesSnapshot = {
+  batches: [],
+  hadAccessError: false,
+};
+
+let snapshot: PendingBatchesSnapshot = EMPTY_SNAPSHOT;
+const listeners = new Set<() => void>();
+let storageListenerAttached = false;
+
+function emit(): void {
+  for (const listener of listeners) {
+    listener();
+  }
+}
+
+function afterMutation(): void {
+  refreshPendingBatchesSnapshot();
+  emit();
+}
+
+function onStorage(event: StorageEvent): void {
+  if (event.key !== null && !event.key.startsWith(STORAGE_PREFIX)) return;
+  refreshPendingBatchesSnapshot();
+  emit();
+}
+
+export function refreshPendingBatchesSnapshot(): PendingBatchesSnapshot {
+  snapshot = loadAllPendingBatches();
+  return snapshot;
+}
+
+export function getPendingBatchesSnapshot(): PendingBatchesSnapshot {
+  return snapshot;
+}
+
+export function getPendingBatchesServerSnapshot(): PendingBatchesSnapshot {
+  return EMPTY_SNAPSHOT;
+}
+
+export function subscribePendingBatches(onStoreChange: () => void): () => void {
+  listeners.add(onStoreChange);
+  if (listeners.size === 1 && typeof window !== 'undefined') {
+    if (!storageListenerAttached) {
+      window.addEventListener('storage', onStorage);
+      storageListenerAttached = true;
+    }
+    refreshPendingBatchesSnapshot();
+  }
+  return () => {
+    listeners.delete(onStoreChange);
+    if (
+      listeners.size === 0 &&
+      storageListenerAttached &&
+      typeof window !== 'undefined'
+    ) {
+      window.removeEventListener('storage', onStorage);
+      storageListenerAttached = false;
+    }
+  };
 }

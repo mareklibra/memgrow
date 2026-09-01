@@ -196,7 +196,7 @@ export const enMessages = {
   },
   pending: {
     sessionUnsaved:
-      '{mode} — {count, plural, one {# word} other {# words}} from the last session will be saved ({timeAgo})',
+      '{mode} — {count, plural, one {# word} other {# words}} from the last session ready to save ({timeAgo})',
     stillFailed: '{count, plural, one {# word} other {# words}} still failed. Try again.',
     networkError: 'Network error. Try again.',
     discard: 'Discard',
