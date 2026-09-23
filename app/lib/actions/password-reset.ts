@@ -106,6 +106,9 @@ export async function requestPasswordReset(
 
   const authUrl = getPublicAuthUrl();
   if (!authUrl) {
+    console.error(
+      'Password reset unavailable: AUTH_URL is missing or empty. Set AUTH_URL to the public origin (e.g. http://localhost:3000).',
+    );
     return {
       status: 'unavailable',
       message: t('auth.resetEmailUnavailable'),
@@ -116,6 +119,9 @@ export async function requestPasswordReset(
   const isProduction = process.env.NODE_ENV === 'production';
 
   if (!mailConfigured && isProduction) {
+    console.error(
+      'Password reset unavailable: set both RESEND_API_KEY and MAIL_FROM (or leave both unset in development).',
+    );
     return {
       status: 'unavailable',
       message: t('auth.resetEmailUnavailable'),
@@ -123,6 +129,9 @@ export async function requestPasswordReset(
   }
 
   if (!mailConfigured) {
+    console.warn(
+      'Password reset: RESEND_API_KEY or MAIL_FROM is unset; not sending mail.',
+    );
     const user = await getUserForAuth(email);
     if (user?.id) {
       const raw = await mintResetToken(user.id);
