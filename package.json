@@ -8,6 +8,7 @@
     "test:watch": "vitest",
     "test:local": "./scripts/test-local.sh",
     "db:seed": "tsx scripts/db.seed.ts",
+    "db:reset-password": "tsx scripts/db.reset-password.ts",
     "prettier": "prettier --check './**/*.{js,jsx,ts,tsx,css,md,json}' --config ./.prettierrc",
     "prettier:fix": "prettier --write './**/*.{js,jsx,ts,tsx,css,md,json}' --config ./.prettierrc",
     "eslint": "eslint .",

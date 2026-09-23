@@ -39,13 +39,14 @@ export function ChooseTranslation({
       word: word.word,
       definition: word.definition,
     }));
-    array.push({
-      word: correctResponse,
-      definition: correctResponse,
-    });
+    array.push(
+      guessing === 'word'
+        ? { word: correctResponse, definition: toGuess }
+        : { word: toGuess, definition: correctResponse },
+    );
     shuffleArray(array);
     return array;
-  }, [similarWords, correctResponse]);
+  }, [similarWords, correctResponse, toGuess, guessing]);
 
   const handleClick = (value: string) => {
     setValue(value);
@@ -74,7 +75,7 @@ export function ChooseTranslation({
             const item = guessing === 'word' ? option.word : option.definition;
             const optionTwin = guessing === 'word' ? option.definition : option.word;
 
-            if (status !== 'normal' && option.definition === correctResponse) {
+            if (status !== 'normal' && item === correctResponse) {
               state = 'correct';
             } else if (status === 'mistake' && item === value) {
               state = 'mistake';
@@ -88,6 +89,7 @@ export function ChooseTranslation({
                 shortcut={isMobile ? undefined : (index + 1).toString()}
                 option={item}
                 optionTwin={optionTwin}
+                showTwin={status !== 'normal'}
                 handleClick={handleClick}
                 key={item}
               />

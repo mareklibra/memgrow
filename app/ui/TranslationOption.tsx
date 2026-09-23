@@ -25,6 +25,7 @@ interface TranslationOptionProps extends VariantProps<typeof translationOptionVa
   option: string;
   optionTwin: string;
   shortcut?: string;
+  showTwin?: boolean;
   handleClick: (option: string) => void;
 }
 
@@ -33,6 +34,7 @@ export const TranslationOption = ({
   option,
   optionTwin,
   shortcut,
+  showTwin = false,
   handleClick,
 }: TranslationOptionProps) => {
   const handleKeyClick = useCallback(() => handleClick(option), [handleClick, option]);
@@ -47,7 +49,7 @@ export const TranslationOption = ({
           handleClick(option);
         }}
       >
-        {state === 'mistake' && (
+        {showTwin ? (
           <div className="grid grid-flow-col grid-rows-2 gap-2 w-full">
             <div className="col-span-11 text-black">{option}</div>
             <div className="col-span-11 text-black">({optionTwin})</div>
@@ -55,8 +57,7 @@ export const TranslationOption = ({
               <div className="row-span-2 self-center text-gray-500">{shortcut}</div>
             )}
           </div>
-        )}
-        {state !== 'mistake' && (
+        ) : (
           <div className="grid grid-flow-col grid-rows-1 gap-2 w-full">
             <div className="col-span-11 text-black">{option}</div>
             {shortcut && <div className="self-center text-gray-500">{shortcut}</div>}
