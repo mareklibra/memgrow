@@ -48,8 +48,10 @@ export const authConfig: NextAuthConfig = {
       const isLoggedIn = !!auth?.user;
 
       const isOnHomePage = nextUrl.pathname === '/';
+      const isPasswordResetPage =
+        nextUrl.pathname === '/forgot-password' || nextUrl.pathname === '/reset-password';
 
-      if (isOnHomePage) {
+      if (isOnHomePage || isPasswordResetPage) {
         return true;
       }
 

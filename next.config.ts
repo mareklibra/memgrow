@@ -9,6 +9,14 @@ const nextConfig: NextConfig = {
   // (https://github.com/vercel/next.js/issues/96646). Vercel ignores
   // the standalone directory anyway.
   output: process.env.VERCEL ? undefined : 'standalone',
+  async headers() {
+    return [
+      {
+        source: '/reset-password',
+        headers: [{ key: 'Cache-Control', value: 'no-store' }],
+      },
+    ];
+  },
   // with next@canary only
   // experimental: {
   //   ppr: 'incremental',

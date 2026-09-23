@@ -17,6 +17,7 @@ import { Session } from 'next-auth';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/app/lib/i18n/useTranslation';
 import { LanguageSwitcher } from '@/app/ui/LanguageSwitcher';
+import Link from 'next/link';
 
 export default function LoginForm({ auth }: Readonly<{ auth: Session | null }>) {
   const router = useRouter();
@@ -74,6 +75,11 @@ export default function LoginForm({ auth }: Readonly<{ auth: Session | null }>) 
         <Button className="mt-4 w-full">
           {t('auth.logIn')} <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50" />
         </Button>
+        <p className="mt-4 text-center text-sm">
+          <Link href="/forgot-password" className="text-blue-500 hover:underline">
+            {t('auth.forgotPassword')}
+          </Link>
+        </p>
         <div className="mt-4">
           <LanguageSwitcher />
         </div>
