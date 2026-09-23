@@ -6,6 +6,8 @@ const TABLES = [
   'user_progress',
   'words',
   'courses',
+  'password_reset_tokens',
+  'password_reset_rate_limits',
   'users',
 ] as const;
 

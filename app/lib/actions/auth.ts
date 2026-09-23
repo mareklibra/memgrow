@@ -8,10 +8,11 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
 import { auth, signIn, signOut } from '@/auth';
-import { PASSWORD_MIN_LENGTH } from '@/app/constants';
 import { isUserAdmin } from '@/app/lib/data';
 import { getI18n } from '@/app/lib/i18n/get-i18n';
 import { genericErrorMessage } from '@/app/lib/i18n/action-error';
+import { deletePasswordResetTokensForUser } from '@/app/lib/actions/password-reset';
+import { rejectShortPassword } from '@/app/lib/password-policy';
 
 const emailSchema = z.string().email();
 
@@ -36,13 +37,6 @@ async function requireAdmin(): Promise<AuthzOk | AuthzErr> {
     return { ok: false, message: t('errors.notAuthorizedAdmin') };
   }
   return sessionResult;
-}
-
-async function rejectShortPassword(password: string): Promise<string | undefined> {
-  if (password.length < PASSWORD_MIN_LENGTH) {
-    const { t } = await getI18n();
-    return t('errors.passwordTooShort', { min: PASSWORD_MIN_LENGTH });
-  }
 }
 
 export async function authenticate(_: string | undefined, formData: FormData) {
@@ -91,6 +85,7 @@ export async function changeOwnPassword(currentPassword: string, newPassword: st
           token_version = token_version + 1
       WHERE id = ${sessionResult.userId}
     `;
+    await deletePasswordResetTokensForUser(sessionResult.userId);
   } catch (e) {
     return {
       message: await genericErrorMessage(e, 'Failed to change user password'),
@@ -127,6 +122,7 @@ export async function adminSetUserPassword(userId: string, newPassword: string) 
           token_version = token_version + 1
       WHERE id = ${userId}
     `;
+    await deletePasswordResetTokensForUser(userId);
   } catch (e) {
     return {
       message: await genericErrorMessage(e, 'Failed to change user password'),

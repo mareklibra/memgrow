@@ -67,6 +67,18 @@ describe('auth.config authorized callback', () => {
   });
 
   // ── Edge cases ─────────────────────────────────────────────────────
+  it('allows unauthenticated access to /forgot-password', () => {
+    expect(callAuthorized('/forgot-password', null)).toBe(true);
+  });
+
+  it('allows unauthenticated access to /reset-password', () => {
+    expect(callAuthorized('/reset-password', null)).toBe(true);
+  });
+
+  it('denies unauthenticated access to nested /reset-password paths', () => {
+    expect(callAuthorized('/reset-password/x', null)).toBe(false);
+  });
+
   it('denies unauthenticated access to /login (login page itself is protected by routing)', () => {
     expect(callAuthorized('/login', null)).toBe(false);
   });

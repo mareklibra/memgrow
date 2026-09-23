@@ -1,4 +1,5 @@
 export * from './auth';
+export * from './password-reset';
 export * from './course';
 export * from './examples';
 export * from './images';
