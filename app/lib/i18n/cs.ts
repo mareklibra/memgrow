@@ -67,6 +67,10 @@ export const csMessages = {
     resetEmailSubject: 'Obnovení hesla v MemGrow',
     resetEmailBody:
       'Otevřete tento odkaz a zvolte nové heslo. Platí jednu hodinu:\n\n{resetUrl}',
+    registerNewUser: 'Registrovat nového uživatele',
+    registerTitle: 'Vytvořit účet',
+    registerSubmit: 'Vytvořit účet',
+    emailAlreadyRegistered: 'Tento e-mail je již zaregistrován.',
   },
   settings: {
     title: 'Nastavení pro {name}',

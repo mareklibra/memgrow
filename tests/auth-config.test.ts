@@ -95,6 +95,14 @@ describe('auth.config authorized callback', () => {
     expect(callAuthorized('/login', null)).toBe(true);
   });
 
+  it('allows unauthenticated access to /register', () => {
+    expect(callAuthorized('/register', null)).toBe(true);
+  });
+
+  it('redirects unauthenticated access to nested /register paths home', () => {
+    expectHomeRedirect(callAuthorized('/register/x', null));
+  });
+
   it('treats auth with no user as unauthenticated', () => {
     expectHomeRedirect(callAuthorized('/learn', null));
   });

@@ -3,18 +3,32 @@
 import { sql } from '@/app/lib/db';
 import bcrypt from 'bcrypt';
 import { AuthError } from 'next-auth';
+import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 
 import { z } from 'zod';
 
 import { auth, signIn, signOut } from '@/auth';
-import { isUserAdmin } from '@/app/lib/data';
+import { getUserForAuth, isUserAdmin } from '@/app/lib/data';
 import { getI18n } from '@/app/lib/i18n/get-i18n';
 import { genericErrorMessage } from '@/app/lib/i18n/action-error';
 import { deletePasswordResetTokensForUser } from '@/app/lib/actions/password-reset';
 import { rejectShortPassword } from '@/app/lib/password-policy';
+import { isLocale, LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE } from '@/app/lib/i18n';
 
 const emailSchema = z.string().email();
+
+function formString(formData: FormData, name: string): string {
+  const value = formData.get(name);
+  return typeof value === 'string' ? value : '';
+}
+
+function isUniqueViolation(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  if ('code' in error && (error as { code?: unknown }).code === '23505') return true;
+  if ('cause' in error) return isUniqueViolation((error as { cause?: unknown }).cause);
+  return false;
+}
 
 type AuthzOk = { ok: true; userId: string };
 type AuthzErr = { ok: false; message: string };
@@ -37,6 +51,58 @@ async function requireAdmin(): Promise<AuthzOk | AuthzErr> {
     return { ok: false, message: t('errors.notAuthorizedAdmin') };
   }
   return sessionResult;
+}
+
+export async function registerUser(
+  _: string | undefined,
+  formData: FormData,
+): Promise<string | undefined> {
+  const { t } = await getI18n();
+  const name = formString(formData, 'name').trim();
+  const email = formString(formData, 'email').trim().toLowerCase();
+  const password = formString(formData, 'password');
+  const confirm = formString(formData, 'confirm');
+  const locale = formString(formData, 'locale');
+
+  if (!name) return t('errors.emptyName');
+  if (!emailSchema.safeParse(email).success) return t('errors.invalidEmail');
+  const short = await rejectShortPassword(password);
+  if (short) return short;
+  if (password !== confirm) return t('errors.passwordMismatch');
+  if (!isLocale(locale)) return t('errors.invalidLocale');
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+  try {
+    const existing = await getUserForAuth(email);
+    if (existing) return t('auth.emailAlreadyRegistered');
+
+    await sql`
+      INSERT INTO users (name, email, password, locale)
+      VALUES (${name}, ${email}, ${hashedPassword}, ${locale})
+    `;
+  } catch (error) {
+    if (isUniqueViolation(error)) return t('auth.emailAlreadyRegistered');
+    return genericErrorMessage(error, 'Failed to register user');
+  }
+
+  try {
+    const store = await cookies();
+    store.set(LOCALE_COOKIE, locale, {
+      path: '/',
+      sameSite: 'lax',
+      maxAge: LOCALE_COOKIE_MAX_AGE,
+      httpOnly: true,
+    });
+  } catch (error) {
+    console.error('Failed to set locale cookie:', error);
+    return t('errors.generic');
+  }
+
+  await signIn('credentials', {
+    email,
+    password,
+    redirectTo: '/',
+  });
 }
 
 export async function authenticate(_: string | undefined, formData: FormData) {
