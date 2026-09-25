@@ -5,7 +5,12 @@ import {
   learnWordsCountLimitOffline,
   maxSimilarWords,
 } from '@/app/constants';
-import { fetchSimilarWords, fetchWordsToLearn } from '@/app/lib/data';
+import { auth } from '@/auth';
+import {
+  canChangeSharedDicts,
+  fetchSimilarWords,
+  fetchWordsToLearn,
+} from '@/app/lib/data';
 import {
   queryExamples,
   deleteExample,
@@ -33,6 +38,10 @@ export default async function Page({
   );
   const words = await fetchSimilarWords(courseId, wordsToLearn, maxSimilarWords);
   const { t } = await getI18n();
+  const session = await auth();
+  const canEditShared = session?.user?.id
+    ? await canChangeSharedDicts(session.user.id)
+    : false;
 
   return (
     <IterateWords
@@ -47,6 +56,7 @@ export default async function Page({
       queryImages={queryWordImages}
       deleteImage={deleteWordImage}
       requestImageGeneration={requestImageGeneration}
+      canChangeSharedDicts={canEditShared}
     />
   );
 }

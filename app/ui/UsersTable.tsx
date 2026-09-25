@@ -3,7 +3,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input, Typography } from '@/app/lib/material-tailwind-compat';
-import { adminSetUserPassword, deleteUser, impersonateUser } from '@/app/lib/actions';
+import {
+  adminSetUserPassword,
+  deleteUser,
+  impersonateUser,
+  setCanChangeSharedDicts,
+} from '@/app/lib/actions';
 import type { UserListItem } from '@/app/lib/definitions';
 import { useTranslation } from '@/app/lib/i18n/useTranslation';
 import { localeToBcp47 } from '@/app/lib/i18n';
@@ -102,6 +107,7 @@ export function UsersTable({
             <th className={s.th}>{t('settings.name')}</th>
             <th className={s.th}>{t('settings.email')}</th>
             <th className={s.th}>{t('settings.admin')}</th>
+            <th className={s.th}>{t('settings.sharedDictsOn')}</th>
             <th className={s.th}>{t('settings.created')}</th>
             <th className={s.th}>{t('settings.actions')}</th>
           </tr>
@@ -119,6 +125,35 @@ export function UsersTable({
                       {t('settings.admin')}
                     </span>
                   ) : null}
+                </td>
+                <td className={s.td}>
+                  <button
+                    type="button"
+                    className={actionClass}
+                    disabled={user.is_admin}
+                    title={
+                      user.is_admin
+                        ? t('errors.adminAlwaysCanChangeSharedDicts')
+                        : undefined
+                    }
+                    onClick={async () => {
+                      if (user.is_admin) return;
+                      setError(undefined);
+                      const result = await setCanChangeSharedDicts(
+                        user.id,
+                        !user.can_change_shared_dicts,
+                      );
+                      if (result?.message) {
+                        setError(result.message);
+                        return;
+                      }
+                      router.refresh();
+                    }}
+                  >
+                    {user.is_admin || user.can_change_shared_dicts
+                      ? t('settings.sharedDictsOn')
+                      : t('settings.sharedDictsOff')}
+                  </button>
                 </td>
                 <td className={s.td}>
                   {formatDateToLocal(createdAtString(user.created_at), bcp47)}

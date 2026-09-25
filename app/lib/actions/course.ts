@@ -5,8 +5,11 @@ import { revalidatePath } from 'next/cache';
 import { auth } from '@/auth';
 import { genericErrorMessage } from '@/app/lib/i18n/action-error';
 import { getI18n } from '@/app/lib/i18n/get-i18n';
+import { sharedDictChangeDenied } from '@/app/lib/data';
 
 export async function updateCourse(courseId: string, course: { courseCode: string }) {
+  const denied = await sharedDictChangeDenied();
+  if (denied) return { message: denied };
   try {
     await sql`
         UPDATE courses
@@ -47,6 +50,8 @@ export async function createCourse(course: {
   learningLang: string;
   courseCode: string;
 }) {
+  const denied = await sharedDictChangeDenied();
+  if (denied) return { message: denied };
   try {
     const result = await sql<{ id: string }>`
         INSERT INTO courses (name, known_lang, learning_lang, course_code)

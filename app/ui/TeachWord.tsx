@@ -41,6 +41,7 @@ interface TeachWordProps {
   deleteImage: WordPicturesProps['deleteImage'];
   requestImageGeneration: (wordId: string) => Promise<RequestImageResult>;
   onPreviewMemLevel: (isCorrect: boolean, isShortenOnly?: boolean) => void;
+  canChangeSharedDicts: boolean;
 }
 
 const delay = async (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -60,6 +61,7 @@ export function TeachWord({
   requestImageGeneration,
   skipWord,
   onPreviewMemLevel,
+  canChangeSharedDicts,
 }: Readonly<TeachWordProps>) {
   const { t } = useTranslation();
   const [status, setStatus] = useState<FieldStatus>('normal');
@@ -72,6 +74,9 @@ export function TeachWord({
   const [isSkipped, setIsSkipped] = useState<boolean>(word.isSkipped);
   const [imageRequested, setImageRequested] = useState(false);
   const [hasPictures, setHasPictures] = useState<boolean | null>(null);
+  const [storedExampleCount, setStoredExampleCount] = useState<number | null>(
+    canChangeSharedDicts ? 0 : null,
+  );
   const skipMistakeRef = useRef<boolean>(false);
 
   const threeSimilarWords = useMemo(
@@ -249,6 +254,20 @@ export function TeachWord({
     checkImages();
   }, [word.id, queryImages]);
 
+  useEffect(() => {
+    if (canChangeSharedDicts) return;
+    let cancelled = false;
+    const loadExamples = async () => {
+      const result = await queryExamples(word.id);
+      if (cancelled) return;
+      setStoredExampleCount(result.examples?.length ?? 0);
+    };
+    loadExamples();
+    return () => {
+      cancelled = true;
+    };
+  }, [canChangeSharedDicts, queryExamples, word.id]);
+
   const handleRequestImage = () => {
     setImageRequested(true);
     requestImageGeneration(word.id);
@@ -285,13 +304,16 @@ export function TeachWord({
         )}
         {isSkipped && <div className="text-center">{t('learn.skipped')}</div>}
 
-        <div className="py-5 w-full">
-          <WordExamples
-            word={word}
-            queryExamples={queryExamples}
-            deleteExample={deleteExample}
-          />
-        </div>
+        {(canChangeSharedDicts || (storedExampleCount ?? 0) > 0) && (
+          <div className="py-5 w-full">
+            <WordExamples
+              word={word}
+              queryExamples={queryExamples}
+              deleteExample={deleteExample}
+              allowDelete={canChangeSharedDicts}
+            />
+          </div>
+        )}
 
         <div className="flex flex-row justify-between">
           <Button onClick={() => handlePriority(word)} type="button">
@@ -333,11 +355,14 @@ export function TeachWord({
         <hr className={s.separator} />
 
         <div className="flex justify-between">
-          <Button onClick={editWord} type="button">
-            {t('common.edit')}
-          </Button>
+          {canChangeSharedDicts && (
+            <Button onClick={editWord} type="button">
+              {t('common.edit')}
+            </Button>
+          )}
 
           <Button
+            className="ml-auto"
             onClick={() => forceCheck()}
             disabled={isCheckButtonDisabled}
             type="button"
@@ -351,9 +376,10 @@ export function TeachWord({
             wordId={word.id}
             queryImages={queryImages}
             deleteImage={deleteImage}
+            allowDelete={canChangeSharedDicts}
           />
         )}
-        {hasPictures === false && (
+        {hasPictures === false && canChangeSharedDicts && (
           <div className="flex justify-center py-2">
             <Button onClick={handleRequestImage} type="button" disabled={imageRequested}>
               <CameraIcon className="w-5" />

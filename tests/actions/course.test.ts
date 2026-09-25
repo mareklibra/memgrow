@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createCourse, updateCourse } from '@/app/lib/actions/course';
 import { truncateAll } from '../setup/db';
-import { createTestCourse } from '../fixtures/factories';
+import { createTestCourse, createTestUser } from '../fixtures/factories';
 import { fetchCourse, fetchCourses } from '@/app/lib/data';
 
 describe('actions/course', () => {
@@ -15,6 +15,7 @@ describe('actions/course', () => {
 
   describe('createCourse', () => {
     it('creates a new course', async () => {
+      await createTestUser();
       const result = await createCourse({
         name: 'New Course',
         knownLang: 'English',
@@ -32,6 +33,7 @@ describe('actions/course', () => {
 
   describe('updateCourse', () => {
     it('updates course_code', async () => {
+      await createTestUser();
       const course = await createTestCourse({
         name: 'To Update',
         courseCode: 'en',

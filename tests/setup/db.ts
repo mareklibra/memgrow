@@ -8,6 +8,8 @@ const TABLES = [
   'courses',
   'password_reset_tokens',
   'password_reset_rate_limits',
+  'registration_rate_limits',
+  'image_requests',
   'users',
 ] as const;
 

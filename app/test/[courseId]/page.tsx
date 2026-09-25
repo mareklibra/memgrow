@@ -1,5 +1,10 @@
 import { IterateWords } from '@/app/ui/IterateWords';
-import { fetchSimilarWords, fetchWordsToTest } from '@/app/lib/data';
+import { auth } from '@/auth';
+import {
+  canChangeSharedDicts,
+  fetchSimilarWords,
+  fetchWordsToTest,
+} from '@/app/lib/data';
 import {
   maxSimilarWords,
   testRepetitionLimit,
@@ -39,6 +44,10 @@ export default async function Page({
     () => crypto.getRandomValues(new Uint32Array(1))[0]! / 2 ** 32 - 0.5,
   );
   const { t } = await getI18n();
+  const session = await auth();
+  const canEditShared = session?.user?.id
+    ? await canChangeSharedDicts(session.user.id)
+    : false;
 
   return (
     <IterateWords
@@ -52,6 +61,7 @@ export default async function Page({
       queryImages={queryWordImages}
       deleteImage={deleteWordImage}
       requestImageGeneration={requestImageGeneration}
+      canChangeSharedDicts={canEditShared}
     />
   );
 }

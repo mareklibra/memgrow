@@ -96,6 +96,10 @@ export async function runSchema(connectionString: string): Promise<void> {
   `);
 
   await pool.query(`
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS can_change_shared_dicts BOOLEAN NOT NULL DEFAULT FALSE;
+  `);
+
+  await pool.query(`
     ALTER TABLE users ADD COLUMN IF NOT EXISTS locale VARCHAR(8);
   `);
 
@@ -111,6 +115,26 @@ export async function runSchema(connectionString: string): Promise<void> {
       expires_at TIMESTAMPTZ NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
       CONSTRAINT unique_password_reset_user UNIQUE (user_id)
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS registration_rate_limits (
+      ip TEXT PRIMARY KEY,
+      last_attempt_at TIMESTAMPTZ NOT NULL,
+      window_start TIMESTAMPTZ NOT NULL,
+      count INTEGER NOT NULL
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS image_requests (
+      id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+      word_id UUID NOT NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      in_progress_since TIMESTAMP,
+      CONSTRAINT fk_ir_word FOREIGN KEY(word_id) REFERENCES words(id) ON DELETE CASCADE,
+      CONSTRAINT unique_ir_word UNIQUE (word_id)
     );
   `);
 

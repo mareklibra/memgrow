@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { createTranslator } from '@/app/lib/i18n';
 import {
   addWord,
   addWordBatch,
@@ -17,6 +18,8 @@ import {
 import { fetchWord } from '@/app/lib/data';
 import { sql } from '@/app/lib/db';
 
+const t = createTranslator('en');
+
 describe('actions/word', () => {
   beforeEach(async () => {
     await truncateAll();
@@ -28,6 +31,7 @@ describe('actions/word', () => {
 
   describe('addWord', () => {
     it('inserts a new word and returns id', async () => {
+      await createTestUser();
       const course = await createTestCourse();
       const result = await addWord({
         word: 'new word',
@@ -39,6 +43,7 @@ describe('actions/word', () => {
     });
 
     it('returns error on duplicate or constraint violation', async () => {
+      await createTestUser();
       const course = await createTestCourse();
       await addWord({
         word: 'dup',
@@ -54,10 +59,39 @@ describe('actions/word', () => {
       // May succeed (word gets created) or fail (FK violation) - either is valid
       expect(result).toBeDefined();
     });
+
+    it('does not insert when the user cannot change shared dictionaries', async () => {
+      await createTestUser({ canChangeSharedDicts: false });
+      const course = await createTestCourse();
+      const result = await addWord({
+        word: 'blocked',
+        definition: 'nope',
+        courseId: course.id,
+      });
+      expect(result?.message).toBe(t('errors.cannotChangeSharedDicts'));
+      expect(result?.id).toBeUndefined();
+      const count = await sql<{ count: string }>`
+        SELECT count(*)::text AS count FROM words WHERE word = 'blocked'
+      `;
+      expect(count.rows[0]?.count).toBe('0');
+    });
+
+    it('lets an admin add a word when the flag column is false', async () => {
+      await createTestUser({ is_admin: true, canChangeSharedDicts: false });
+      const course = await createTestCourse();
+      const result = await addWord({
+        word: 'admin word',
+        definition: 'allowed',
+        courseId: course.id,
+      });
+      expect(result?.message).toBeUndefined();
+      expect(result?.id).toBeDefined();
+    });
   });
 
   describe('addWordBatch', () => {
     it('inserts multiple words', async () => {
+      await createTestUser();
       const course = await createTestCourse();
       const results = await addWordBatch([
         { word: 'batch1', definition: 'd1', courseId: course.id },
@@ -97,6 +131,7 @@ describe('actions/word', () => {
 
   describe('deleteWord', () => {
     it('deletes word', async () => {
+      await createTestUser();
       const course = await createTestCourse();
       const word = await createTestWord(course.id, { word: 'todelete' });
 
@@ -115,6 +150,25 @@ describe('actions/word', () => {
 
       const fetched = await fetchWord(word.id);
       expect(fetched).toBeUndefined();
+    });
+
+    it('does not delete when the user cannot change shared dictionaries', async () => {
+      await createTestUser({ canChangeSharedDicts: false });
+      const course = await createTestCourse();
+      const word = await createTestWord(course.id, { word: 'kept' });
+      const result = await deleteWord({
+        id: word.id,
+        courseId: course.id,
+        word: 'kept',
+        definition: 'def',
+        memLevel: 0,
+        form: 'show',
+        repeatAgain: new Date(),
+        isPriority: false,
+        isSkipped: false,
+      });
+      expect(result?.message).toBe(t('errors.cannotChangeSharedDicts'));
+      expect(await fetchWord(word.id)).toBeDefined();
     });
   });
 

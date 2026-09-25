@@ -71,6 +71,7 @@ export const enMessages = {
     registerTitle: 'Create an account',
     registerSubmit: 'Create account',
     emailAlreadyRegistered: 'That email is already registered.',
+    registerTryLater: 'Please try again later.',
   },
   settings: {
     title: 'Settings for {name}',
@@ -102,6 +103,8 @@ export const enMessages = {
     impersonateConfirm:
       'Sign in as {name} ({email})? You will need to sign out and log in again as admin to return.',
     cannotDeleteSelfTitle: 'Cannot delete yourself',
+    sharedDictsOn: 'Can edit dictionaries',
+    sharedDictsOff: 'Cannot edit dictionaries',
   },
   course: {
     learningFrom: 'Learning {learning} from {known}',
@@ -252,6 +255,8 @@ export const enMessages = {
     notAuthenticated: 'Not authenticated.',
     notAuthenticatedShort: 'Not authenticated',
     notAuthorizedAdmin: 'Not authorized: admin privileges required.',
+    cannotChangeSharedDicts: 'You cannot change shared dictionaries.',
+    adminAlwaysCanChangeSharedDicts: 'An admin can always edit shared dictionaries.',
     targetUserNotFound: 'Target user not found.',
     impersonationFailed: 'Impersonation failed.',
     noWordsToAutoLearn: 'No words to auto-learn.',

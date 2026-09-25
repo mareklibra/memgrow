@@ -4,6 +4,7 @@ export type User = {
   email: string;
   password: string;
   is_admin: boolean;
+  can_change_shared_dicts?: boolean;
   locale: string | null;
 };
 
@@ -12,6 +13,7 @@ export type UserListItem = {
   name: string;
   email: string;
   is_admin: boolean;
+  can_change_shared_dicts: boolean;
   created_at: Date | string;
 };
 

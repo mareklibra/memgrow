@@ -69,6 +69,30 @@ export async function fetchUserLocale(userId: string): Promise<string | null> {
   }
 }
 
+export async function canChangeSharedDicts(userId: string): Promise<boolean> {
+  try {
+    const result = await sql<{ allowed: boolean }>`
+      SELECT (is_admin OR can_change_shared_dicts) AS allowed
+      FROM users
+      WHERE id = ${userId}
+    `;
+    return result.rows[0]?.allowed ?? false;
+  } catch (error) {
+    console.error('Failed to check shared dictionary permission:', error);
+    return false;
+  }
+}
+
+/** Message when the signed-in user may not write shared dictionary content. */
+export async function sharedDictChangeDenied(): Promise<string | undefined> {
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (userId && (await canChangeSharedDicts(userId))) return undefined;
+  const { getI18n } = await import('@/app/lib/i18n/get-i18n');
+  const { t } = await getI18n();
+  return t('errors.cannotChangeSharedDicts');
+}
+
 export async function isUserAdmin(userId: string): Promise<boolean> {
   try {
     const result = await sql<{ is_admin: boolean }>`
@@ -89,7 +113,9 @@ export async function fetchAllUsers(): Promise<UserListItem[]> {
       return [];
     }
     const result = await sql<UserListItem>`
-      SELECT id, name, email, is_admin, created_at FROM users ORDER BY name ASC
+      SELECT id, name, email, is_admin, can_change_shared_dicts, created_at
+      FROM users
+      ORDER BY name ASC
     `;
     return result.rows;
   } catch (error) {

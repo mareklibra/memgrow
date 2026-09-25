@@ -5,7 +5,7 @@ import { auth } from '@/auth';
 import { revalidatePath } from 'next/cache';
 
 import { Word, WordToAdd } from '../definitions';
-import { countWordsToLearn, countWordsToTest } from '../data';
+import { countWordsToLearn, countWordsToTest, sharedDictChangeDenied } from '../data';
 import { UpdateWordResult, UpdateWordsResult } from '../types';
 import { genericErrorMessage } from '@/app/lib/i18n/action-error';
 import { getI18n } from '@/app/lib/i18n/get-i18n';
@@ -64,6 +64,8 @@ export const updateWordsProgress = async (words: Word[]): Promise<UpdateWordsRes
 };
 
 export async function addWord(word: WordToAdd): Promise<UpdateWordResult> {
+  const denied = await sharedDictChangeDenied();
+  if (denied) return { message: denied };
   try {
     const result = await sql.query(
       `
@@ -82,6 +84,8 @@ export async function addWord(word: WordToAdd): Promise<UpdateWordResult> {
 }
 
 export async function addWordBatch(words: WordToAdd[]): Promise<UpdateWordResult[]> {
+  const denied = await sharedDictChangeDenied();
+  if (denied) return [{ message: denied }];
   try {
     const promises = words.map((word) =>
       sql.query(
@@ -110,6 +114,8 @@ export async function addWordBatch(words: WordToAdd[]): Promise<UpdateWordResult
 }
 
 export async function deleteWord(word: Word): Promise<UpdateWordResult> {
+  const denied = await sharedDictChangeDenied();
+  if (denied) return { message: denied, id: word.id };
   try {
     await sql`
         DELETE FROM words WHERE id=${word.id}
@@ -214,6 +220,8 @@ export async function fetchRemainingWordsCount(
 }
 
 export async function updateWord(changed: Word): Promise<UpdateWordResult> {
+  const denied = await sharedDictChangeDenied();
+  if (denied) return { message: denied, id: changed.id };
   try {
     await sql`
         UPDATE words

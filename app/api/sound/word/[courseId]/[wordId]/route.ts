@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
-import { fetchCourse, fetchPronunciation } from '@/app/lib/data';
+import { auth } from '@/auth';
+import { canChangeSharedDicts, fetchCourse, fetchPronunciation } from '@/app/lib/data';
 import { insertPronunciation } from '@/app/lib/actions';
 import { getI18n } from '@/app/lib/i18n/get-i18n';
 
@@ -72,6 +73,12 @@ export async function GET(
       status: 200,
       headers: { 'Content-Type': 'audio/mpeg' },
     });
+  }
+
+  const session = await auth();
+  const allowed = session?.user?.id ? await canChangeSharedDicts(session.user.id) : false;
+  if (!allowed) {
+    return new Response(t('errors.cannotChangeSharedDicts'), { status: 403 });
   }
 
   console.log('Generating pronunciation for word: ', {
