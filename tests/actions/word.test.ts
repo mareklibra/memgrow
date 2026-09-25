@@ -15,6 +15,7 @@ import {
   createTestWord,
 } from '../fixtures/factories';
 import { fetchWord } from '@/app/lib/data';
+import { sql } from '@/app/lib/db';
 
 describe('actions/word', () => {
   beforeEach(async () => {
@@ -164,6 +165,45 @@ describe('actions/word', () => {
       expect(fetched?.memLevel).toBe(3);
       expect(fetched?.form).toBe('write');
       expect(fetched?.isPriority).toBe(true);
+    });
+
+    it('keeps one row and moves updated_at on a second write', async () => {
+      await createTestUser();
+      const course = await createTestCourse();
+      const word = await createTestWord(course.id);
+
+      const progress = {
+        id: word.id,
+        courseId: course.id,
+        word: word.word,
+        definition: word.definition,
+        memLevel: 1,
+        form: 'show' as const,
+        repeatAgain: new Date(),
+        isPriority: false,
+        isSkipped: false,
+      };
+
+      const inserted = await updateWordProgress(progress);
+      expect(inserted?.message).toBeUndefined();
+
+      const first = await sql<{ updated_at: Date }>`
+        SELECT updated_at FROM user_progress WHERE word_id = ${word.id}
+      `;
+      expect(first.rows).toHaveLength(1);
+      expect(first.rows[0].updated_at).toBeTruthy();
+      const firstAt = new Date(first.rows[0].updated_at).getTime();
+
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      const updated = await updateWordProgress({ ...progress, memLevel: 2 });
+      expect(updated?.message).toBeUndefined();
+
+      const second = await sql<{ updated_at: Date }>`
+        SELECT updated_at FROM user_progress WHERE word_id = ${word.id}
+      `;
+      expect(second.rows).toHaveLength(1);
+      expect(new Date(second.rows[0].updated_at).getTime()).toBeGreaterThan(firstAt);
     });
   });
 

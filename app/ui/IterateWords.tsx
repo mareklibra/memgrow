@@ -54,6 +54,7 @@ import { WordPicturesProps } from './WordPictures';
 import { DonutProgressChart } from './DonutProgressChart';
 import { RequestImageResult } from '../lib/types';
 import { useTranslation } from '@/app/lib/i18n/useTranslation';
+import { localeToBcp47 } from '@/app/lib/i18n';
 import type { TFunction } from '@/app/lib/i18n';
 
 const subscribeIsClient = () => () => {};
@@ -163,7 +164,7 @@ export function IterateWords({
   deleteImage,
   requestImageGeneration,
 }: Readonly<IterateWordsProps>) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const courseId = words[0]?.courseId;
   const batchKey = courseId ? getBatchKey(courseId, !!isLearning) : '';
   const {
@@ -405,6 +406,12 @@ export function IterateWords({
         skipWord={skipWord}
         onPreviewMemLevel={previewNewLevel}
       />
+      {!isLearning && word.progressUpdatedAt && (
+        <p className="mt-8 text-center text-xs text-gray-400">
+          {t('test.progressUpdatedAt')}{' '}
+          {word.progressUpdatedAt.toLocaleDateString(localeToBcp47(locale))}
+        </p>
+      )}
     </div>
   );
 }

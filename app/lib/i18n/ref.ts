@@ -149,6 +149,7 @@ export const enMessages = {
   test: {
     chooseCourse: 'Choose course to strengthen memory in',
     title: 'Recall',
+    progressUpdatedAt: 'Last saved',
     backToCourses: '« Back to courses',
     simulateTitle: 'Simulate progress: {name}',
     poolSummary:

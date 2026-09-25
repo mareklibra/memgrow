@@ -27,9 +27,18 @@ function stripForStorage(word: Word): Omit<Word, 'similarWords'> {
 }
 
 function deserializeWord(raw: Record<string, unknown>): Word {
+  const parsedUpdatedAt =
+    typeof raw.progressUpdatedAt === 'string' && raw.progressUpdatedAt
+      ? new Date(raw.progressUpdatedAt)
+      : undefined;
+  const progressUpdatedAt =
+    parsedUpdatedAt && !Number.isNaN(parsedUpdatedAt.getTime())
+      ? parsedUpdatedAt
+      : undefined;
   return {
     ...raw,
     repeatAgain: new Date(raw.repeatAgain as string),
+    ...(progressUpdatedAt ? { progressUpdatedAt } : { progressUpdatedAt: undefined }),
   } as Word;
 }
 

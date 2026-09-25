@@ -21,6 +21,7 @@ import {
   createTestWord,
 } from './fixtures/factories';
 import { mockAuthUser } from './setup/auth-mock';
+import { sql } from '@/app/lib/db';
 
 describe('data', () => {
   beforeEach(async () => {
@@ -156,7 +157,9 @@ describe('data', () => {
 
       const words = await fetchWordsToTest(course.id, 10, false, 0);
       expect(words.length).toBeGreaterThanOrEqual(1);
-      expect(words.some((w) => w.word === 'totest')).toBe(true);
+      const found = words.find((w) => w.word === 'totest');
+      expect(found).toBeDefined();
+      expect(found?.progressUpdatedAt).toBeUndefined();
     });
 
     it('excludes words with repeat_again in future', async () => {
@@ -184,6 +187,26 @@ describe('data', () => {
 
       const words = await fetchWordsToTest(course.id, 10, true, 0);
       expect(words.some((w) => w.word === 'priority')).toBe(true);
+    });
+
+    it('includes progressUpdatedAt when updated_at is set', async () => {
+      const user = await createTestUser();
+      const course = await createTestCourse();
+      const word = await createTestWord(course.id, { word: 'stamped' });
+      await createTestUserProgress(user.id, word.id, {
+        memlevel: 1,
+        repeatAgain: new Date(Date.now() - 86400000),
+      });
+      await sql`
+        UPDATE user_progress
+        SET updated_at = ${'2024-06-01T12:00:00.000Z'}
+        WHERE user_id = ${user.id} AND word_id = ${word.id}
+      `;
+
+      const words = await fetchWordsToTest(course.id, 10, false, 0);
+      const found = words.find((w) => w.word === 'stamped');
+      expect(found?.progressUpdatedAt).toBeInstanceOf(Date);
+      expect(found?.progressUpdatedAt?.getTime()).not.toBeNaN();
     });
   });
 

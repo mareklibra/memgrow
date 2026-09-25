@@ -68,6 +68,10 @@ export async function runSchema(connectionString: string): Promise<void> {
   `);
 
   await pool.query(`
+    ALTER TABLE user_progress ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP;
+  `);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS sounds (
       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
       word_id UUID NOT NULL,

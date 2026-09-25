@@ -13,37 +13,31 @@ import { getI18n } from '@/app/lib/i18n/get-i18n';
 export async function updateWordProgress(word: Word): Promise<UpdateWordResult> {
   const myAuth = await auth();
   try {
-    const result = await sql`
-        UPDATE user_progress
-        SET memlevel = ${word.memLevel}, form = ${word.form}, repeat_again = ${word.repeatAgain?.toISOString() || 'NULL'}, is_priority = ${word.isPriority}, is_skipped = ${!!word.isSkipped}
-        WHERE
-          user_id = ${myAuth?.user?.id}
-          AND word_id = ${word.id}
+    await sql`
+        INSERT INTO user_progress (
+          word_id, user_id, memlevel, form, repeat_again, is_priority, is_skipped, updated_at
+        )
+        VALUES (
+          ${word.id},
+          ${myAuth?.user?.id},
+          ${word.memLevel},
+          ${word.form},
+          ${word.repeatAgain ?? null},
+          ${word.isPriority},
+          ${!!word.isSkipped},
+          CURRENT_TIMESTAMP
+        )
+        ON CONFLICT (user_id, word_id)
+        DO UPDATE SET
+          memlevel = EXCLUDED.memlevel,
+          form = EXCLUDED.form,
+          repeat_again = EXCLUDED.repeat_again,
+          is_priority = EXCLUDED.is_priority,
+          is_skipped = EXCLUDED.is_skipped,
+          updated_at = CURRENT_TIMESTAMP
       `;
 
-    if (result.rowCount === 0 || result.rowCount === null) {
-      console.log('Insert new word progress (update failed): ', word.id);
-      await sql.query(
-        `
-          INSERT INTO user_progress (word_id, user_id, memlevel, form, repeat_again, is_priority)
-          VALUES ($1, $2, $3, $4, $5, $6) RETURNING *
-        `,
-        [
-          word.id,
-          myAuth?.user?.id,
-          word.memLevel,
-          word.form,
-          word.repeatAgain,
-          word.isPriority,
-        ],
-      );
-
-      return { id: word.id };
-    }
-
-    if (result.rowCount > 1) {
-      throw new Error(`Update rowCount is higher than 1 (${result.rowCount})`);
-    }
+    return { id: word.id };
   } catch (error) {
     return {
       message: await genericErrorMessage(

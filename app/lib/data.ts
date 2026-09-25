@@ -21,6 +21,7 @@ type DbWordProgress = DbWord & {
   repeat_again: string;
   is_priority: boolean;
   is_skipped: boolean;
+  updated_at?: string | Date | null;
 };
 type UserAuth = User & {
   password: string;
@@ -97,17 +98,30 @@ export async function fetchAllUsers(): Promise<UserListItem[]> {
   }
 }
 
-const fromDbWordProgress = (dbWord: DbWordProgress): Word => ({
-  courseId: dbWord.course_id,
-  id: dbWord.id,
-  word: dbWord.word,
-  definition: dbWord.definition,
-  form: dbWord.form ?? 'show',
-  memLevel: Number(dbWord.memlevel ?? '0'),
-  repeatAgain: new Date(dbWord.repeat_again || Date.now()),
-  isPriority: dbWord.is_priority ?? false,
-  isSkipped: dbWord.is_skipped ?? false,
-});
+const progressUpdatedAtFromDb = (
+  value: string | Date | null | undefined,
+): Date | undefined => {
+  if (value == null || value === '') return undefined;
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return undefined;
+  return date;
+};
+
+const fromDbWordProgress = (dbWord: DbWordProgress): Word => {
+  const progressUpdatedAt = progressUpdatedAtFromDb(dbWord.updated_at);
+  return {
+    courseId: dbWord.course_id,
+    id: dbWord.id,
+    word: dbWord.word,
+    definition: dbWord.definition,
+    form: dbWord.form ?? 'show',
+    memLevel: Number(dbWord.memlevel ?? '0'),
+    repeatAgain: new Date(dbWord.repeat_again || Date.now()),
+    isPriority: dbWord.is_priority ?? false,
+    isSkipped: dbWord.is_skipped ?? false,
+    ...(progressUpdatedAt ? { progressUpdatedAt } : {}),
+  };
+};
 
 const omDbCourse = (dbCourse: DbCourse): Course => ({
   id: dbCourse.id,
@@ -222,7 +236,7 @@ export async function fetchWordsToTest(
     const result = priorityFirst
       ? await sql<DbWordProgress>`
           SELECT words.course_id, words.id, words.word, words.course_id, words.definition,
-                 user_progress.form, user_progress.memlevel, user_progress.repeat_again, user_progress.is_priority, user_progress.is_skipped
+                 user_progress.form, user_progress.memlevel, user_progress.repeat_again, user_progress.is_priority, user_progress.is_skipped, user_progress.updated_at
           FROM words
           LEFT OUTER JOIN
             (SELECT * FROM user_progress
@@ -240,7 +254,7 @@ export async function fetchWordsToTest(
         `
       : await sql<DbWordProgress>`
           SELECT words.course_id, words.id, words.word, words.course_id, words.definition,
-                 user_progress.form, user_progress.memlevel, user_progress.repeat_again, user_progress.is_priority, user_progress.is_skipped
+                 user_progress.form, user_progress.memlevel, user_progress.repeat_again, user_progress.is_priority, user_progress.is_skipped, user_progress.updated_at
           FROM words
           LEFT OUTER JOIN
             (SELECT * FROM user_progress
