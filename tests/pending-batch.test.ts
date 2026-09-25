@@ -175,6 +175,7 @@ describe('loadPendingBatch', () => {
       repeatAgain: new Date('2025-06-01T08:00:00Z'),
       isPriority: true,
       isSkipped: true,
+      progressUpdatedAt: new Date('2025-03-02T00:00:00.000Z'),
     });
     savePendingBatch(makeBatch({ words: [word] }));
     const key = getBatchKey('c1', true);
@@ -189,6 +190,8 @@ describe('loadPendingBatch', () => {
     expect(w.isPriority).toBe(true);
     expect(w.isSkipped).toBe(true);
     expect(w.repeatAgain.toISOString()).toBe('2025-06-01T08:00:00.000Z');
+    expect(w.progressUpdatedAt).toBeInstanceOf(Date);
+    expect(w.progressUpdatedAt?.toISOString()).toBe('2025-03-02T00:00:00.000Z');
   });
 });
 

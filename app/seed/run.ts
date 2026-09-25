@@ -13,6 +13,7 @@ import batch012 from './012';
 import batch013 from './013';
 import batch014 from './014';
 import batch015 from './015';
+import batch016 from './016';
 import seedDataBatch from './seedData';
 
 /**
@@ -37,6 +38,7 @@ export async function createSchema(): Promise<void> {
   await batch013();
   await batch014();
   await batch015();
+  await batch016();
 }
 
 /**

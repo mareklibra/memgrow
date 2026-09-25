@@ -149,6 +149,7 @@ export const csMessages = {
   test: {
     chooseCourse: 'Vyberte kurz pro posílení paměti',
     title: 'Opakování',
+    progressUpdatedAt: 'Naposledy uloženo',
     backToCourses: '« Zpět na kurzy',
     simulateTitle: 'Simulovat pokrok: {name}',
     poolSummary:

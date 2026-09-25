@@ -40,6 +40,7 @@ export type Word = Omit<DbWord, 'course_id'> & {
   memLevel: number;
   form: TeachingForm;
   repeatAgain: Date;
+  progressUpdatedAt?: Date;
   isPriority: boolean;
   isSkipped: boolean;
 
