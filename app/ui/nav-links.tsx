@@ -43,7 +43,6 @@ export default function NavLinks({
       name: userName ? t('nav.settingsWithName', { name: userName }) : t('nav.settings'),
       href: '/settings',
       icon: Cog6ToothIcon,
-      disabled: !isLoggedIn,
     },
   ];
 
@@ -51,6 +50,7 @@ export default function NavLinks({
     <>
       {links.map((link, index) => {
         const LinkIcon = link.icon;
+        const disabled = !isLoggedIn && link.href !== '/';
         let space;
         if (index === links.length - 1) {
           space = <div className={s.navSpacer}></div>;
@@ -62,11 +62,11 @@ export default function NavLinks({
             [s.navActive]: pathname.startsWith(`${link.href}`) && link.href.length > 1,
           },
           {
-            [s.navHover]: !link.disabled,
+            [s.navHover]: !disabled,
           },
         );
 
-        if (link.disabled) {
+        if (disabled) {
           return (
             <Fragment key={link.name}>
               {space}

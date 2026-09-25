@@ -47,16 +47,18 @@ export const authConfig: NextAuthConfig = {
       const { nextUrl } = request;
       const isLoggedIn = !!auth?.user;
 
-      const isOnHomePage = nextUrl.pathname === '/';
-      const isPasswordResetPage =
-        nextUrl.pathname === '/forgot-password' || nextUrl.pathname === '/reset-password';
+      const isPublicPage =
+        nextUrl.pathname === '/' ||
+        nextUrl.pathname === '/login' ||
+        nextUrl.pathname === '/forgot-password' ||
+        nextUrl.pathname === '/reset-password';
 
-      if (isOnHomePage || isPasswordResetPage) {
+      if (isPublicPage) {
         return true;
       }
 
       if (!isLoggedIn) {
-        return false;
+        return Response.redirect(new URL('/', nextUrl));
       }
 
       return true;

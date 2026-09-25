@@ -5,13 +5,21 @@ type AuthParam = Parameters<
   NonNullable<NonNullable<typeof authConfig.callbacks>['authorized']>
 >[0];
 
-function callAuthorized(
-  pathname: string,
-  user: object | null,
-): ReturnType<NonNullable<NonNullable<typeof authConfig.callbacks>['authorized']>> {
+type AuthorizedResult = ReturnType<
+  NonNullable<NonNullable<typeof authConfig.callbacks>['authorized']>
+>;
+
+function callAuthorized(pathname: string, user: object | null): AuthorizedResult {
   const auth = user ? ({ user } as AuthParam['auth']) : null;
-  const request = { nextUrl: { pathname } } as AuthParam['request'];
+  const request = {
+    nextUrl: new URL(pathname, 'http://localhost'),
+  } as AuthParam['request'];
   return authConfig.callbacks!.authorized!({ auth, request } as AuthParam);
+}
+
+function expectHomeRedirect(result: AuthorizedResult) {
+  expect(result).toBeInstanceOf(Response);
+  expect((result as Response).headers.get('location')).toBe('http://localhost/');
 }
 
 describe('auth.config authorized callback', () => {
@@ -25,24 +33,28 @@ describe('auth.config authorized callback', () => {
   });
 
   // ── Protected routes ────────────────────────────────────────────────
-  it('denies unauthenticated access to /learn', () => {
-    expect(callAuthorized('/learn', null)).toBe(false);
+  it('redirects unauthenticated access to /learn home', () => {
+    expectHomeRedirect(callAuthorized('/learn', null));
   });
 
-  it('denies unauthenticated access to /test', () => {
-    expect(callAuthorized('/test', null)).toBe(false);
+  it('redirects unauthenticated access to /test home', () => {
+    expectHomeRedirect(callAuthorized('/test', null));
   });
 
-  it('denies unauthenticated access to /edit', () => {
-    expect(callAuthorized('/edit', null)).toBe(false);
+  it('redirects unauthenticated access to /edit home', () => {
+    expectHomeRedirect(callAuthorized('/edit', null));
   });
 
-  it('denies unauthenticated access to /settings', () => {
-    expect(callAuthorized('/settings', null)).toBe(false);
+  it('redirects unauthenticated access to /settings home', () => {
+    expectHomeRedirect(callAuthorized('/settings', null));
   });
 
-  it('denies unauthenticated access to nested paths', () => {
-    expect(callAuthorized('/learn/some-course-id', null)).toBe(false);
+  it('redirects unauthenticated access to /media home', () => {
+    expectHomeRedirect(callAuthorized('/media', null));
+  });
+
+  it('redirects unauthenticated access to nested paths home', () => {
+    expectHomeRedirect(callAuthorized('/learn/some-course-id', null));
   });
 
   // ── Authenticated access ───────────────────────────────────────────
@@ -75,16 +87,16 @@ describe('auth.config authorized callback', () => {
     expect(callAuthorized('/reset-password', null)).toBe(true);
   });
 
-  it('denies unauthenticated access to nested /reset-password paths', () => {
-    expect(callAuthorized('/reset-password/x', null)).toBe(false);
+  it('redirects unauthenticated access to nested /reset-password paths home', () => {
+    expectHomeRedirect(callAuthorized('/reset-password/x', null));
   });
 
-  it('denies unauthenticated access to /login (login page itself is protected by routing)', () => {
-    expect(callAuthorized('/login', null)).toBe(false);
+  it('allows unauthenticated access to /login', () => {
+    expect(callAuthorized('/login', null)).toBe(true);
   });
 
   it('treats auth with no user as unauthenticated', () => {
-    expect(callAuthorized('/learn', null)).toBe(false);
+    expectHomeRedirect(callAuthorized('/learn', null));
   });
 });
 
