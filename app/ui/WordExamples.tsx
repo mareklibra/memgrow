@@ -15,6 +15,7 @@ export type WordExamplesProps = {
   word: Word;
   queryExamples: (wordId: string) => Promise<GetWordExamplesResult>;
   deleteExample: (wordId: string, example: string) => Promise<DeleteExampleResult>;
+  allowDelete?: boolean;
   children?: React.ReactNode;
 };
 
@@ -22,6 +23,7 @@ export const WordExamples = ({
   word,
   queryExamples,
   deleteExample,
+  allowDelete = true,
   children,
 }: Readonly<WordExamplesProps>) => {
   const { t } = useTranslation();
@@ -79,12 +81,14 @@ export const WordExamples = ({
             <List key={word.id}>
               {examples.map((e) => (
                 <ListItem key={e}>
-                  <TrashIcon
-                    className="min-w-5 w-5"
-                    color="light-red"
-                    onClick={(event) => handleDelete(event, e)}
-                  />
-                  &nbsp;{e}
+                  {allowDelete && (
+                    <TrashIcon
+                      className="min-w-5 w-5"
+                      color="light-red"
+                      onClick={(event) => handleDelete(event, e)}
+                    />
+                  )}
+                  {e}
                 </ListItem>
               ))}
             </List>

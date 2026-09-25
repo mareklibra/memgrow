@@ -2,7 +2,13 @@
 
 import OpenAI from 'openai';
 import { sql } from '@/app/lib/db';
-import { fetchCourse, fetchExamples } from '../data';
+import {
+  canChangeSharedDicts,
+  fetchCourse,
+  fetchExamples,
+  sharedDictChangeDenied,
+} from '../data';
+import { auth } from '@/auth';
 import {
   DeleteExampleResult,
   GetWordExamplesRawProps,
@@ -33,6 +39,8 @@ export async function insertExamples(
 ): Promise<{
   message?: string;
 }> {
+  const denied = await sharedDictChangeDenied();
+  if (denied) return { message: denied };
   try {
     const promises = examples.map((example) =>
       sql.query(
@@ -56,6 +64,8 @@ export async function deleteWordExample(
   wordId: string,
   example: string,
 ): Promise<DeleteExampleResult> {
+  const denied = await sharedDictChangeDenied();
+  if (denied) return { message: denied };
   try {
     await sql.query(`DELETE FROM examples WHERE word_id = $1 AND example = $2`, [
       wordId,
@@ -101,12 +111,6 @@ const getLLMResponse = async (prompt: string): Promise<string | { message: strin
 
 export async function getWordExamples(wordId: string): Promise<GetWordExamplesResult> {
   const { t } = await getI18n();
-  if (!client) {
-    return {
-      message: t('errors.openaiNotInitialized'),
-    };
-  }
-
   if (!wordId) {
     return {
       message: t('errors.wordIdRequired'),
@@ -117,6 +121,18 @@ export async function getWordExamples(wordId: string): Promise<GetWordExamplesRe
   if (!wordWithExamples) {
     return {
       message: t('errors.wordNotFound', { id: wordId }),
+    };
+  }
+
+  const session = await auth();
+  const allowed = session?.user?.id ? await canChangeSharedDicts(session.user.id) : false;
+  if (!allowed) {
+    return { examples: wordWithExamples.examples };
+  }
+
+  if (!client) {
+    return {
+      message: t('errors.openaiNotInitialized'),
     };
   }
 

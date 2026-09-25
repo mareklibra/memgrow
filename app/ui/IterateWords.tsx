@@ -149,6 +149,7 @@ interface IterateWordsProps {
   queryImages: WordPicturesProps['queryImages'];
   deleteImage: WordPicturesProps['deleteImage'];
   requestImageGeneration: (wordId: string) => Promise<RequestImageResult>;
+  canChangeSharedDicts: boolean;
 }
 
 export function IterateWords({
@@ -163,6 +164,7 @@ export function IterateWords({
   queryImages,
   deleteImage,
   requestImageGeneration,
+  canChangeSharedDicts,
 }: Readonly<IterateWordsProps>) {
   const { t, locale } = useTranslation();
   const courseId = words[0]?.courseId;
@@ -405,6 +407,7 @@ export function IterateWords({
         requestImageGeneration={requestImageGeneration}
         skipWord={skipWord}
         onPreviewMemLevel={previewNewLevel}
+        canChangeSharedDicts={canChangeSharedDicts}
       />
       {!isLearning && word.progressUpdatedAt && (
         <p className="mt-8 text-center text-xs text-gray-400">

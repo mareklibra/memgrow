@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { AuthError } from 'next-auth';
 import { cookies } from 'next/headers';
 import {
   addNewUser,
@@ -6,6 +7,7 @@ import {
   changeOwnPassword,
   deleteUser,
   registerUser,
+  setCanChangeSharedDicts,
 } from '@/app/lib/actions/auth';
 import { auth, signIn, signOut } from '@/auth';
 import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE } from '@/app/lib/i18n';
@@ -384,6 +386,73 @@ describe('actions/auth', () => {
       `;
       expect(count.rows[0]?.count).toBe('1');
       expect(signIn).not.toHaveBeenCalled();
+    });
+
+    it('removes the new user when sign-in fails', async () => {
+      vi.mocked(signIn).mockRejectedValue(new AuthError());
+      const result = await registerUser(undefined, registrationForm());
+      expect(result).toBe(t('auth.somethingWentWrong'));
+      expect(await getUserForAuth('newuser@test.com')).toBeUndefined();
+    });
+
+    it('still signs in when the locale cookie cannot be set', async () => {
+      vi.mocked(cookies).mockResolvedValueOnce({
+        get: vi.fn().mockReturnValue(undefined),
+        set: vi.fn(() => {
+          throw new Error('cookie failed');
+        }),
+      } as never);
+
+      const result = await registerUser(undefined, registrationForm());
+      expect(result).toBeUndefined();
+      expect(await getUserForAuth('newuser@test.com')).toBeDefined();
+      expect(signIn).toHaveBeenCalled();
+    });
+
+    it('stops after 10 attempts from the same IP in an hour', async () => {
+      for (let i = 0; i < 10; i += 1) {
+        const result = await registerUser(undefined, registrationForm({ name: '   ' }));
+        expect(result).toBe(t('errors.emptyName'));
+      }
+      const blocked = await registerUser(undefined, registrationForm());
+      expect(blocked).toBe(t('auth.registerTryLater'));
+      expect(await getUserForAuth('newuser@test.com')).toBeUndefined();
+      expect(signIn).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('setCanChangeSharedDicts', () => {
+    it('rejects a non-admin', async () => {
+      await createTestUser({ is_admin: false });
+      const result = await setCanChangeSharedDicts(crypto.randomUUID(), true);
+      expect(result.message).toBe(t('errors.notAuthorizedAdmin'));
+    });
+
+    it('repairs the flag and refuses to clear it for an admin', async () => {
+      await createTestUser({ is_admin: true, canChangeSharedDicts: false });
+      const result = await setCanChangeSharedDicts(mockAuthUser.id, false);
+      expect(result.message).toBe(t('errors.adminAlwaysCanChangeSharedDicts'));
+      const row = await sql<{ can_change_shared_dicts: boolean }>`
+        SELECT can_change_shared_dicts FROM users WHERE id = ${mockAuthUser.id}
+      `;
+      expect(row.rows[0]?.can_change_shared_dicts).toBe(true);
+    });
+
+    it('lets an admin grant the flag to another user', async () => {
+      await createTestUser({ is_admin: true });
+      const other = await createTestUser({
+        id: crypto.randomUUID(),
+        email: 'editor@test.com',
+        name: 'Editor',
+        is_admin: false,
+        canChangeSharedDicts: false,
+      });
+      const result = await setCanChangeSharedDicts(other.id, true);
+      expect(result.message).toBeUndefined();
+      const row = await sql<{ can_change_shared_dicts: boolean }>`
+        SELECT can_change_shared_dicts FROM users WHERE id = ${other.id}
+      `;
+      expect(row.rows[0]?.can_change_shared_dicts).toBe(true);
     });
   });
 });

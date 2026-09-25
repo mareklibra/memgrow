@@ -132,8 +132,8 @@ async function main() {
   const admin = await promptAdminUser();
   const hashedPassword = await bcrypt.hash(admin.password, 10);
   await client.sql`
-    INSERT INTO users (name, email, password, is_admin)
-    VALUES (${admin.name}, ${admin.email}, ${hashedPassword}, TRUE)
+    INSERT INTO users (name, email, password, is_admin, can_change_shared_dicts)
+    VALUES (${admin.name}, ${admin.email}, ${hashedPassword}, TRUE, TRUE)
   `;
   console.info(`Admin user "${admin.email}" created. You can now log in.`);
 }

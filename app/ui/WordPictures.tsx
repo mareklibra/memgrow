@@ -14,12 +14,14 @@ export type WordPicturesProps = {
     wordId: string,
   ) => Promise<{ images?: { id: string; createdAt: Date }[]; message?: string }>;
   deleteImage: (imageId: string) => Promise<DeleteImageResult>;
+  allowDelete?: boolean;
 };
 
 export const WordPictures = ({
   wordId,
   queryImages,
   deleteImage,
+  allowDelete = true,
 }: Readonly<WordPicturesProps>) => {
   const { t } = useTranslation();
   const [images, setImages] = useState<{ id: string; createdAt: Date }[]>([]);
@@ -116,13 +118,15 @@ export const WordPictures = ({
         >
           <ChevronRightIcon className="w-5 h-5" />
         </button>
-        <button
-          type="button"
-          onClick={handleDelete}
-          className="p-1 text-red-400 hover:text-red-600"
-        >
-          <TrashIcon className="w-5 h-5" />
-        </button>
+        {allowDelete && (
+          <button
+            type="button"
+            onClick={handleDelete}
+            className="p-1 text-red-400 hover:text-red-600"
+          >
+            <TrashIcon className="w-5 h-5" />
+          </button>
+        )}
       </div>
     </div>
   );

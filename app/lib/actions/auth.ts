@@ -3,7 +3,7 @@
 import { sql } from '@/app/lib/db';
 import bcrypt from 'bcrypt';
 import { AuthError } from 'next-auth';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 
 import { z } from 'zod';
@@ -21,6 +21,35 @@ const emailSchema = z.string().email();
 function formString(formData: FormData, name: string): string {
   const value = formData.get(name);
   return typeof value === 'string' ? value : '';
+}
+
+function clientIpFromForwarded(forwarded: string | null): string {
+  const first = forwarded?.split(',')[0]?.trim();
+  return first || 'unknown';
+}
+
+async function registrationAllowed(ip: string): Promise<boolean> {
+  const result = await sql.query(
+    `INSERT INTO registration_rate_limits (ip, last_attempt_at, window_start, count)
+     VALUES ($1, now(), now(), 1)
+     ON CONFLICT (ip) DO UPDATE SET
+       last_attempt_at = now(),
+       count = CASE
+         WHEN registration_rate_limits.window_start <= now() - interval '1 hour' THEN 1
+         ELSE registration_rate_limits.count + 1
+       END,
+       window_start = CASE
+         WHEN registration_rate_limits.window_start <= now() - interval '1 hour' THEN now()
+         ELSE registration_rate_limits.window_start
+       END
+     WHERE (
+       registration_rate_limits.window_start <= now() - interval '1 hour'
+       OR registration_rate_limits.count < 10
+     )
+     RETURNING ip`,
+    [ip],
+  );
+  return (result.rowCount ?? 0) > 0;
 }
 
 function isUniqueViolation(error: unknown): boolean {
@@ -58,6 +87,10 @@ export async function registerUser(
   formData: FormData,
 ): Promise<string | undefined> {
   const { t } = await getI18n();
+  const headerStore = await headers();
+  const ip = clientIpFromForwarded(headerStore.get('x-forwarded-for'));
+  if (!(await registrationAllowed(ip))) return t('auth.registerTryLater');
+
   const name = formString(formData, 'name').trim();
   const email = formString(formData, 'email').trim().toLowerCase();
   const password = formString(formData, 'password');
@@ -72,14 +105,19 @@ export async function registerUser(
   if (!isLocale(locale)) return t('errors.invalidLocale');
 
   const hashedPassword = await bcrypt.hash(password, 10);
+  let userId: string;
   try {
     const existing = await getUserForAuth(email);
     if (existing) return t('auth.emailAlreadyRegistered');
 
-    await sql`
+    const inserted = await sql<{ id: string }>`
       INSERT INTO users (name, email, password, locale)
       VALUES (${name}, ${email}, ${hashedPassword}, ${locale})
+      RETURNING id
     `;
+    const id = inserted.rows[0]?.id;
+    if (!id) return t('errors.generic');
+    userId = id;
   } catch (error) {
     if (isUniqueViolation(error)) return t('auth.emailAlreadyRegistered');
     return genericErrorMessage(error, 'Failed to register user');
@@ -95,14 +133,21 @@ export async function registerUser(
     });
   } catch (error) {
     console.error('Failed to set locale cookie:', error);
-    return t('errors.generic');
   }
 
-  await signIn('credentials', {
-    email,
-    password,
-    redirectTo: '/',
-  });
+  try {
+    await signIn('credentials', {
+      email,
+      password,
+      redirectTo: '/',
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      await sql`DELETE FROM users WHERE id = ${userId}`;
+      return t('auth.somethingWentWrong');
+    }
+    throw error;
+  }
 }
 
 export async function authenticate(_: string | undefined, formData: FormData) {
@@ -229,6 +274,44 @@ export async function addNewUser(user: {
       message: await genericErrorMessage(e, 'Failed to add new user'),
     };
   }
+}
+
+export async function setCanChangeSharedDicts(
+  userId: string,
+  allowed: boolean,
+): Promise<{ message?: string }> {
+  const adminResult = await requireAdmin();
+  if (!adminResult.ok) return { message: adminResult.message };
+
+  const { t } = await getI18n();
+  try {
+    const existing = await sql<{ is_admin: boolean }>`
+      SELECT is_admin FROM users WHERE id = ${userId}
+    `;
+    const target = existing.rows[0];
+    if (!target) return { message: t('errors.targetUserNotFound') };
+
+    if (target.is_admin && !allowed) {
+      await sql`
+        UPDATE users
+        SET can_change_shared_dicts = TRUE
+        WHERE id = ${userId}
+      `;
+      return { message: t('errors.adminAlwaysCanChangeSharedDicts') };
+    }
+
+    await sql`
+      UPDATE users
+      SET can_change_shared_dicts = ${target.is_admin ? true : allowed}
+      WHERE id = ${userId}
+    `;
+    revalidatePath('/settings');
+  } catch (e) {
+    return {
+      message: await genericErrorMessage(e, 'Failed to set shared dictionary permission'),
+    };
+  }
+  return {};
 }
 
 export async function deleteUser(userId: string) {

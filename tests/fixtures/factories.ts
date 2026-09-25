@@ -8,17 +8,19 @@ export async function createTestUser(overrides?: {
   email?: string;
   password?: string;
   is_admin?: boolean;
+  canChangeSharedDicts?: boolean;
 }) {
   const password = overrides?.password ?? 'password123';
   const hashedPassword = await bcrypt.hash(password, 2); // low rounds for speed
   const result = await sql`
-    INSERT INTO users (id, name, email, password, is_admin)
+    INSERT INTO users (id, name, email, password, is_admin, can_change_shared_dicts)
     VALUES (
       ${overrides?.id ?? mockAuthUser.id},
       ${overrides?.name ?? mockAuthUser.name},
       ${overrides?.email ?? mockAuthUser.email},
       ${hashedPassword},
-      ${overrides?.is_admin ?? false}
+      ${overrides?.is_admin ?? false},
+      ${overrides?.canChangeSharedDicts ?? true}
     )
     RETURNING id, name, email, is_admin
   `;

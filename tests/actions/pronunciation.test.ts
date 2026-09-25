@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { insertPronunciation } from '@/app/lib/actions/pronunciation';
 import { truncateAll } from '../setup/db';
-import { createTestCourse, createTestWord } from '../fixtures/factories';
+import { createTestCourse, createTestUser, createTestWord } from '../fixtures/factories';
 import { fetchPronunciation } from '@/app/lib/data';
 
 describe('actions/pronunciation', () => {
@@ -15,6 +15,7 @@ describe('actions/pronunciation', () => {
 
   describe('insertPronunciation', () => {
     it('inserts pronunciation for a word', async () => {
+      await createTestUser();
       const course = await createTestCourse();
       const word = await createTestWord(course.id, { word: 'pronounce' });
 

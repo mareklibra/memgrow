@@ -3,7 +3,7 @@
 import { sql } from '@/app/lib/db';
 import { DeleteImageResult, GenerateImageResult, RequestImageResult } from '../types';
 import { WordImage } from '../definitions';
-import { fetchWord, fetchCourse } from '../data';
+import { fetchWord, fetchCourse, sharedDictChangeDenied } from '../data';
 import { generateImage } from '../image-provider';
 import { genericErrorMessage } from '@/app/lib/i18n/action-error';
 import { getI18n } from '@/app/lib/i18n/get-i18n';
@@ -11,7 +11,9 @@ import { getI18n } from '@/app/lib/i18n/get-i18n';
 export async function insertWordImage(
   wordId: string,
   content: Buffer,
-): Promise<{ id: string }> {
+): Promise<{ id: string; message?: string }> {
+  const denied = await sharedDictChangeDenied();
+  if (denied) return { id: '', message: denied };
   const result = await sql.query(
     `INSERT INTO word_images (word_id, content)
      VALUES ($1, $2)
@@ -22,6 +24,8 @@ export async function insertWordImage(
 }
 
 export async function deleteWordImage(imageId: string): Promise<DeleteImageResult> {
+  const denied = await sharedDictChangeDenied();
+  if (denied) return { message: denied };
   try {
     await sql.query(`DELETE FROM word_images WHERE id = $1`, [imageId]);
     return undefined;
@@ -33,6 +37,8 @@ export async function deleteWordImage(imageId: string): Promise<DeleteImageResul
 }
 
 export async function deleteAllWordImages(wordId: string): Promise<DeleteImageResult> {
+  const denied = await sharedDictChangeDenied();
+  if (denied) return { message: denied };
   try {
     await sql.query(`DELETE FROM word_images WHERE word_id = $1`, [wordId]);
     return undefined;
@@ -44,6 +50,8 @@ export async function deleteAllWordImages(wordId: string): Promise<DeleteImageRe
 }
 
 export async function removeImageRequest(wordId: string) {
+  const denied = await sharedDictChangeDenied();
+  if (denied) return;
   await sql.query(`DELETE FROM image_requests WHERE word_id = $1`, [wordId]);
 }
 
@@ -56,6 +64,8 @@ async function clearInProgress(wordId: string) {
 
 export async function generateWordImage(wordId: string): Promise<GenerateImageResult> {
   console.log(`generateWordImage: starting for wordId=${wordId}`);
+  const denied = await sharedDictChangeDenied();
+  if (denied) return { message: denied };
   const { t } = await getI18n();
   try {
     const word = await fetchWord(wordId);
@@ -90,8 +100,11 @@ export async function generateWordImage(wordId: string): Promise<GenerateImageRe
 
     let lastImageId: string | undefined;
     for (const buffer of result.images) {
-      const { id } = await insertWordImage(wordId, buffer);
-      lastImageId = id;
+      const inserted = await insertWordImage(wordId, buffer);
+      if (inserted.message || !inserted.id) {
+        return { message: inserted.message };
+      }
+      lastImageId = inserted.id;
     }
     await removeImageRequest(wordId);
 
@@ -110,6 +123,8 @@ export async function generateWordImage(wordId: string): Promise<GenerateImageRe
 export async function requestImageGeneration(
   wordId: string,
 ): Promise<RequestImageResult> {
+  const denied = await sharedDictChangeDenied();
+  if (denied) return { message: denied };
   try {
     await sql.query(
       `INSERT INTO image_requests (word_id)

@@ -18,9 +18,11 @@ import { useTranslation } from '@/app/lib/i18n/useTranslation';
 export default function NavLinks({
   isLoggedIn,
   userName,
+  canChangeSharedDicts,
 }: {
   isLoggedIn: boolean;
   userName: string;
+  canChangeSharedDicts: boolean;
 }) {
   const pathname = usePathname();
   const { t } = useTranslation();
@@ -50,7 +52,10 @@ export default function NavLinks({
     <>
       {links.map((link, index) => {
         const LinkIcon = link.icon;
-        const disabled = !isLoggedIn && link.href !== '/';
+        const sharedLocked =
+          !canChangeSharedDicts && (link.href === '/edit' || link.href === '/media');
+        const disabled =
+          (!isLoggedIn && link.href !== '/') || (isLoggedIn && sharedLocked);
         let space;
         if (index === links.length - 1) {
           space = <div className={s.navSpacer}></div>;

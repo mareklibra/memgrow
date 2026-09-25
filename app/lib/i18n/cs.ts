@@ -71,6 +71,7 @@ export const csMessages = {
     registerTitle: 'Vytvořit účet',
     registerSubmit: 'Vytvořit účet',
     emailAlreadyRegistered: 'Tento e-mail je již zaregistrován.',
+    registerTryLater: 'Zkuste to znovu později.',
   },
   settings: {
     title: 'Nastavení pro {name}',
@@ -102,6 +103,8 @@ export const csMessages = {
     impersonateConfirm:
       'Přihlásit se jako {name} ({email})? Pro návrat se budete muset odhlásit a znovu přihlásit jako správce.',
     cannotDeleteSelfTitle: 'Vlastní účet nelze smazat',
+    sharedDictsOn: 'Může upravovat slovníky',
+    sharedDictsOff: 'Nemůže upravovat slovníky',
   },
   course: {
     learningFrom: 'Učení {learning} z {known}',
@@ -254,6 +257,8 @@ export const csMessages = {
     notAuthenticated: 'Nejste přihlášeni.',
     notAuthenticatedShort: 'Nejste přihlášeni',
     notAuthorizedAdmin: 'Nedostatečná oprávnění: vyžadována práva správce.',
+    cannotChangeSharedDicts: 'Sdílené slovníky nemůžete měnit.',
+    adminAlwaysCanChangeSharedDicts: 'Správce může sdílené slovníky upravovat vždy.',
     targetUserNotFound: 'Cílový uživatel nebyl nalezen.',
     impersonationFailed: 'Impersonace selhala.',
     noWordsToAutoLearn: 'Žádná slova k automatickému naučení.',
