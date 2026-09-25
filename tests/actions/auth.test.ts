@@ -1,11 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { cookies } from 'next/headers';
 import {
   addNewUser,
   adminSetUserPassword,
   changeOwnPassword,
   deleteUser,
+  registerUser,
 } from '@/app/lib/actions/auth';
-import { auth, signOut } from '@/auth';
+import { auth, signIn, signOut } from '@/auth';
+import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE } from '@/app/lib/i18n';
+import { sql } from '@/app/lib/db';
 import { truncateAll } from '../setup/db';
 import { createTestUser } from '../fixtures/factories';
 import { getUserForAuth, fetchUserTokenVersion } from '@/app/lib/data';
@@ -258,6 +262,128 @@ describe('actions/auth', () => {
       const result = await deleteUser(otherAdmin.id);
       expect(result?.message).toBeUndefined();
       expect(await getUserForAuth('other-admin@test.com')).toBeUndefined();
+    });
+  });
+
+  describe('registerUser', () => {
+    function registrationForm(overrides?: Partial<Record<string, string>>) {
+      const fields: Record<string, string> = {
+        name: 'New User',
+        email: 'newuser@test.com',
+        password: 'secret123',
+        confirm: 'secret123',
+        locale: 'cs',
+        ...overrides,
+      };
+      const formData = new FormData();
+      for (const [key, value] of Object.entries(fields)) {
+        formData.set(key, value);
+      }
+      return formData;
+    }
+
+    beforeEach(() => {
+      vi.mocked(signIn).mockReset();
+      vi.mocked(signIn).mockResolvedValue(undefined as never);
+    });
+
+    it('creates a non-admin user and signs them in without a session', async () => {
+      vi.mocked(auth).mockResolvedValue(null as never);
+
+      const result = await registerUser(
+        undefined,
+        registrationForm({
+          name: '  New User  ',
+          email: 'NewUser@Example.com',
+        }),
+      );
+      expect(result).toBeUndefined();
+
+      const user = await getUserForAuth('newuser@example.com');
+      expect(user).toBeDefined();
+      expect(user?.name).toBe('New User');
+      expect(user?.email).toBe('newuser@example.com');
+      expect(user?.is_admin).toBe(false);
+      expect(user?.locale).toBe('cs');
+      expect(user?.password).not.toBe('secret123');
+      expect(user?.password.startsWith('$2')).toBe(true);
+
+      const store = await cookies();
+      expect(store.set).toHaveBeenCalledWith(LOCALE_COOKIE, 'cs', {
+        path: '/',
+        sameSite: 'lax',
+        maxAge: LOCALE_COOKIE_MAX_AGE,
+        httpOnly: true,
+      });
+      expect(signIn).toHaveBeenCalledWith('credentials', {
+        email: 'newuser@example.com',
+        password: 'secret123',
+        redirectTo: '/',
+      });
+    });
+
+    it('lets a redirect from signIn propagate', async () => {
+      const redirectError = new Error('NEXT_REDIRECT');
+      vi.mocked(signIn).mockRejectedValue(redirectError);
+
+      await expect(registerUser(undefined, registrationForm())).rejects.toBe(
+        redirectError,
+      );
+      expect(await getUserForAuth('newuser@test.com')).toBeDefined();
+    });
+
+    it('rejects an empty name', async () => {
+      const result = await registerUser(undefined, registrationForm({ name: '   ' }));
+      expect(result).toBe(t('errors.emptyName'));
+      expect(await getUserForAuth('newuser@test.com')).toBeUndefined();
+      expect(signIn).not.toHaveBeenCalled();
+    });
+
+    it('rejects an invalid email', async () => {
+      const result = await registerUser(
+        undefined,
+        registrationForm({ email: 'not-an-email' }),
+      );
+      expect(result).toBe(t('errors.invalidEmail'));
+      expect(signIn).not.toHaveBeenCalled();
+    });
+
+    it('rejects a short password', async () => {
+      const result = await registerUser(
+        undefined,
+        registrationForm({ password: '12345', confirm: '12345' }),
+      );
+      expect(result).toBe(t('errors.passwordTooShort', { min: PASSWORD_MIN_LENGTH }));
+      expect(await getUserForAuth('newuser@test.com')).toBeUndefined();
+    });
+
+    it('rejects a password mismatch', async () => {
+      const result = await registerUser(
+        undefined,
+        registrationForm({ confirm: 'different' }),
+      );
+      expect(result).toBe(t('errors.passwordMismatch'));
+      expect(await getUserForAuth('newuser@test.com')).toBeUndefined();
+    });
+
+    it('rejects an invalid locale', async () => {
+      const result = await registerUser(undefined, registrationForm({ locale: 'de' }));
+      expect(result).toBe(t('errors.invalidLocale'));
+      expect(await getUserForAuth('newuser@test.com')).toBeUndefined();
+    });
+
+    it('returns a specific message when the email is already registered', async () => {
+      await createTestUser({ email: 'dup@test.com' });
+      const result = await registerUser(
+        undefined,
+        registrationForm({ email: 'dup@test.com' }),
+      );
+      expect(result).toBe(t('auth.emailAlreadyRegistered'));
+      const count = await sql<{ count: string }>`
+        SELECT count(*)::text AS count FROM users WHERE lower(email) = 'dup@test.com'
+      `;
+      expect(count.rows[0]?.count).toBe('1');
+      expect(signIn).not.toHaveBeenCalled();
     });
   });
 });

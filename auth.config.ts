@@ -51,7 +51,8 @@ export const authConfig: NextAuthConfig = {
         nextUrl.pathname === '/' ||
         nextUrl.pathname === '/login' ||
         nextUrl.pathname === '/forgot-password' ||
-        nextUrl.pathname === '/reset-password';
+        nextUrl.pathname === '/reset-password' ||
+        nextUrl.pathname === '/register';
 
       if (isPublicPage) {
         return true;

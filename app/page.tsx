@@ -20,12 +20,20 @@ export default async function Page() {
             <strong>{t('home.welcome')}</strong>
           </p>
           {!isLoggedIn && (
-            <Link
-              href="/login"
-              className="flex items-center gap-5 self-start rounded-lg bg-blue-500 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-400 md:text-base"
-            >
-              <span>{t('home.logIn')}</span> <ArrowRightIcon className="w-5 md:w-6" />
-            </Link>
+            <div className="flex flex-wrap items-center gap-5 self-start">
+              <Link
+                href="/login"
+                className="flex items-center gap-5 rounded-lg bg-blue-500 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-400 md:text-base"
+              >
+                <span>{t('home.logIn')}</span> <ArrowRightIcon className="w-5 md:w-6" />
+              </Link>
+              <Link
+                href="/register"
+                className="text-sm font-medium text-blue-500 hover:underline md:text-base"
+              >
+                {t('auth.registerNewUser')}
+              </Link>
+            </div>
           )}
         </div>
       </div>

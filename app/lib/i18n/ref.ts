@@ -67,6 +67,10 @@ export const enMessages = {
     resetEmailSubject: 'Reset your MemGrow password',
     resetEmailBody:
       'Open this link to choose a new password. It expires in one hour:\n\n{resetUrl}',
+    registerNewUser: 'Register new user',
+    registerTitle: 'Create an account',
+    registerSubmit: 'Create account',
+    emailAlreadyRegistered: 'That email is already registered.',
   },
   settings: {
     title: 'Settings for {name}',

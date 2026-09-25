@@ -76,6 +76,12 @@ export default function LoginForm({ auth }: Readonly<{ auth: Session | null }>) 
           {t('auth.logIn')} <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50" />
         </Button>
         <p className="mt-4 text-center text-sm">
+          <Link href="/register" className="text-blue-500 hover:underline">
+            {t('auth.registerNewUser')}
+          </Link>
+          <span className="mx-2 text-gray-400" aria-hidden="true">
+            ·
+          </span>
           <Link href="/forgot-password" className="text-blue-500 hover:underline">
             {t('auth.forgotPassword')}
           </Link>
