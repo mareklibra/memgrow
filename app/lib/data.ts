@@ -133,6 +133,33 @@ const progressUpdatedAtFromDb = (
   return date;
 };
 
+/** ISO string for Postgres `timestamp without time zone` (UTC wall clock from app writes). */
+const isoFromPgTimestampWithoutTz = (value: string | Date): string | undefined => {
+  if (value instanceof Date) {
+    return new Date(
+      Date.UTC(
+        value.getFullYear(),
+        value.getMonth(),
+        value.getDate(),
+        value.getHours(),
+        value.getMinutes(),
+        value.getSeconds(),
+        value.getMilliseconds(),
+      ),
+    ).toISOString();
+  }
+  if (value === '') return undefined;
+  const trimmed = String(value).trim();
+  const normalized = trimmed.includes('T')
+    ? trimmed.endsWith('Z') || /[+-]\d{2}:?\d{2}$/.test(trimmed)
+      ? trimmed
+      : `${trimmed}Z`
+    : `${trimmed.replace(' ', 'T')}Z`;
+  const date = new Date(normalized);
+  if (Number.isNaN(date.getTime())) return undefined;
+  return date.toISOString();
+};
+
 const fromDbWordProgress = (dbWord: DbWordProgress): Word => {
   const progressUpdatedAt = progressUpdatedAtFromDb(dbWord.updated_at);
   return {
@@ -553,9 +580,9 @@ export async function fetchCourses(): Promise<Course[]> {
           (s) => s.course_id === course.id,
         )?.until;
         if (until) {
-          const date = until instanceof Date ? until : new Date(until);
-          if (!Number.isNaN(date.getTime())) {
-            course.advancedBatchUntil = date.toISOString();
+          const iso = isoFromPgTimestampWithoutTz(until);
+          if (iso) {
+            course.advancedBatchUntil = iso;
           }
         }
       }
