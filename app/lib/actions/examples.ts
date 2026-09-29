@@ -2,13 +2,7 @@
 
 import OpenAI from 'openai';
 import { sql } from '@/app/lib/db';
-import {
-  canChangeSharedDicts,
-  fetchCourse,
-  fetchExamples,
-  sharedDictChangeDenied,
-} from '../data';
-import { auth } from '@/auth';
+import { canEditCourse, courseEditDeniedForWord, fetchCourse, fetchExamples } from '../data';
 import {
   DeleteExampleResult,
   GetWordExamplesRawProps,
@@ -39,7 +33,7 @@ export async function insertExamples(
 ): Promise<{
   message?: string;
 }> {
-  const denied = await sharedDictChangeDenied();
+  const denied = await courseEditDeniedForWord(wordId);
   if (denied) return { message: denied };
   try {
     const promises = examples.map((example) =>
@@ -64,7 +58,7 @@ export async function deleteWordExample(
   wordId: string,
   example: string,
 ): Promise<DeleteExampleResult> {
-  const denied = await sharedDictChangeDenied();
+  const denied = await courseEditDeniedForWord(wordId);
   if (denied) return { message: denied };
   try {
     await sql.query(`DELETE FROM examples WHERE word_id = $1 AND example = $2`, [
@@ -124,8 +118,7 @@ export async function getWordExamples(wordId: string): Promise<GetWordExamplesRe
     };
   }
 
-  const session = await auth();
-  const allowed = session?.user?.id ? await canChangeSharedDicts(session.user.id) : false;
+  const allowed = await canEditCourse(wordWithExamples.courseId);
   if (!allowed) {
     return { examples: wordWithExamples.examples };
   }

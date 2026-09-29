@@ -1,16 +1,21 @@
-import { fetchCourses } from '@/app/lib/data';
+import { canChangeSharedDicts, fetchEditableCourses } from '@/app/lib/data';
 import { lusitana } from '@/app/ui/fonts';
 import { s } from '@/app/ui/styles';
 import { ChooseCourse } from '@/app/ui/ChooseCourse';
 import { CreateCourse } from '../ui/CreateCourse';
-import { createCourse } from '../lib/actions';
+import { createCourse, createPrivateCourse } from '../lib/actions';
 import { getI18n } from '@/app/lib/i18n/get-i18n';
+import { auth } from '@/auth';
 
 export default async function Page() {
-  const courses = await fetchCourses();
+  const courses = await fetchEditableCourses();
   const { t } = await getI18n();
+  const session = await auth();
+  const canEditShared = session?.user?.id
+    ? await canChangeSharedDicts(session.user.id)
+    : false;
 
-  const handleSave = async (course: {
+  const handleSavePublic = async (course: {
     name: string;
     knownLang: string;
     learningLang: string;
@@ -18,6 +23,16 @@ export default async function Page() {
   }): Promise<{ message?: string } | undefined> => {
     'use server';
     return await createCourse(course);
+  };
+
+  const handleSavePrivate = async (course: {
+    name: string;
+    knownLang: string;
+    learningLang: string;
+    courseCode: string;
+  }): Promise<{ message?: string } | undefined> => {
+    'use server';
+    return await createPrivateCourse(course);
   };
 
   return (
@@ -29,9 +44,13 @@ export default async function Page() {
         showPriority={false}
         showFastEntry={true}
         showForOffline={false}
+        showAllSwitch={false}
       />
       <hr className={s.sectionSeparator} />
-      <CreateCourse onSave={handleSave} />
+      <CreateCourse
+        onSavePrivate={handleSavePrivate}
+        onSavePublic={canEditShared ? handleSavePublic : undefined}
+      />
     </div>
   );
 }

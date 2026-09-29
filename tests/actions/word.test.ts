@@ -68,7 +68,7 @@ describe('actions/word', () => {
         definition: 'nope',
         courseId: course.id,
       });
-      expect(result?.message).toBe(t('errors.cannotChangeSharedDicts'));
+      expect(result?.message).toBe(t('errors.cannotEditCourse'));
       expect(result?.id).toBeUndefined();
       const count = await sql<{ count: string }>`
         SELECT count(*)::text AS count FROM words WHERE word = 'blocked'
@@ -167,7 +167,7 @@ describe('actions/word', () => {
         isPriority: false,
         isSkipped: false,
       });
-      expect(result?.message).toBe(t('errors.cannotChangeSharedDicts'));
+      expect(result?.message).toBe(t('errors.cannotEditCourse'));
       expect(await fetchWord(word.id)).toBeDefined();
     });
   });

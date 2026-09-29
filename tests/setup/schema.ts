@@ -35,6 +35,16 @@ export async function runSchema(connectionString: string): Promise<void> {
   `);
 
   await pool.query(`
+    ALTER TABLE courses
+    ADD COLUMN IF NOT EXISTS owner_user_id UUID REFERENCES users(id) ON DELETE SET NULL;
+  `);
+
+  await pool.query(`
+    ALTER TABLE courses
+    ADD COLUMN IF NOT EXISTS is_public BOOLEAN NOT NULL DEFAULT TRUE;
+  `);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS words (
       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
       course_id UUID NOT NULL,
@@ -124,6 +134,16 @@ export async function runSchema(connectionString: string): Promise<void> {
       last_attempt_at TIMESTAMPTZ NOT NULL,
       window_start TIMESTAMPTZ NOT NULL,
       count INTEGER NOT NULL
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS word_images (
+      id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+      word_id UUID NOT NULL,
+      content BYTEA NOT NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT fk_wi_word FOREIGN KEY(word_id) REFERENCES words(id) ON DELETE CASCADE
     );
   `);
 

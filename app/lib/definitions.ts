@@ -15,6 +15,18 @@ export type UserListItem = {
   is_admin: boolean;
   can_change_shared_dicts: boolean;
   created_at: Date | string;
+  private_course_count: number;
+};
+
+export type AdminCourse = {
+  id: string;
+  name: string;
+  knownLang: string;
+  learningLang: string;
+  courseCode: string;
+  isPublic: boolean;
+  ownerUserId: string | null;
+  ownerName: string | null;
 };
 
 export const TEACHING_FORMS = [
@@ -77,6 +89,8 @@ export type DbCourse = {
   course_code: string;
   total: number;
   course_priority?: number;
+  is_public?: boolean;
+  owned_by_me?: boolean;
 };
 
 export type Course = {
@@ -90,6 +104,8 @@ export type Course = {
   toTest: number;
   withPriority: number;
   coursePriority?: number;
+  isPublic: boolean;
+  ownedByMe: boolean;
   /** ISO time of the latest word in the next due-empty test batch. Set only when `toTest` is 0. */
   advancedBatchUntil?: string | null;
 };

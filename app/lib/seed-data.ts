@@ -20,6 +20,8 @@ const courses: Course[] = [
     toLearn: 0,
     toTest: 0,
     withPriority: 0,
+    isPublic: true,
+    ownedByMe: false,
   },
 ];
 

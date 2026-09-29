@@ -10,6 +10,7 @@ const TABLES = [
   'password_reset_rate_limits',
   'registration_rate_limits',
   'image_requests',
+  'word_images',
   'users',
 ] as const;
 

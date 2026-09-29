@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 import { Input, Typography } from '@/app/lib/material-tailwind-compat';
 import {
   adminSetUserPassword,
@@ -14,7 +15,7 @@ import { useTranslation } from '@/app/lib/i18n/useTranslation';
 import { localeToBcp47 } from '@/app/lib/i18n';
 import { PASSWORD_MIN_LENGTH } from '@/app/constants';
 import { formatDateToLocal } from '@/app/lib/utils';
-import { s } from '@/app/ui/styles';
+import { cn, s } from '@/app/ui/styles';
 import ConfirmationDialog from '@/app/ui/ConfirmationDialog';
 
 type PendingAction =
@@ -42,6 +43,8 @@ export function UsersTable({
   const [newPassword, setNewPassword] = useState('');
   const [retypePassword, setRetypePassword] = useState('');
   const [passwordError, setPasswordError] = useState<string | undefined>();
+  const [sortByPrivate, setSortByPrivate] = useState(false);
+  const [privateDesc, setPrivateDesc] = useState(true);
 
   const resetPassword = () => {
     setNewPassword('');
@@ -101,24 +104,67 @@ export function UsersTable({
           {error}
         </Typography>
       )}
-      <table className={s.tableDivider}>
+      <table className={cn(s.tableDivider, 'min-w-full')}>
         <thead>
           <tr>
-            <th className={s.th}>{t('settings.name')}</th>
-            <th className={s.th}>{t('settings.email')}</th>
-            <th className={s.th}>{t('settings.admin')}</th>
-            <th className={s.th}>{t('settings.sharedDictsOn')}</th>
-            <th className={s.th}>{t('settings.created')}</th>
-            <th className={s.th}>{t('settings.actions')}</th>
+            <th scope="col" className={cn(s.th, 'whitespace-nowrap')}>
+              {t('settings.name')}
+            </th>
+            <th scope="col" className={cn(s.th, 'whitespace-nowrap')}>
+              {t('settings.email')}
+            </th>
+            <th
+              scope="col"
+              className={cn(
+                s.th,
+                'cursor-pointer select-none whitespace-nowrap hover:text-blue-600',
+              )}
+              onClick={() => {
+                if (sortByPrivate) {
+                  setPrivateDesc(!privateDesc);
+                } else {
+                  setSortByPrivate(true);
+                  setPrivateDesc(true);
+                }
+              }}
+            >
+              {t('settings.privateCourses')}
+              {sortByPrivate &&
+                (privateDesc ? (
+                  <ChevronDownIcon className="ml-1 inline h-3 w-3" />
+                ) : (
+                  <ChevronUpIcon className="ml-1 inline h-3 w-3" />
+                ))}
+            </th>
+            <th scope="col" className={cn(s.th, 'whitespace-nowrap')}>
+              {t('settings.admin')}
+            </th>
+            <th scope="col" className={cn(s.th, 'whitespace-nowrap')}>
+              {t('settings.sharedDictsOn')}
+            </th>
+            <th scope="col" className={cn(s.th, 'whitespace-nowrap')}>
+              {t('settings.created')}
+            </th>
+            <th scope="col" className={cn(s.th, 'whitespace-nowrap')}>
+              {t('settings.actions')}
+            </th>
           </tr>
         </thead>
         <tbody className={s.tableDivider}>
-          {users.map((user) => {
+          {(sortByPrivate
+            ? [...users].sort((a, b) =>
+                privateDesc
+                  ? b.private_course_count - a.private_course_count
+                  : a.private_course_count - b.private_course_count,
+              )
+            : users
+          ).map((user) => {
             const isSelf = user.id === currentUserId;
             return (
               <tr key={user.id}>
                 <td className={s.td}>{user.name}</td>
                 <td className={s.td}>{user.email}</td>
+                <td className={s.td}>{user.private_course_count}</td>
                 <td className={s.td}>
                   {user.is_admin ? (
                     <span className="inline-flex rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">
@@ -158,8 +204,8 @@ export function UsersTable({
                 <td className={s.td}>
                   {formatDateToLocal(createdAtString(user.created_at), bcp47)}
                 </td>
-                <td className={s.td}>
-                  <div className="flex flex-wrap items-center gap-1">
+                <td className={cn(s.td, 'whitespace-nowrap')}>
+                  <div className="flex items-center gap-1">
                     {!isSelf && (
                       <button
                         type="button"

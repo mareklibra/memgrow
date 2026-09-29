@@ -4,6 +4,7 @@ import { User } from 'next-auth';
 import { unstable_rethrow } from 'next/navigation';
 import { auth } from '@/auth';
 import {
+  AdminCourse,
   Course,
   DbCourse,
   DbWord,
@@ -93,6 +94,131 @@ export async function sharedDictChangeDenied(): Promise<string | undefined> {
   return t('errors.cannotChangeSharedDicts');
 }
 
+async function currentUserId(): Promise<string | undefined> {
+  const session = await auth();
+  return session?.user?.id;
+}
+
+/** Use rule: public course, or the signed-in user owns it. */
+export async function canUseCourse(courseId: string): Promise<boolean> {
+  const userId = await currentUserId();
+  if (!userId) return false;
+  const result = await sql<{ ok: boolean }>`
+    SELECT (is_public OR owner_user_id = ${userId}) AS ok
+    FROM courses
+    WHERE id = ${courseId}
+  `;
+  return result.rows[0]?.ok === true;
+}
+
+/** Edit rule: owner, or a public course and the user may change shared courses. */
+export async function canEditCourse(courseId: string): Promise<boolean> {
+  const userId = await currentUserId();
+  if (!userId) return false;
+  const shared = await canChangeSharedDicts(userId);
+  const result = await sql<{ ok: boolean }>`
+    SELECT (
+      owner_user_id = ${userId}
+      OR (is_public AND ${shared})
+    ) AS ok
+    FROM courses
+    WHERE id = ${courseId}
+  `;
+  return result.rows[0]?.ok === true;
+}
+
+export async function canUseWord(wordId: string): Promise<boolean> {
+  const userId = await currentUserId();
+  if (!userId) return false;
+  const result = await sql<{ ok: boolean }>`
+    SELECT (c.is_public OR c.owner_user_id = ${userId}) AS ok
+    FROM words w
+    JOIN courses c ON c.id = w.course_id
+    WHERE w.id = ${wordId}
+  `;
+  return result.rows[0]?.ok === true;
+}
+
+async function courseIdForWord(wordId: string): Promise<string | undefined> {
+  const result = await sql<{ course_id: string }>`
+    SELECT course_id FROM words WHERE id = ${wordId}
+  `;
+  return result.rows[0]?.course_id;
+}
+
+async function courseIdForImage(imageId: string): Promise<string | undefined> {
+  const result = await sql<{ course_id: string }>`
+    SELECT w.course_id
+    FROM word_images wi
+    JOIN words w ON w.id = wi.word_id
+    WHERE wi.id = ${imageId}
+  `;
+  return result.rows[0]?.course_id;
+}
+
+async function errorText(
+  key: 'errors.notAuthenticated' | 'errors.cannotEditCourse',
+): Promise<string>;
+async function errorText(
+  key: 'errors.courseNotFound' | 'errors.wordNotFound' | 'errors.imageNotFound',
+  id: string,
+): Promise<string>;
+async function errorText(
+  key:
+    | 'errors.notAuthenticated'
+    | 'errors.cannotEditCourse'
+    | 'errors.courseNotFound'
+    | 'errors.wordNotFound'
+    | 'errors.imageNotFound',
+  id?: string,
+): Promise<string> {
+  const { getI18n } = await import('@/app/lib/i18n/get-i18n');
+  const { t } = await getI18n();
+  if (key === 'errors.courseNotFound') return t(key, { id: id ?? '' });
+  if (key === 'errors.wordNotFound') return t(key, { id: id ?? '' });
+  if (key === 'errors.imageNotFound') return t(key, { id: id ?? '' });
+  return t(key);
+}
+
+export async function courseEditDenied(courseId: string): Promise<string | undefined> {
+  const userId = await currentUserId();
+  if (!userId) return errorText('errors.notAuthenticated');
+  if (await canEditCourse(courseId)) return undefined;
+  if (await canUseCourse(courseId)) return errorText('errors.cannotEditCourse');
+  return errorText('errors.courseNotFound', courseId);
+}
+
+export async function courseUseDenied(courseId: string): Promise<string | undefined> {
+  const userId = await currentUserId();
+  if (!userId) return errorText('errors.notAuthenticated');
+  if (await canUseCourse(courseId)) return undefined;
+  return errorText('errors.courseNotFound', courseId);
+}
+
+export async function courseEditDeniedForWord(
+  wordId: string,
+): Promise<string | undefined> {
+  const courseId = await courseIdForWord(wordId);
+  if (!courseId) return errorText('errors.wordNotFound', wordId);
+  return courseEditDenied(courseId);
+}
+
+export async function courseUseDeniedForWord(
+  wordId: string,
+): Promise<string | undefined> {
+  const courseId = await courseIdForWord(wordId);
+  if (!courseId) return errorText('errors.wordNotFound', wordId);
+  return courseUseDenied(courseId);
+}
+
+export async function courseEditDeniedForImage(
+  imageId: string,
+): Promise<string | undefined> {
+  const courseId = await courseIdForImage(imageId);
+  if (!courseId) return errorText('errors.imageNotFound', imageId);
+  return courseEditDenied(courseId);
+}
+
 export async function isUserAdmin(userId: string): Promise<boolean> {
   try {
     const result = await sql<{ is_admin: boolean }>`
@@ -113,7 +239,12 @@ export async function fetchAllUsers(): Promise<UserListItem[]> {
       return [];
     }
     const result = await sql<UserListItem>`
-      SELECT id, name, email, is_admin, can_change_shared_dicts, created_at
+      SELECT id, name, email, is_admin, can_change_shared_dicts, created_at,
+        (
+          SELECT count(*)::int
+          FROM courses
+          WHERE owner_user_id = users.id AND is_public = FALSE
+        ) AS private_course_count
       FROM users
       ORDER BY name ASC
     `;
@@ -187,6 +318,8 @@ const omDbCourse = (dbCourse: DbCourse): Course => ({
   toTest: -1,
   withPriority: -1,
   coursePriority: dbCourse.course_priority ?? 0,
+  isPublic: dbCourse.is_public !== false,
+  ownedByMe: dbCourse.owned_by_me === true,
 });
 
 export type WordPronunciation = Pick<Word, 'id' | 'word' | 'definition'> & {
@@ -253,6 +386,7 @@ export async function fetchWordsToLearn(
   try {
     const myAuth = await auth();
     console.log('Fetching words to learn by user: ', myAuth?.user?.name);
+    if (!(await canUseCourse(courseId))) return [];
 
     const result = await sql<DbWordProgress>`
         SELECT words.course_id, words.id, words.word, words.course_id, words.definition,
@@ -285,6 +419,7 @@ export async function fetchWordsToTest(
 ): Promise<Word[]> {
   try {
     const myAuth = await auth();
+    if (!(await canUseCourse(courseId))) return [];
 
     const result = priorityFirst
       ? await sql<DbWordProgress>`
@@ -361,6 +496,7 @@ export async function fetchWordsToTest(
 
 export async function countWordsToLearn(courseId: string): Promise<number> {
   try {
+    if (!(await canUseCourse(courseId))) return 0;
     const myAuth = await auth();
     const result = await sql<{ count: string }>`
       SELECT count(words.id) as count
@@ -382,6 +518,7 @@ export async function countWordsToLearn(courseId: string): Promise<number> {
 
 export async function countWordsToTest(courseId: string): Promise<number> {
   try {
+    if (!(await canUseCourse(courseId))) return 0;
     const myAuth = await auth();
     const result = await sql<{ count: string }>`
       SELECT count(words.id) as count
@@ -411,6 +548,7 @@ export async function fetchAllWords(courseId: string): Promise<Word[]> {
       ' and course: ',
       courseId,
     );
+    if (!(await canUseCourse(courseId))) return [];
 
     const result = await sql<DbWordProgress>`
         SELECT
@@ -434,10 +572,11 @@ export async function fetchAllWords(courseId: string): Promise<Word[]> {
   }
 }
 
-export async function fetchWord(wordId: string): Promise<Word> {
+export async function fetchWord(wordId: string): Promise<Word | undefined> {
   try {
     const myAuth = await auth();
     console.log('Fetching a single word for the user ', myAuth?.user?.name, ': ', wordId);
+    if (!(await canUseWord(wordId))) return undefined;
 
     const result = await sql<DbWordProgress>`
         SELECT
@@ -465,17 +604,20 @@ export async function fetchCourses(): Promise<Course[]> {
   try {
     const myAuth = await auth();
     console.log('Fetching all courses for user: ', myAuth?.user?.name);
+    const userId = myAuth?.user?.id;
+    if (!userId) return [];
 
-    // TODO: filter based on user permissions
     const fetchResults = await Promise.all([
       // generic
-      sql<DbCourse>`SELECT courses.id, courses.name, courses.known_lang, courses.learning_lang, courses.course_code, total.total, user_course.priority AS course_priority
+      sql<DbCourse>`SELECT courses.id, courses.name, courses.known_lang, courses.learning_lang, courses.course_code, courses.is_public, (courses.owner_user_id = ${userId}) AS owned_by_me, total.total, user_course.priority AS course_priority
       FROM
         courses
         LEFT OUTER JOIN
         (SELECT course_id, count(*) as total FROM words GROUP BY course_id) as total ON total.course_id = courses.id
         LEFT OUTER JOIN
-        user_course ON user_course.course_id = courses.id AND user_course.user_id = ${myAuth?.user?.id}
+        user_course ON user_course.course_id = courses.id AND user_course.user_id = ${userId}
+      WHERE
+        courses.is_public OR courses.owner_user_id = ${userId}
       ORDER BY
         COALESCE(user_course.priority, 0) ASC, courses.name ASC
       `,
@@ -596,18 +738,63 @@ export async function fetchCourses(): Promise<Course[]> {
   }
 }
 
+export async function fetchEditableCourses(): Promise<Course[]> {
+  const userId = await currentUserId();
+  if (!userId) return [];
+  const shared = await canChangeSharedDicts(userId);
+  const courses = await fetchCourses();
+  return courses.filter((course) => course.ownedByMe || (course.isPublic && shared));
+}
+
+export async function fetchAllCoursesForAdmin(): Promise<AdminCourse[]> {
+  try {
+    const userId = await currentUserId();
+    if (!userId || !(await isUserAdmin(userId))) return [];
+    const result = await sql<{
+      id: string;
+      name: string;
+      known_lang: string;
+      learning_lang: string;
+      course_code: string;
+      is_public: boolean;
+      owner_user_id: string | null;
+      owner_name: string | null;
+    }>`
+      SELECT courses.id, courses.name, courses.known_lang, courses.learning_lang, courses.course_code,
+        courses.is_public, courses.owner_user_id, users.name AS owner_name
+      FROM courses
+      LEFT JOIN users ON users.id = courses.owner_user_id
+      ORDER BY courses.name ASC
+    `;
+    return result.rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      knownLang: row.known_lang,
+      learningLang: row.learning_lang,
+      courseCode: row.course_code,
+      isPublic: row.is_public === true,
+      ownerUserId: row.owner_user_id,
+      ownerName: row.owner_name,
+    }));
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch courses for admin.');
+  }
+}
+
 export async function fetchCourse(courseId: string): Promise<Course | undefined> {
   try {
     const myAuth = await auth();
     console.log(`Fetching a single course "${courseId}" for user: `, myAuth?.user?.name);
-
-    // TODO: statistics per user
-    // TODO: filter based on user permissions
+    const userId = myAuth?.user?.id;
+    if (!userId) return undefined;
 
     const result =
-      await sql<DbCourse>`SELECT id, name, known_lang, learning_lang, course_code
+      await sql<DbCourse>`SELECT id, name, known_lang, learning_lang, course_code, is_public,
+          (owner_user_id = ${userId}) AS owned_by_me
         FROM courses
         WHERE id = ${courseId}
+          AND (is_public OR owner_user_id = ${userId})
         `;
 
     const data: Course[] = result.rows.map(omDbCourse);
@@ -623,6 +810,7 @@ export async function fetchPronunciation({
   courseId,
 }: Pick<Word, 'id' | 'courseId'>): Promise<WordPronunciation | undefined> {
   try {
+    if (!(await canUseCourse(courseId))) return undefined;
     const result = await sql<DbWord>`
       SELECT words.id, words.word, words.course_id, words.definition, sounds.content
       FROM words
@@ -652,6 +840,7 @@ export async function fetchExamples({
   wordId: Word['id'];
 }): Promise<WordExamples | undefined> {
   try {
+    if (!(await canUseWord(wordId))) return undefined;
     const result = await sql<DbWord>`
       SELECT words.id AS id, words.word, words.course_id, words.definition, examples.id AS examples_id, examples.example
       FROM words
@@ -699,11 +888,16 @@ export async function fetchOldestImageIds(
 ): Promise<Record<string, string>> {
   if (wordIds.length === 0) return {};
   try {
+    const userId = await currentUserId();
+    if (!userId) return {};
     const result = await sql<{ id: string; word_id: string }>`
-      SELECT DISTINCT ON (word_id) id, word_id
+      SELECT DISTINCT ON (word_id) word_images.id, word_images.word_id
       FROM word_images
-      WHERE word_id = ANY(${wordIds}::uuid[])
-      ORDER BY word_id, created_at ASC
+      JOIN words ON words.id = word_images.word_id
+      JOIN courses ON courses.id = words.course_id
+      WHERE word_images.word_id = ANY(${wordIds}::uuid[])
+        AND (courses.is_public OR courses.owner_user_id = ${userId})
+      ORDER BY word_id, word_images.created_at ASC
     `;
     const imageIdByWordId: Record<string, string> = {};
     for (const row of result.rows) {
@@ -718,6 +912,7 @@ export async function fetchOldestImageIds(
 
 export async function fetchWordImages(wordId: string): Promise<WordImage[]> {
   try {
+    if (!(await canUseWord(wordId))) return [];
     const result = await sql<DbWordImage>`
       SELECT id, word_id, content, created_at
       FROM word_images
@@ -740,10 +935,15 @@ export async function fetchWordImageById(
   imageId: string,
 ): Promise<WordImage | undefined> {
   try {
+    const userId = await currentUserId();
+    if (!userId) return undefined;
     const result = await sql<DbWordImage>`
-      SELECT id, word_id, content, created_at
+      SELECT word_images.id, word_images.word_id, word_images.content, word_images.created_at
       FROM word_images
-      WHERE id = ${imageId}
+      JOIN words ON words.id = word_images.word_id
+      JOIN courses ON courses.id = words.course_id
+      WHERE word_images.id = ${imageId}
+        AND (courses.is_public OR courses.owner_user_id = ${userId})
     `;
     if (result.rows.length === 0) return undefined;
     const row = result.rows[0];
@@ -773,6 +973,7 @@ export async function fetchWordImageSummaries(
   courseId: string,
 ): Promise<WordImageSummary[]> {
   try {
+    if (!(await canUseCourse(courseId))) return [];
     const result = await sql<DbWordImageSummary>`
       SELECT
         w.id AS word_id,
@@ -822,6 +1023,7 @@ export async function fetchWordMediaSummaries(
   courseId: string,
 ): Promise<WordMediaSummary[]> {
   try {
+    if (!(await canUseCourse(courseId))) return [];
     const result = await sql<DbWordMediaSummary>`
       SELECT
         w.id AS word_id,

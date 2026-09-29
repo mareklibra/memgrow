@@ -3,12 +3,16 @@ import { useState } from 'react';
 import { Course as CourseType } from '@/app/lib/definitions';
 import { s } from '@/app/ui/styles';
 import { ArrowPathIcon, ChevronDoubleRightIcon } from '@heroicons/react/24/outline';
-import { Switch } from '@/app/lib/material-tailwind-compat';
+import { StarIcon as StarOutlineIcon } from '@heroicons/react/24/outline';
+import { StarIcon } from '@heroicons/react/24/solid';
+import { Input, Switch } from '@/app/lib/material-tailwind-compat';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/app/lib/i18n/useTranslation';
 import { localeToBcp47 } from '@/app/lib/i18n';
 import { formatDateToLocal } from '@/app/lib/utils';
+import { upsertCoursePriority } from '@/app/lib/actions';
 
 const Course = ({
   course,
@@ -17,6 +21,9 @@ const Course = ({
   showFastEntry,
   showForOffline,
   showSimulate,
+  showStar,
+  priority,
+  onToggleStar,
 }: {
   course: CourseType;
   pathPrefix: string;
@@ -24,6 +31,9 @@ const Course = ({
   showFastEntry: boolean;
   showForOffline: boolean;
   showSimulate: boolean;
+  showStar: boolean;
+  priority: number;
+  onToggleStar: (courseId: string, next: number) => void;
 }) => {
   const [isPriorityFirst, setIsPriorityFirst] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
@@ -34,6 +44,7 @@ const Course = ({
     Number(course.toTest) === 0 &&
     !!course.advancedBatchUntil &&
     !isPriorityFirst;
+  const shownByDefault = priority > 0;
 
   let link = `${pathPrefix}/${course.id}`;
   if (showPriority) {
@@ -50,33 +61,51 @@ const Course = ({
   return (
     <div id={`course-${course.id}`} className={s.courseCard}>
       <div className="p-4">
-        <Link href={link} onClick={() => setNavigating(true)}>
-          <h5 className="flex flex-row items-center mb-2 text-slate-800 text-xl font-semibold">
-            {navigating ? (
-              <ArrowPathIcon className="h-5 w-5 text-gray-900 animate-spin" />
-            ) : (
-              <ChevronDoubleRightIcon className="h-5 w-5 text-gray-900" />
-            )}
-            <div className="text-base font-semibold text-gray-900">{course.name}</div>
+        <div className="flex flex-row items-start justify-between gap-2">
+          <Link href={link} onClick={() => setNavigating(true)}>
+            <h5 className="flex flex-row items-center mb-2 text-slate-800 text-xl font-semibold">
+              {navigating ? (
+                <ArrowPathIcon className="h-5 w-5 text-gray-900 animate-spin" />
+              ) : (
+                <ChevronDoubleRightIcon className="h-5 w-5 text-gray-900" />
+              )}
+              <div className="text-base font-semibold text-gray-900">{course.name}</div>
 
-            <Image
-              className="ml-2"
-              src={`/${course.courseCode}_flag.svg`}
-              width={20}
-              height={20}
-              alt={t('course.flagAlt', {
+              <Image
+                className="ml-2"
+                src={`/${course.courseCode}_flag.svg`}
+                width={20}
+                height={20}
+                alt={t('course.flagAlt', {
+                  learning: course.learningLang,
+                  code: course.courseCode,
+                })}
+              />
+            </h5>
+            <p className="text-slate-600 leading-normal font-light">
+              {t('course.learningFrom', {
                 learning: course.learningLang,
-                code: course.courseCode,
+                known: course.knownLang,
               })}
-            />
-          </h5>
-          <p className="text-slate-600 leading-normal font-light">
-            {t('course.learningFrom', {
-              learning: course.learningLang,
-              known: course.knownLang,
-            })}
-          </p>
-        </Link>
+            </p>
+          </Link>
+          {showStar && (
+            <button
+              type="button"
+              aria-pressed={shownByDefault}
+              aria-label={
+                shownByDefault ? t('course.showByDefault') : t('course.hiddenUntilAll')
+              }
+              onClick={() => onToggleStar(course.id, shownByDefault ? 0 : 1)}
+            >
+              {shownByDefault ? (
+                <StarIcon className="h-6 w-6 text-yellow-400" />
+              ) : (
+                <StarOutlineIcon className="h-6 w-6 text-gray-400" />
+              )}
+            </button>
+          )}
+        </div>
 
         <p className="text-slate-600 leading-normal font-light text-xs">
           {showAdvancedBatch
@@ -133,6 +162,10 @@ const Course = ({
   );
 };
 
+function uniqueLangs(courses: CourseType[], key: 'learningLang' | 'knownLang'): string[] {
+  return [...new Set(courses.map((course) => course[key]).filter(Boolean))].sort();
+}
+
 export const ChooseCourse = ({
   courses,
   pathPrefix,
@@ -140,6 +173,7 @@ export const ChooseCourse = ({
   showFastEntry,
   showForOffline,
   showSimulate = false,
+  showAllSwitch = true,
 }: {
   courses: CourseType[];
   pathPrefix: string;
@@ -147,23 +181,113 @@ export const ChooseCourse = ({
   showFastEntry: boolean;
   showForOffline: boolean;
   showSimulate?: boolean;
+  showAllSwitch?: boolean;
 }) => {
   const [showAll, setShowAll] = useState(false);
+  const [priorityOverride, setPriorityOverride] = useState<Record<string, number>>({});
+  const [nameQuery, setNameQuery] = useState('');
+  const [learningLang, setLearningLang] = useState('');
+  const [knownLang, setKnownLang] = useState('');
+  const [mineOnly, setMineOnly] = useState(false);
+  const [publicOnly, setPublicOnly] = useState(false);
   const { t } = useTranslation();
+  const router = useRouter();
 
-  const visibleCourses = showAll
-    ? courses
-    : courses.filter((c) => (c.coursePriority ?? 0) > 0);
+  const priorityOf = (course: CourseType) =>
+    priorityOverride[course.id] ?? course.coursePriority ?? 0;
+
+  const toggleStar = async (courseId: string, next: number) => {
+    setPriorityOverride((current) => ({ ...current, [courseId]: next }));
+    const result = await upsertCoursePriority(courseId, next);
+    if (result?.message) {
+      setPriorityOverride((current) => {
+        const copy = { ...current };
+        delete copy[courseId];
+        return copy;
+      });
+      return;
+    }
+    router.refresh();
+  };
+
+  let visibleCourses = courses;
+  if (showAllSwitch && !showAll) {
+    visibleCourses = courses.filter((course) => priorityOf(course) > 0);
+  }
+  if (showAllSwitch && showAll) {
+    const needle = nameQuery.trim().toLowerCase();
+    visibleCourses = courses.filter((course) => {
+      if (needle && !course.name.toLowerCase().includes(needle)) return false;
+      if (learningLang && course.learningLang !== learningLang) return false;
+      if (knownLang && course.knownLang !== knownLang) return false;
+      if (mineOnly && !course.ownedByMe) return false;
+      if (publicOnly && !course.isPublic) return false;
+      return true;
+    });
+  }
 
   return (
     <div className="w-10/12" id="choose-course">
-      <div className="flex justify-end mb-2">
-        <Switch
-          label={t('course.all')}
-          checked={showAll}
-          onChange={() => setShowAll(!showAll)}
-        />
-      </div>
+      {showAllSwitch && (
+        <div className="flex justify-end mb-2">
+          <Switch
+            label={t('course.all')}
+            checked={showAll}
+            onChange={() => setShowAll(!showAll)}
+          />
+        </div>
+      )}
+      {showAllSwitch && showAll && (
+        <div className="flex flex-wrap gap-3 mb-4 items-end">
+          <div className="w-40">
+            <Input
+              label={t('course.filterName')}
+              value={nameQuery}
+              onChange={(e) => setNameQuery(e.target.value)}
+            />
+          </div>
+          <label className="flex flex-col text-sm text-slate-600">
+            {t('course.filterLearning')}
+            <select
+              className="mt-1 rounded border border-gray-300 px-2 py-2"
+              value={learningLang}
+              onChange={(e) => setLearningLang(e.target.value)}
+            >
+              <option value="">{t('course.anyLanguage')}</option>
+              {uniqueLangs(courses, 'learningLang').map((lang) => (
+                <option key={lang} value={lang}>
+                  {lang}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col text-sm text-slate-600">
+            {t('course.filterKnown')}
+            <select
+              className="mt-1 rounded border border-gray-300 px-2 py-2"
+              value={knownLang}
+              onChange={(e) => setKnownLang(e.target.value)}
+            >
+              <option value="">{t('course.anyLanguage')}</option>
+              {uniqueLangs(courses, 'knownLang').map((lang) => (
+                <option key={lang} value={lang}>
+                  {lang}
+                </option>
+              ))}
+            </select>
+          </label>
+          <Switch
+            label={t('course.filterMine')}
+            checked={mineOnly}
+            onChange={() => setMineOnly(!mineOnly)}
+          />
+          <Switch
+            label={t('course.filterPublic')}
+            checked={publicOnly}
+            onChange={() => setPublicOnly(!publicOnly)}
+          />
+        </div>
+      )}
       <div className="flex flex-wrap">
         {visibleCourses.map((course) => (
           <Course
@@ -174,6 +298,9 @@ export const ChooseCourse = ({
             showFastEntry={showFastEntry}
             showForOffline={showForOffline}
             showSimulate={showSimulate}
+            showStar={showAllSwitch}
+            priority={priorityOf(course)}
+            onToggleStar={toggleStar}
           />
         ))}
       </div>
