@@ -63,7 +63,9 @@ export function CreateCourse({
 
   return (
     <div className="my-2 w-full max-w-2xl rounded-lg border border-gray-300 bg-white p-4 shadow-xs">
-      <h2 className="mb-4 text-base font-semibold text-gray-900">{t('course.newCourse')}</h2>
+      <h2 className="mb-4 text-base font-semibold text-gray-900">
+        {t('course.newCourse')}
+      </h2>
 
       {canChooseKind && (
         <fieldset className="mt-4 mb-4">
@@ -95,7 +97,7 @@ export function CreateCourse({
           onChange={(e) => setName(e.target.value)}
           minLength={2}
         />
-                <div className="relative h-11">
+        <div className="relative h-11">
           <select
             id={courseCodeId}
             className="h-full w-full rounded-md border border-blue-gray-200 bg-transparent px-3 text-sm text-blue-gray-700 outline-none focus:border-2 focus:border-gray-900"
@@ -129,12 +131,13 @@ export function CreateCourse({
           onChange={(e) => setKnownLang(e.target.value)}
           minLength={2}
         />
-
       </div>
 
       <div className="mt-4 flex flex-col items-start gap-2">
         <Button className="h-fit" onClick={handleSave} disabled={submitting}>
-          {selectedKind === 'shared' ? t('course.createPublic') : t('course.createPrivate')}
+          {selectedKind === 'shared'
+            ? t('course.createPublic')
+            : t('course.createPrivate')}
         </Button>
         {error && <p className={s.errorText}>{error}</p>}
       </div>
