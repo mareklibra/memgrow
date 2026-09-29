@@ -1,0 +1,50 @@
+---
+description: MemGrow layout and where to look before exploring the repo
+alwaysApply: true
+---
+
+# MemGrow map
+
+Vocabulary app (Next.js App Router, React 19, NextAuth v5, Postgres). Do not re-survey the tree. Grep a symbol from the task, then read only the files below that own it.
+
+## Exploration budget
+
+- Do not list `app/` or read seed migrations (`app/seed/0*.ts`) unless the task is seeding or schema.
+- Read at most the files named for the area, plus one caller. Ask if the task still spans an unnamed area.
+- Session limits live in `app/constants.ts`. Memory-level math lives in `app/lib/word-transitions.ts`. Do not re-derive either.
+
+## Routes (App Router)
+
+| Path | Role |
+| --- | --- |
+| `/` | Public home |
+| `/login`, `/register`, `/forgot-password`, `/reset-password` | Public auth |
+| `/learn`, `/learn/[courseId]`, `/learn/[courseId]/next` | Learn session |
+| `/test`, `/test/[courseId]`, `/test/[courseId]/next`, `/test/simulate/[courseId]` | Test and progress simulation |
+| `/edit`, `/edit/[courseId]`, `/edit/fastentry/[courseId]` | Course and word editing |
+| `/media` | Media manager |
+| `/settings` | Password, locale, admin users |
+| `app/api/image/...`, `app/api/sound/word/...` | Image and pronunciation bytes |
+
+Auth gate: `proxy.ts` (Next.js proxy, not `middleware.ts`) plus `authorized()` in `auth.config.ts`. Public paths are only `/`, `/login`, `/register`, `/forgot-password`, `/reset-password`. Session helpers: `auth.ts`.
+
+## Code map
+
+- UI: `app/ui/`. Import Material Tailwind only from `app/lib/material-tailwind-compat.tsx`.
+- Mutations: `app/lib/actions/` (`word`, `course`, `auth`, `password-reset`, `images`, `examples`, `pronunciation`, `locale`). Barrel: `app/lib/actions/index.ts`.
+- Reads: `app/lib/data.ts`. Types: `app/lib/definitions.ts` (`Word`, `Course`, `TeachingForm`).
+- DB: `app/lib/db.ts`. `DB_PROVIDER=pg` uses `pg`; unset uses Neon. Schema bootstrap is `pnpm db:seed` (`scripts/db.seed.ts`, `app/seed/run.ts`), not an HTTP route.
+- Learn/test queue: `app/lib/iterate-words-logic.ts`. Progress writes: `updateWordProgress` in `app/lib/actions/word.ts`.
+- Teaching forms (order): `show` → `choose_4_word` → `choose_4_def` → (`write_mid` on test) → `choose_8_def` → `write` → `write_last`. `memLevel` is days until `repeatAgain` (`getRepeatAgainDate`). `increaseMemLevel` / `decreaseMemLevel` in `word-transitions.ts`. Caps and batch sizes in `constants.ts`.
+- Images: `app/lib/image-provider.ts` (`IMAGE_PROVIDER`: `bedrock` default, `vertex`, `cloudflare`, `gemini`). Examples/translations: `app/lib/actions/examples.ts` (OpenAI model in `constants.ts`).
+- i18n: `app/lib/i18n/` (`getI18n` on the server, `useTranslation` on the client). Strings in locale modules (e.g. `cs.ts`).
+- Shared dictionaries: `can_change_shared_dicts` / `canChangeSharedDicts` and `sharedDictChangeDenied` in `data.ts`. Admin user actions in `app/lib/actions/auth.ts`.
+
+## If you change X, also check Y
+
+- Word progress or teaching form → `word-transitions.ts`, `iterate-words-logic.ts`, `actions/word.ts`, `tests/word-transitions.test.ts`, `tests/iterate-words-logic.test.ts`.
+- Auth or public routes → `auth.config.ts`, `proxy.ts`, `auth.ts`.
+- Queries → `data.ts` and the matching `tests/data.test.ts` or `tests/actions/*.test.ts`.
+- UI copy → `app/lib/i18n/` locale files, not hardcoded strings.
+
+Tests: `pnpm test` (Docker) or `pnpm test:local` (Podman). Vitest configs at repo root.
