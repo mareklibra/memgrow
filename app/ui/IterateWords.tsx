@@ -394,6 +394,7 @@ export function IterateWords({
       <DoneState
         words={words}
         wordQueue={wordQueue}
+        wordIdx={wordIdx}
         storeProgress={storeProgress}
         isLearning={isLearning}
       />
