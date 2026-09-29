@@ -106,6 +106,12 @@ export const csMessages = {
     privateCourses: 'Soukromé kurzy',
     allCourses: 'Kurzy',
     promote: 'Zveřejnit',
+    promoteConfirm:
+      'Zveřejnit kurz {name}? Studenti ho budou moci používat. Vlastník zůstane stejný.',
+    deleteCourse: 'Smazat kurz',
+    deleteCourseConfirm:
+      'Smazat kurz {name}? Vlastník: {owner}. Učení {learning} z {known}. Odstraní se kurz a jeho slova, pokrok všech uživatelů, zápisy, příklady, výslovnost a obrázky.',
+    deleteCourseTypeName: 'Pro potvrzení napište název kurzu',
     owner: 'Vlastník',
     anyone: 'Kdokoli',
     sharedDictsOn: 'Může upravovat slovníky',
@@ -296,6 +302,7 @@ export const csMessages = {
     wordRequired: 'slovo je povinné',
     wordNotFound: 'Slovo nebylo nalezeno, id: {id}',
     courseNotFound: 'Kurz nebyl nalezen, id: {id}',
+    courseNameMismatch: 'Název kurzu se neshoduje.',
     courseNotFoundForWord: 'Kurz nebyl nalezen, id: {courseId} pro slovo: {wordId}',
     courseNotFoundDot: 'Kurz nebyl nalezen, id: {id}.',
     noImageData: 'Model nevrátil žádná obrazová data',

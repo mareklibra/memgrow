@@ -116,6 +116,33 @@ export async function createPrivateCourse(course: {
   }
 }
 
+export async function deleteCourse(courseId: string, confirmName: string) {
+  const session = await auth();
+  const userId = session?.user?.id;
+  const { t } = await getI18n();
+  if (!userId) return { message: t('errors.notAuthenticated') };
+  if (!(await isUserAdmin(userId))) return { message: t('errors.cannotEditCourse') };
+  try {
+    const existing = await sql<{ name: string }>`
+      SELECT name FROM courses WHERE id = ${courseId}
+    `;
+    const course = existing.rows[0];
+    if (!course) return { message: t('errors.courseNotFound', { id: courseId }) };
+    if (confirmName.trim() !== course.name) {
+      return { message: t('errors.courseNameMismatch') };
+    }
+    await sql`DELETE FROM courses WHERE id = ${courseId}`;
+    revalidatePath('/settings');
+    revalidatePath('/learn');
+    revalidatePath('/test');
+    revalidatePath('/edit');
+  } catch (e) {
+    return {
+      message: await genericErrorMessage(e, 'Failed to delete course'),
+    };
+  }
+}
+
 export async function promoteCourse(courseId: string) {
   const session = await auth();
   const userId = session?.user?.id;

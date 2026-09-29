@@ -5,6 +5,7 @@ import { sql } from '@/app/lib/db';
 import {
   createPrivateCourse,
   createCourse,
+  deleteCourse,
   promoteCourse,
   updateCourse,
   upsertCoursePriority,
@@ -16,7 +17,12 @@ import {
 } from '@/app/lib/actions';
 import { fetchCourse, fetchCourses, fetchWord, fetchWordImageById } from '@/app/lib/data';
 import { truncateAll } from '../setup/db';
-import { createTestCourse, createTestUser, createTestWord } from '../fixtures/factories';
+import {
+  createTestCourse,
+  createTestUser,
+  createTestUserProgress,
+  createTestWord,
+} from '../fixtures/factories';
 import { mockAuthUser } from '../setup/auth-mock';
 
 const t = createTranslator('en');
@@ -184,6 +190,60 @@ describe('course access', () => {
     `;
     expect(row.rows[0]?.is_public).toBe(true);
     expect(row.rows[0]?.owner_user_id).toBe(mockAuthUser.id);
+  });
+
+  it('denies course delete for a non-admin and keeps the row', async () => {
+    await createTestUser({ is_admin: false, canChangeSharedDicts: false });
+    const course = await createTestCourse({ name: 'Keep me' });
+    const denied = await deleteCourse(course.id, 'Keep me');
+    expect(denied?.message).toBe(t('errors.cannotEditCourse'));
+    const row = await sql`SELECT id FROM courses WHERE id = ${course.id}`;
+    expect(row.rows).toHaveLength(1);
+  });
+
+  it('rejects a course delete when the typed name does not match', async () => {
+    await createTestUser({ is_admin: true, canChangeSharedDicts: true });
+    const course = await createTestCourse({ name: 'Exact Name' });
+    const denied = await deleteCourse(course.id, 'exact name');
+    expect(denied?.message).toBe(t('errors.courseNameMismatch'));
+    const row = await sql`SELECT id FROM courses WHERE id = ${course.id}`;
+    expect(row.rows).toHaveLength(1);
+  });
+
+  it('deletes a course and its related rows when the trimmed name matches', async () => {
+    await createTestUser({ is_admin: true, canChangeSharedDicts: true });
+    const course = await createTestCourse({
+      name: 'Doomed',
+      ownerUserId: mockAuthUser.id,
+      isPublic: false,
+    });
+    const word = await createTestWord(course.id);
+    await createTestUserProgress(mockAuthUser.id, word.id);
+    await sql`
+      INSERT INTO word_images (word_id, content)
+      VALUES (${word.id}, ${Buffer.from('img')})
+    `;
+    await sql`
+      INSERT INTO user_course (user_id, course_id, priority)
+      VALUES (${mockAuthUser.id}, ${course.id}, 1)
+    `;
+
+    const deleted = await deleteCourse(course.id, '  Doomed  ');
+    expect(deleted?.message).toBeUndefined();
+
+    const courseRow = await sql`SELECT id FROM courses WHERE id = ${course.id}`;
+    const wordRow = await sql`SELECT id FROM words WHERE id = ${word.id}`;
+    const progress =
+      await sql`SELECT user_id FROM user_progress WHERE word_id = ${word.id}`;
+    const images = await sql`SELECT id FROM word_images WHERE word_id = ${word.id}`;
+    const enrollment = await sql`
+      SELECT user_id FROM user_course WHERE course_id = ${course.id}
+    `;
+    expect(courseRow.rows).toHaveLength(0);
+    expect(wordRow.rows).toHaveLength(0);
+    expect(progress.rows).toHaveLength(0);
+    expect(images.rows).toHaveLength(0);
+    expect(enrollment.rows).toHaveLength(0);
   });
 
   it('denies a learner edits on a public course', async () => {

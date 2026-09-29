@@ -106,6 +106,12 @@ export const enMessages = {
     privateCourses: 'Private courses',
     allCourses: 'Courses',
     promote: 'Promote',
+    promoteConfirm:
+      'Make {name} public? Learners will be able to use it. The owner stays the same.',
+    deleteCourse: 'Delete course',
+    deleteCourseConfirm:
+      "Delete {name}? Owner: {owner}. Learning {learning} from {known}. This removes the course and its words, every user's progress, enrollments, examples, sounds, and images.",
+    deleteCourseTypeName: 'Type the course name to confirm',
     owner: 'Owner',
     anyone: 'Anyone',
     sharedDictsOn: 'Can edit dictionaries',
@@ -294,6 +300,7 @@ export const enMessages = {
     wordRequired: 'word is required',
     wordNotFound: 'Word not found, id: {id}',
     courseNotFound: 'Course not found, id: {id}',
+    courseNameMismatch: 'The course name does not match.',
     courseNotFoundForWord: 'Course not found, id: {courseId} for word: {wordId}',
     courseNotFoundDot: 'Course not found, id: {id}.',
     noImageData: 'No image data returned from the model',

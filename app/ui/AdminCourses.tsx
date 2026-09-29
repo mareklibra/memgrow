@@ -2,10 +2,13 @@
 
 import { useMemo, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { promoteCourse } from '@/app/lib/actions';
+import { deleteCourse, promoteCourse } from '@/app/lib/actions';
 import type { AdminCourse } from '@/app/lib/definitions';
 import { useTranslation } from '@/app/lib/i18n/useTranslation';
+import ConfirmationDialog from '@/app/ui/ConfirmationDialog';
 import { cn, s } from '@/app/ui/styles';
+
+type PendingAction = { type: 'delete' | 'promote'; course: AdminCourse } | null;
 
 function FilterField({
   label,
@@ -27,6 +30,8 @@ export function AdminCourses({ courses }: Readonly<{ courses: AdminCourse[] }>) 
   const [learningLang, setLearningLang] = useState('');
   const [knownLang, setKnownLang] = useState('');
   const [error, setError] = useState<string | undefined>();
+  const [pending, setPending] = useState<PendingAction>(null);
+  const [typedName, setTypedName] = useState('');
 
   const owners = useMemo(() => {
     const byId = new Map<string, string>();
@@ -56,15 +61,35 @@ export function AdminCourses({ courses }: Readonly<{ courses: AdminCourse[] }>) 
     return true;
   });
 
-  const promote = async (courseId: string) => {
+  const closePending = () => {
+    setPending(null);
+    setTypedName('');
+  };
+
+  const handleDelete = async () => {
+    if (pending?.type !== 'delete') return false;
     setError(undefined);
-    const result = await promoteCourse(courseId);
+    const result = await deleteCourse(pending.course.id, typedName);
     if (result?.message) {
       setError(result.message);
-      return;
+      return false;
     }
     router.refresh();
   };
+
+  const handlePromote = async () => {
+    if (pending?.type !== 'promote') return false;
+    setError(undefined);
+    const result = await promoteCourse(pending.course.id);
+    if (result?.message) {
+      setError(result.message);
+      return false;
+    }
+    router.refresh();
+  };
+
+  const nameMatches =
+    pending?.type === 'delete' && typedName.trim() === pending.course.name;
 
   return (
     <div className="flex flex-col gap-3">
@@ -151,21 +176,82 @@ export function AdminCourses({ courses }: Readonly<{ courses: AdminCourse[] }>) 
                 <td className={s.td}>{course.learningLang}</td>
                 <td className={s.td}>{course.knownLang}</td>
                 <td className={s.td}>
-                  {!course.isPublic && (
+                  <div className="flex gap-3">
+                    {!course.isPublic && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setError(undefined);
+                          setPending({ type: 'promote', course });
+                        }}
+                        className="text-sm text-blue-600 hover:text-blue-800"
+                      >
+                        {t('settings.promote')}
+                      </button>
+                    )}
                     <button
                       type="button"
-                      onClick={() => promote(course.id)}
-                      className="text-sm text-blue-600 hover:text-blue-800"
+                      onClick={() => {
+                        setError(undefined);
+                        setTypedName('');
+                        setPending({ type: 'delete', course });
+                      }}
+                      className="text-sm text-red-600 hover:text-red-800"
                     >
-                      {t('settings.promote')}
+                      {t('settings.delete')}
                     </button>
-                  )}
+                  </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      <ConfirmationDialog
+        isOpen={pending?.type === 'delete'}
+        onClose={closePending}
+        onConfirm={handleDelete}
+        title={t('settings.deleteCourse')}
+        message={
+          pending?.type === 'delete'
+            ? t('settings.deleteCourseConfirm', {
+                name: pending.course.name,
+                owner: pending.course.ownerName ?? '—',
+                learning: pending.course.learningLang,
+                known: pending.course.knownLang,
+              })
+            : ''
+        }
+        confirmText={t('settings.delete')}
+        confirmDisabled={!nameMatches}
+        variant="danger"
+      >
+        <label className="flex flex-col gap-1 text-sm text-gray-700">
+          {t('settings.deleteCourseTypeName')}
+          <input
+            type="text"
+            value={typedName}
+            onChange={(e) => setTypedName(e.target.value)}
+            className={s.input}
+            autoComplete="off"
+          />
+        </label>
+      </ConfirmationDialog>
+
+      <ConfirmationDialog
+        isOpen={pending?.type === 'promote'}
+        onClose={closePending}
+        onConfirm={handlePromote}
+        title={t('settings.promote')}
+        message={
+          pending?.type === 'promote'
+            ? t('settings.promoteConfirm', { name: pending.course.name })
+            : ''
+        }
+        confirmText={t('settings.promote')}
+        variant="warning"
+      />
     </div>
   );
 }
