@@ -11,6 +11,110 @@ export type IterateState = {
   wordIdx: number;
 };
 
+export type PictureProbe = { id: string; imageId: string };
+
+export type SessionProbePlan = {
+  picture: PictureProbe[];
+  previousIds: string[];
+};
+
+function shuffle<T>(items: T[], randomFn: () => number): T[] {
+  const copy = items.slice();
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(randomFn() * (i + 1));
+    const current = copy[i];
+    copy[i] = copy[j];
+    copy[j] = current;
+  }
+  return copy;
+}
+
+export function planSessionProbes(
+  words: { id: string }[],
+  imageIdByWordId: Record<string, string>,
+  limits: { picture: number; previous: number },
+  randomFn: () => number = Math.random,
+): SessionProbePlan {
+  const picturePool: PictureProbe[] = [];
+  const seenPicture = new Set<string>();
+  for (const word of words) {
+    const imageId = imageIdByWordId[word.id];
+    if (!imageId || seenPicture.has(word.id)) continue;
+    seenPicture.add(word.id);
+    picturePool.push({ id: word.id, imageId });
+  }
+  const picture = shuffle(picturePool, randomFn).slice(0, Math.max(0, limits.picture));
+  const pictureIds = new Set(picture.map((item) => item.id));
+
+  const previousPool: string[] = [];
+  const seenPrevious = new Set<string>();
+  for (const word of words) {
+    if (pictureIds.has(word.id) || seenPrevious.has(word.id)) continue;
+    seenPrevious.add(word.id);
+    previousPool.push(word.id);
+  }
+  return {
+    picture,
+    previousIds: shuffle(previousPool, randomFn).slice(0, Math.max(0, limits.previous)),
+  };
+}
+
+export function dropProbeId(plan: SessionProbePlan, id: string): SessionProbePlan {
+  return {
+    picture: plan.picture.filter((item) => item.id !== id),
+    previousIds: plan.previousIds.filter((item) => item !== id),
+  };
+}
+
+/**
+ * After a correct normal test card, splice that word's probe at the cursor
+ * so it is the next card. Drops the id even when no probe is inserted.
+ */
+export function maybeInsertProbeAfterCorrect(
+  state: IterateState,
+  answeredId: string,
+  plan: SessionProbePlan,
+): { state: IterateState; plan: SessionProbePlan } {
+  const picture = plan.picture.find((item) => item.id === answeredId);
+  const isPrevious = plan.previousIds.includes(answeredId);
+  if (!picture && !isPrevious) {
+    return { state, plan };
+  }
+  const nextPlan = dropProbeId(plan, answeredId);
+  const source = state.wordQueue.findLast((item) => item.id === answeredId);
+  if (!source || source.probe) {
+    return { state, plan: nextPlan };
+  }
+  const probeCard: WordWithMeta = {
+    ...source,
+    probe: picture
+      ? { kind: 'recall_picture', answer: source.word, imageId: picture.imageId }
+      : { kind: 'recall_previous', lag: 1, answer: source.word },
+  };
+  const wordQueue = state.wordQueue.slice();
+  const insertAt = Math.min(Math.max(state.wordIdx, 0), wordQueue.length);
+  wordQueue.splice(insertAt, 0, probeCard);
+  return { state: { wordQueue, wordIdx: state.wordIdx }, plan: nextPlan };
+}
+
+export function handleProbeCorrect(
+  state: IterateState,
+  word: WordWithMeta,
+  overrideMemLevel?: number,
+): IterateState {
+  const newMemLevel = overrideMemLevel ?? increaseMemLevel(word.memLevel);
+  return {
+    wordQueue: state.wordQueue.map((item) =>
+      item.id === word.id ? { ...item, memLevel: newMemLevel } : item,
+    ),
+    wordIdx: state.wordIdx + 1,
+  };
+}
+
+export function handleProbeMistake(state: IterateState): IterateState {
+  return { wordQueue: state.wordQueue, wordIdx: state.wordIdx + 1 };
+}
+
 export function initializeQueue(words: Word[]): IterateState {
   return {
     wordQueue: words.map((w) => ({ ...w, repeated: 0 })),

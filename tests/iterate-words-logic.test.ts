@@ -2,17 +2,26 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   calculateProgress,
   checkIsDone,
+  dropProbeId,
   gatherLastProgress,
   gatherPassedProgress,
   handleCorrect,
   handleMistake,
   handleOnChange,
+  handleProbeCorrect,
+  handleProbeMistake,
   handleSkipWord,
   initializeQueue,
   IterateState,
+  maybeInsertProbeAfterCorrect,
+  planSessionProbes,
 } from '@/app/lib/iterate-words-logic';
 import { TEACHING_FORMS, Word, WordWithMeta } from '@/app/lib/definitions';
-import { getNextForm } from '@/app/lib/word-transitions';
+import {
+  getNextForm,
+  getRepeatAgainDate,
+  increaseMemLevel,
+} from '@/app/lib/word-transitions';
 import { DAY_MS, REPEAT_SOONER_FACTOR } from '@/app/constants';
 
 function makeWord(overrides: Partial<Word> = {}): Word {
@@ -1014,6 +1023,167 @@ describe('iterate-words-logic', () => {
       const passed = gatherPassedProgress(queue, 2);
       expect(passed.map((w) => w.id)).toEqual(['w1']);
       expect(passed[0].form).toBe('choose_4_word');
+    });
+  });
+
+  describe('session probes', () => {
+    const keepOrder = () => 0.999999999;
+
+    it('draws disjoint samples and allows either list to be short or empty', () => {
+      const withOneImage = planSessionProbes(
+        [{ id: 'a' }, { id: 'b' }, { id: 'c' }],
+        { a: 'img-a' },
+        { picture: 3, previous: 3 },
+        keepOrder,
+      );
+      expect(withOneImage.picture).toEqual([{ id: 'a', imageId: 'img-a' }]);
+      expect(withOneImage.previousIds).toEqual(['b', 'c']);
+
+      const noImages = planSessionProbes(
+        [{ id: 'a' }, { id: 'b' }],
+        {},
+        { picture: 3, previous: 3 },
+        keepOrder,
+      );
+      expect(noImages.picture).toEqual([]);
+      expect(noImages.previousIds).toEqual(['a', 'b']);
+
+      const allPictures = planSessionProbes(
+        [{ id: 'a' }, { id: 'b' }, { id: 'c' }],
+        { a: 'ia', b: 'ib', c: 'ic' },
+        { picture: 3, previous: 3 },
+        keepOrder,
+      );
+      expect(allPictures.picture.map((item) => item.id)).toEqual(['a', 'b', 'c']);
+      expect(allPictures.previousIds).toEqual([]);
+    });
+
+    it('caps each list and keeps picture words out of the previous list', () => {
+      const plan = planSessionProbes(
+        [{ id: 'a' }, { id: 'b' }, { id: 'c' }, { id: 'd' }],
+        { a: 'ia', b: 'ib', c: 'ic', d: 'id' },
+        { picture: 3, previous: 3 },
+        keepOrder,
+      );
+      expect(plan.picture.map((item) => item.id)).toEqual(['a', 'b', 'c']);
+      expect(plan.previousIds).toEqual(['d']);
+    });
+
+    it('inserts the probe as the next card only after a correct answer, once', () => {
+      const word = makeWordMeta({ id: 'w1', form: 'write', memLevel: 5, word: 'hola' });
+      const start = initializeQueue([word, makeWord({ id: 'w2' })]);
+      const after = handleCorrect(start, start.wordQueue[0], {
+        isLearning: false,
+        repetitionLimit: 1,
+        maxDistForRandom: 10,
+        randomFn: () => 0,
+      });
+      const inserted = maybeInsertProbeAfterCorrect(after, 'w1', {
+        picture: [{ id: 'w1', imageId: 'img1' }],
+        previousIds: ['w2'],
+      });
+      const probe = inserted.state.wordQueue[inserted.state.wordIdx];
+      expect(probe.probe).toEqual({
+        kind: 'recall_picture',
+        answer: 'hola',
+        imageId: 'img1',
+      });
+      expect(probe.form).toBe(getNextForm('write', true));
+      expect(TEACHING_FORMS as readonly string[]).toContain(probe.form);
+      expect(probe.repeatAgain).toEqual(getRepeatAgainDate(5));
+      expect(inserted.plan).toEqual({ picture: [], previousIds: ['w2'] });
+
+      const again = maybeInsertProbeAfterCorrect(inserted.state, 'w1', inserted.plan);
+      expect(again.state.wordQueue.filter((item) => item.probe)).toHaveLength(1);
+    });
+
+    it('inserts a previous-word probe with lag 1', () => {
+      const word = makeWordMeta({
+        id: 'w2',
+        form: 'choose_4_def',
+        memLevel: 4,
+        word: 'gato',
+      });
+      const start = initializeQueue([word]);
+      const after = handleCorrect(start, start.wordQueue[0], {
+        isLearning: false,
+        repetitionLimit: 1,
+        maxDistForRandom: 10,
+        randomFn: () => 0,
+      });
+      const inserted = maybeInsertProbeAfterCorrect(after, 'w2', {
+        picture: [],
+        previousIds: ['w2'],
+      });
+      expect(inserted.state.wordQueue[inserted.state.wordIdx].probe).toEqual({
+        kind: 'recall_previous',
+        lag: 1,
+        answer: 'gato',
+      });
+    });
+
+    it('does not insert a probe after the id was dropped for a miss', () => {
+      const word = makeWordMeta({ id: 'w1', form: 'write', memLevel: 5 });
+      const start = initializeQueue([word]);
+      const after = handleCorrect(start, start.wordQueue[0], {
+        isLearning: false,
+        repetitionLimit: 1,
+        maxDistForRandom: 10,
+        randomFn: () => 0,
+      });
+      const plan = dropProbeId(
+        { picture: [{ id: 'w1', imageId: 'img' }], previousIds: [] },
+        'w1',
+      );
+      const inserted = maybeInsertProbeAfterCorrect(after, 'w1', plan);
+      expect(inserted.state.wordQueue.some((item) => item.probe)).toBe(false);
+      expect(inserted.state.wordQueue).toEqual(after.wordQueue);
+    });
+
+    it('stacks memLevel on a probe hit and leaves form and repeatAgain', () => {
+      const repeatAgain = new Date('2025-07-01T00:00:00Z');
+      const normal = makeWordMeta({
+        id: 'w1',
+        form: 'write_last',
+        memLevel: 5,
+        repeatAgain,
+      });
+      const probe = makeWordMeta({
+        id: 'w1',
+        form: 'write_last',
+        memLevel: 5,
+        repeatAgain,
+        probe: { kind: 'recall_previous', lag: 1, answer: 'hello' },
+      });
+      const next = handleProbeCorrect({ wordQueue: [normal, probe], wordIdx: 1 }, probe);
+      const stacked = increaseMemLevel(5);
+      expect(next.wordIdx).toBe(2);
+      expect(next.wordQueue).toHaveLength(2);
+      expect(next.wordQueue.every((item) => item.memLevel === stacked)).toBe(true);
+      expect(next.wordQueue.every((item) => item.form === 'write_last')).toBe(true);
+      expect(
+        next.wordQueue.every(
+          (item) => item.repeatAgain.getTime() === repeatAgain.getTime(),
+        ),
+      ).toBe(true);
+      const saved = gatherLastProgress([normal], next.wordQueue);
+      expect(saved[0].end.memLevel).toBe(stacked);
+      expect(saved[0].end.form).toBe('write_last');
+      expect(TEACHING_FORMS as readonly string[]).toContain(saved[0].end.form);
+    });
+
+    it('a probe miss leaves memLevel, form, and repeatAgain and does not enqueue show', () => {
+      const repeatAgain = new Date('2025-07-01T00:00:00Z');
+      const probe = makeWordMeta({
+        id: 'w1',
+        form: 'choose_8_def',
+        memLevel: 5,
+        repeatAgain,
+        probe: { kind: 'recall_picture', answer: 'hello', imageId: 'img' },
+      });
+      const next = handleProbeMistake({ wordQueue: [probe], wordIdx: 0 });
+      expect(next.wordIdx).toBe(1);
+      expect(next.wordQueue).toEqual([probe]);
     });
   });
 });

@@ -11,7 +11,7 @@ import { lusitana } from '@/app/ui/fonts';
 import { cn, s } from '@/app/ui/styles';
 import Link from 'next/link';
 import { Button, Spinner } from '@/app/lib/material-tailwind-compat';
-import { decreaseMemLevel } from '@/app/lib/word-transitions';
+import { decreaseMemLevel, increaseMemLevel } from '@/app/lib/word-transitions';
 import { Word, WordWithMeta } from '@/app/lib/definitions';
 import { updateWordsProgress } from '@/app/lib/actions';
 import { UpdateWordsResult } from '@/app/lib/types';
@@ -20,11 +20,17 @@ import {
   checkIsDone,
   computeNewMemLevel,
   gatherPassedProgress,
+  dropProbeId,
   handleCorrect,
   handleMistake,
   handleOnChange,
+  handleProbeCorrect,
+  handleProbeMistake,
   handleSkipWord,
   initializeQueue,
+  maybeInsertProbeAfterCorrect,
+  planSessionProbes,
+  type SessionProbePlan,
 } from '@/app/lib/iterate-words-logic';
 import {
   getBatchKey,
@@ -48,6 +54,8 @@ import {
   maxDistanceForRandomQueueInsertion,
   testBatchLimit,
   testBatchLimitOffline,
+  testPictureRecallLimit,
+  testPreviousRecallLimit,
 } from '../constants';
 import { WordExamplesProps } from './WordExamples';
 import { WordPicturesProps } from './WordPictures';
@@ -58,6 +66,7 @@ import { localeToBcp47 } from '@/app/lib/i18n';
 import type { TFunction } from '@/app/lib/i18n';
 
 const subscribeIsClient = () => () => {};
+const EMPTY_IMAGE_IDS: Record<string, string> = {};
 
 function useSessionBackupGate(
   batchKey: string,
@@ -150,6 +159,8 @@ interface IterateWordsProps {
   deleteImage: WordPicturesProps['deleteImage'];
   requestImageGeneration: (wordId: string) => Promise<RequestImageResult>;
   canChangeSharedDicts: boolean;
+  /** Word id → oldest image id. Used once to plan test probes. */
+  imageIdByWordId?: Record<string, string>;
 }
 
 export function IterateWords({
@@ -165,6 +176,7 @@ export function IterateWords({
   deleteImage,
   requestImageGeneration,
   canChangeSharedDicts,
+  imageIdByWordId,
 }: Readonly<IterateWordsProps>) {
   const { t, locale } = useTranslation();
   const courseId = words[0]?.courseId;
@@ -178,6 +190,10 @@ export function IterateWords({
     onBannerDone,
   } = useSessionBackupGate(batchKey, courseId, isLearning, t);
   const [wordQueue, setWordQueue] = useState<WordWithMeta[]>([]);
+  const [probePlan, setProbePlan] = useState<SessionProbePlan>({
+    picture: [],
+    previousIds: [],
+  });
   const [wordIdx, setWordIdx] = useState<number>(-1);
   const [isDone, setIsDone] = useState<boolean>(false);
   const [previewMemLevel, setPreviewMemLevel] = useState<number | null>(null);
@@ -207,9 +223,17 @@ export function IterateWords({
         const initial = initializeQueue(words);
         setWordQueue(initial.wordQueue);
         setWordIdx(initial.wordIdx);
+        if (!isLearning) {
+          setProbePlan(
+            planSessionProbes(words, imageIdByWordId ?? EMPTY_IMAGE_IDS, {
+              picture: testPictureRecallLimit,
+              previous: testPreviousRecallLimit,
+            }),
+          );
+        }
       });
     }
-  }, [sessionOpen, words, wordQueue]);
+  }, [sessionOpen, words, wordQueue, isLearning, imageIdByWordId]);
 
   useEffect(() => {
     if (!sessionOpen) return;
@@ -224,25 +248,50 @@ export function IterateWords({
   };
 
   const correct = (word: WordWithMeta) => {
-    const newState = handleCorrect({ wordQueue, wordIdx }, word, {
+    if (word.probe) {
+      const newState = handleProbeCorrect(
+        { wordQueue, wordIdx },
+        word,
+        previewMemLevelRef.current ?? undefined,
+      );
+      resetPreview();
+      persistPassed(newState.wordQueue, newState.wordIdx);
+      setWordQueue(newState.wordQueue);
+      setWordIdx(newState.wordIdx);
+      return;
+    }
+    const afterCorrect = handleCorrect({ wordQueue, wordIdx }, word, {
       isLearning: !!isLearning,
       repetitionLimit,
       maxDistForRandom: maxDistanceForRandomQueueInsertion,
       overrideMemLevel: previewMemLevelRef.current ?? undefined,
     });
     resetPreview();
-    persistPassed(newState.wordQueue, newState.wordIdx);
-    setWordQueue(newState.wordQueue);
-    setWordIdx(newState.wordIdx);
+    const inserted = isLearning
+      ? { state: afterCorrect, plan: probePlan }
+      : maybeInsertProbeAfterCorrect(afterCorrect, word.id, probePlan);
+    if (!isLearning) setProbePlan(inserted.plan);
+    persistPassed(inserted.state.wordQueue, inserted.state.wordIdx);
+    setWordQueue(inserted.state.wordQueue);
+    setWordIdx(inserted.state.wordIdx);
   };
 
   const mistake = (word: WordWithMeta, isShortenOnly: boolean) => {
+    if (word.probe) {
+      const newState = handleProbeMistake({ wordQueue, wordIdx });
+      resetPreview();
+      persistPassed(newState.wordQueue, newState.wordIdx);
+      setWordQueue(newState.wordQueue);
+      setWordIdx(newState.wordIdx);
+      return;
+    }
     const newState = handleMistake({ wordQueue, wordIdx }, word, {
       isLearning: !!isLearning,
       isShortenOnly,
       overrideMemLevel: previewMemLevelRef.current ?? undefined,
     });
     resetPreview();
+    if (!isLearning) setProbePlan(dropProbeId(probePlan, word.id));
     persistPassed(newState.wordQueue, newState.wordIdx);
     setWordQueue(newState.wordQueue);
     setWordIdx(newState.wordIdx);
@@ -252,6 +301,13 @@ export function IterateWords({
     (isCorrect: boolean, isShortenOnly?: boolean) => {
       if (wordIdx < 0 || wordIdx >= wordQueue.length) return;
       const w = wordQueue[wordIdx];
+      if (w.probe) {
+        if (!isCorrect) return;
+        const level = increaseMemLevel(w.memLevel);
+        previewMemLevelRef.current = level;
+        setPreviewMemLevel(level);
+        return;
+      }
       const level = computeNewMemLevel(w, isCorrect, {
         isLearning: !!isLearning,
         isShortenOnly,

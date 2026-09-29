@@ -105,9 +105,14 @@ export function TeachWord({
   const onValue = async (value: string, oneChanceOnly: boolean) => {
     setIsAnyText(!!value);
 
-    const answerTarget = FORM_CORRECT_ANSWER[word.form];
-    if (answerTarget) {
-      const expected = answerTarget === 'word' ? word.word : word.definition;
+    const expected = word.probe
+      ? word.probe.answer
+      : FORM_CORRECT_ANSWER[word.form] === 'word'
+        ? word.word
+        : FORM_CORRECT_ANSWER[word.form] === 'definition'
+          ? word.definition
+          : null;
+    if (expected) {
       if (value?.trim().toLowerCase() === expected.trim().toLowerCase()) {
         setStatus('correct');
         onPreviewMemLevel(true);
@@ -126,6 +131,13 @@ export function TeachWord({
     if (isSkipped) {
       await delay(DELAY_CORRECT_MS);
       skipWord(word);
+      return;
+    }
+
+    if (word.probe) {
+      setStatus('mistake');
+      await delay(DELAY_MISTAKE_MS);
+      mistake(word, false);
       return;
     }
 
@@ -169,69 +181,113 @@ export function TeachWord({
     onPreviewMemLevel(false, true);
   };
 
+  const isProbe = !!word.probe;
+
   let component;
-  switch (word.form) {
-    case 'show':
-      component = <ShowWord status={status} word={word} onClick={forceCheck} />;
-      break;
-    case 'choose_4_def':
-      component = (
-        <ChooseTranslation
-          key={word.id}
-          guessing="definition"
-          toGuess={word.word}
-          correctResponse={word.definition}
-          similarWords={threeSimilarWords}
-          onValue={onValue}
-          onRevertMistake={onRevertMistake}
-          status={status}
-        />
-      );
-      break;
-    case 'choose_4_word':
-      component = (
-        <ChooseTranslation
-          key={word.id}
-          guessing="word"
-          toGuess={word.definition}
-          correctResponse={word.word}
-          similarWords={threeSimilarWords}
-          onValue={onValue}
-          onRevertMistake={onRevertMistake}
-          status={status}
-        />
-      );
-      break;
-    case 'choose_8_def':
-      component = (
-        <ChooseTranslation
-          key={word.id}
-          guessing="definition"
-          toGuess={word.word}
-          correctResponse={word.definition}
-          similarWords={sevenSimilarWords}
-          onValue={onValue}
-          onRevertMistake={onRevertMistake}
-          status={status}
-        />
-      );
-      break;
-    case 'write_mid':
-    case 'write':
-    case 'write_last':
-      component = (
+  if (word.probe?.kind === 'recall_picture') {
+    component = (
+      <>
+        {word.probe.imageId && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={`/api/image/word/${word.probe.imageId}`}
+            alt={t('learn.wordIllustration')}
+            className="mx-auto mb-4 max-h-64 object-contain"
+          />
+        )}
         <TypeTranslation
           key={word.id}
           word={word}
           onValue={onValue}
           status={status}
           specialKeys={specialKeys}
+          omitPrompt
         />
-      );
-      break;
-    default:
-      assertNever(word.form);
-  }
+        {status === 'mistake' && (
+          <p className="mt-2 text-center text-sm">{t('test.probeMistakeNoEffect')}</p>
+        )}
+      </>
+    );
+  } else if (word.probe?.kind === 'recall_previous') {
+    component = (
+      <>
+        <p className="mb-4 text-center">{t('test.previousWordPrompt')}</p>
+        <TypeTranslation
+          key={word.id}
+          word={word}
+          onValue={onValue}
+          status={status}
+          specialKeys={specialKeys}
+          omitPrompt
+        />
+        {status === 'mistake' && (
+          <p className="mt-2 text-center text-sm">{t('test.probeMistakeNoEffect')}</p>
+        )}
+      </>
+    );
+  } else
+    switch (word.form) {
+      case 'show':
+        component = <ShowWord status={status} word={word} onClick={forceCheck} />;
+        break;
+      case 'choose_4_def':
+        component = (
+          <ChooseTranslation
+            key={word.id}
+            guessing="definition"
+            toGuess={word.word}
+            correctResponse={word.definition}
+            similarWords={threeSimilarWords}
+            onValue={onValue}
+            onRevertMistake={onRevertMistake}
+            status={status}
+          />
+        );
+        break;
+      case 'choose_4_word':
+        component = (
+          <ChooseTranslation
+            key={word.id}
+            guessing="word"
+            toGuess={word.definition}
+            correctResponse={word.word}
+            similarWords={threeSimilarWords}
+            onValue={onValue}
+            onRevertMistake={onRevertMistake}
+            status={status}
+          />
+        );
+        break;
+      case 'choose_8_def':
+        component = (
+          <ChooseTranslation
+            key={word.id}
+            guessing="definition"
+            toGuess={word.word}
+            correctResponse={word.definition}
+            similarWords={sevenSimilarWords}
+            onValue={onValue}
+            onRevertMistake={onRevertMistake}
+            status={status}
+          />
+        );
+        break;
+      case 'write_mid':
+      case 'write':
+      case 'write_last':
+        component = (
+          <TypeTranslation
+            key={word.id}
+            word={word}
+            onValue={onValue}
+            status={status}
+            specialKeys={specialKeys}
+          />
+        );
+        break;
+      default:
+        assertNever(word.form);
+    }
 
   const isCheckButtonDisabled = !(
     status === 'normal' &&
@@ -239,7 +295,7 @@ export function TeachWord({
   );
 
   const isLearning = word.memLevel === 0;
-  const isChooseForm = word.form.startsWith('choose_');
+  const isChooseForm = !isProbe && word.form.startsWith('choose_');
 
   const playPronunciation = () => {
     setAudioSource(`/api/sound/word/${word.courseId}/${word.id}`);
@@ -247,15 +303,16 @@ export function TeachWord({
   };
 
   useEffect(() => {
+    if (isProbe) return;
     const checkImages = async () => {
       const result = await queryImages(word.id);
       setHasPictures((result.images?.length ?? 0) > 0);
     };
     checkImages();
-  }, [word.id, queryImages]);
+  }, [isProbe, word.id, queryImages]);
 
   useEffect(() => {
-    if (canChangeSharedDicts) return;
+    if (canChangeSharedDicts || isProbe) return;
     let cancelled = false;
     const loadExamples = async () => {
       const result = await queryExamples(word.id);
@@ -266,7 +323,7 @@ export function TeachWord({
     return () => {
       cancelled = true;
     };
-  }, [canChangeSharedDicts, queryExamples, word.id]);
+  }, [canChangeSharedDicts, isProbe, queryExamples, word.id]);
 
   const handleRequestImage = () => {
     setImageRequested(true);
@@ -291,9 +348,11 @@ export function TeachWord({
                   ?
                 </Button>
               )}
-              <Button onClick={playPronunciation} type="button" disabled={isPlaying}>
-                <SpeakerWaveIcon className="w-5" />
-              </Button>
+              {!isProbe && (
+                <Button onClick={playPronunciation} type="button" disabled={isPlaying}>
+                  <SpeakerWaveIcon className="w-5" />
+                </Button>
+              )}
               {!isLearning && (
                 <Button onClick={() => repeatSooner(word)} type="button">
                   <ArrowPathIcon className="w-5" />
@@ -304,7 +363,7 @@ export function TeachWord({
         )}
         {isSkipped && <div className="text-center">{t('learn.skipped')}</div>}
 
-        {(canChangeSharedDicts || (storedExampleCount ?? 0) > 0) && (
+        {!isProbe && (canChangeSharedDicts || (storedExampleCount ?? 0) > 0) && (
           <div className="py-5 w-full">
             <WordExamples
               word={word}
@@ -330,7 +389,7 @@ export function TeachWord({
             )}
           </Button>
 
-          {!isSkipped && (
+          {!isProbe && !isSkipped && (
             <Button
               onClick={() => {
                 setIsSkipped(true);
@@ -340,7 +399,7 @@ export function TeachWord({
               {t('learn.skipFromLearning')}
             </Button>
           )}
-          {isSkipped && (
+          {!isProbe && isSkipped && (
             <Button
               onClick={() => {
                 setIsSkipped(false);
@@ -355,7 +414,7 @@ export function TeachWord({
         <hr className={s.separator} />
 
         <div className="flex justify-between">
-          {canChangeSharedDicts && (
+          {canChangeSharedDicts && !isProbe && (
             <Button onClick={editWord} type="button">
               {t('common.edit')}
             </Button>
@@ -371,7 +430,7 @@ export function TeachWord({
           </Button>
         </div>
 
-        {hasPictures && (
+        {!isProbe && hasPictures && (
           <WordPictures
             wordId={word.id}
             queryImages={queryImages}
@@ -379,7 +438,7 @@ export function TeachWord({
             allowDelete={canChangeSharedDicts}
           />
         )}
-        {hasPictures === false && canChangeSharedDicts && (
+        {!isProbe && hasPictures === false && canChangeSharedDicts && (
           <div className="flex justify-center py-2">
             <Button onClick={handleRequestImage} type="button" disabled={imageRequested}>
               <CameraIcon className="w-5" />

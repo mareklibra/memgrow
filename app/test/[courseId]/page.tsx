@@ -2,6 +2,7 @@ import { IterateWords } from '@/app/ui/IterateWords';
 import { auth } from '@/auth';
 import {
   canChangeSharedDicts,
+  fetchOldestImageIds,
   fetchSimilarWords,
   fetchWordsToTest,
 } from '@/app/lib/data';
@@ -40,6 +41,7 @@ export default async function Page({
   );
 
   const words = await fetchSimilarWords(courseId, wordsToTest, maxSimilarWords);
+  const imageIdByWordId = await fetchOldestImageIds(words.map((word) => word.id));
   const randomlyShuffledWords = [...words].sort(
     () => crypto.getRandomValues(new Uint32Array(1))[0]! / 2 ** 32 - 0.5,
   );
@@ -62,6 +64,7 @@ export default async function Page({
       deleteImage={deleteWordImage}
       requestImageGeneration={requestImageGeneration}
       canChangeSharedDicts={canEditShared}
+      imageIdByWordId={imageIdByWordId}
     />
   );
 }
