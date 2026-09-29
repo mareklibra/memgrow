@@ -16,7 +16,7 @@ import {
   maybeInsertProbeAfterCorrect,
   planSessionProbes,
 } from '@/app/lib/iterate-words-logic';
-import { TEACHING_FORMS, Word, WordWithMeta } from '@/app/lib/definitions';
+import { TEACHING_FORMS, TeachingForm, Word, WordWithMeta } from '@/app/lib/definitions';
 import {
   getNextForm,
   getRepeatAgainDate,
@@ -883,57 +883,195 @@ describe('iterate-words-logic', () => {
     });
   });
 
-  // ── regression: getNextForm isTest consistency ────────────────────────
-  describe('getNextForm isTest consistency across all call sites', () => {
-    it('every form produces a valid transition in both learn and test mode', () => {
+  describe('teaching-form transition matrix', () => {
+    // Same edges as getNextForm. Repeated here so a session-branch change
+    // cannot hide behind a call to getNextForm. A new TeachingForm fails
+    // compilation until both tables name its next form.
+    const LEARN_NEXT = {
+      show: 'choose_4_word',
+      choose_4_word: 'choose_4_def',
+      choose_4_def: 'choose_8_def',
+      write_mid: 'choose_8_def',
+      choose_8_def: 'write',
+      write: 'write_last',
+      write_last: 'choose_4_def',
+    } as const satisfies Record<TeachingForm, TeachingForm>;
+
+    const TEST_NEXT = {
+      show: 'choose_4_word',
+      choose_4_word: 'choose_4_def',
+      choose_4_def: 'write_mid',
+      write_mid: 'choose_8_def',
+      choose_8_def: 'write',
+      write: 'write_last',
+      write_last: 'choose_4_def',
+    } as const satisfies Record<TeachingForm, TeachingForm>;
+
+    const queueOf = (word: WordWithMeta): IterateState => ({
+      wordQueue: [word, makeWordMeta({ id: 'w2' }), makeWordMeta({ id: 'w3' })],
+      wordIdx: 0,
+    });
+
+    const futureCopy = (result: IterateState) =>
+      result.wordQueue.find((item, index) => index > 0 && item.id === 'w1');
+
+    it('learn within-session inserts the learn next form and leaves memLevel', () => {
       for (const form of TEACHING_FORMS) {
-        const learnNext = getNextForm(form, false);
-        const testNext = getNextForm(form, true);
-        expect(TEACHING_FORMS as readonly string[]).toContain(learnNext);
-        expect(TEACHING_FORMS as readonly string[]).toContain(testNext);
+        if (form === 'write_last') continue;
+        const word = makeWordMeta({ form, repeated: 0, memLevel: 5 });
+        const result = handleCorrect(queueOf(word), word, {
+          isLearning: true,
+          repetitionLimit: 10,
+          maxDistForRandom: 10,
+          randomFn: () => 0,
+        });
+        const inserted = futureCopy(result);
+        expect(inserted?.form).toBe(LEARN_NEXT[form]);
+        expect(inserted?.memLevel).toBe(5);
+        expect(inserted?.repeated).toBe(form === 'show' ? 0 : 1);
+        expect(result.wordQueue[0].form).toBe(form);
+        expect(result.wordQueue).toHaveLength(4);
       }
     });
 
-    it('handleCorrect produces valid forms for every starting form (test mode)', () => {
-      const testOpts2 = {
-        isLearning: false,
-        repetitionLimit: 10,
-        maxDistForRandom: 10,
-        randomFn: () => 0,
-      };
-      for (const form of TEACHING_FORMS) {
-        const word = makeWordMeta({ form, repeated: 0 });
-        const state: IterateState = {
-          wordQueue: [word, makeWordMeta({ id: 'w2' }), makeWordMeta({ id: 'w3' })],
-          wordIdx: 0,
-        };
-        const result = handleCorrect(state, word, testOpts2);
-        const inserted = result.wordQueue.find((w, idx) => idx > 0 && w.id === 'w1');
-        if (inserted) {
-          expect(TEACHING_FORMS as readonly string[]).toContain(inserted.form);
-        }
-      }
-    });
-
-    it('handleCorrect produces valid forms for every starting form (learn mode)', () => {
-      const learnOpts2 = {
+    it('write_last always persists in learn mode on the test edge and grows memLevel', () => {
+      const word = makeWordMeta({ form: 'write_last', repeated: 0, memLevel: 5 });
+      const result = handleCorrect(queueOf(word), word, {
         isLearning: true,
         repetitionLimit: 10,
         maxDistForRandom: 10,
         randomFn: () => 0,
-      };
+      });
+      expect(result.wordQueue).toHaveLength(3);
+      expect(result.wordQueue[0].form).toBe(TEST_NEXT.write_last);
+      expect(result.wordQueue[0].memLevel).toBe(6);
+      expect(result.wordQueue[0].repeatAgain).toEqual(
+        new Date(FROZEN_NOW_MS + 6 * DAY_MS),
+      );
+      expect(futureCopy(result)).toBeUndefined();
+    });
+
+    it('learn persist writes the test next form and grows memLevel only for write_last', () => {
       for (const form of TEACHING_FORMS) {
-        if (form === 'write_last') continue; // different branch
-        const word = makeWordMeta({ form, repeated: 0 });
-        const state: IterateState = {
-          wordQueue: [word, makeWordMeta({ id: 'w2' }), makeWordMeta({ id: 'w3' })],
-          wordIdx: 0,
-        };
-        const result = handleCorrect(state, word, learnOpts2);
-        const inserted = result.wordQueue.find((w, idx) => idx > 0 && w.id === 'w1');
-        if (inserted) {
-          expect(TEACHING_FORMS as readonly string[]).toContain(inserted.form);
-        }
+        const word = makeWordMeta({ form, repeated: 0, memLevel: 5 });
+        const result = handleCorrect({ wordQueue: [word], wordIdx: 0 }, word, {
+          isLearning: true,
+          repetitionLimit: 0,
+          maxDistForRandom: 10,
+          randomFn: () => 0,
+        });
+        expect(result.wordQueue).toHaveLength(1);
+        expect(result.wordQueue[0].form).toBe(TEST_NEXT[form]);
+        expect(result.wordQueue[0].memLevel).toBe(form === 'write_last' ? 6 : 5);
+        expect(result.wordQueue[0].repeated).toBe(0);
+        const days = form === 'write_last' ? 6 : 5;
+        expect(result.wordQueue[0].repeatAgain).toEqual(
+          new Date(FROZEN_NOW_MS + days * DAY_MS),
+        );
+      }
+    });
+
+    it('test insert schedules the test next form, grows memLevel, and dates repeatAgain from the old level', () => {
+      for (const form of TEACHING_FORMS) {
+        const word = makeWordMeta({ form, repeated: 0, memLevel: 5 });
+        const result = handleCorrect(queueOf(word), word, {
+          isLearning: false,
+          repetitionLimit: 10,
+          maxDistForRandom: 10,
+          randomFn: () => 0,
+        });
+        const inserted = futureCopy(result);
+        expect(inserted?.form).toBe(TEST_NEXT[form]);
+        expect(inserted?.memLevel).toBe(6);
+        expect(inserted?.repeated).toBe(form === 'show' ? 0 : 1);
+        expect(inserted?.repeatAgain).toEqual(new Date(FROZEN_NOW_MS + 5 * DAY_MS));
+        expect(result.wordQueue[0].form).toBe(form);
+        expect(result.wordQueue[0].memLevel).toBe(5);
+      }
+    });
+
+    it('test update stores the test next form in place with the same memLevel rules', () => {
+      for (const form of TEACHING_FORMS) {
+        const word = makeWordMeta({ form, repeated: 0, memLevel: 5 });
+        const result = handleCorrect({ wordQueue: [word], wordIdx: 0 }, word, {
+          isLearning: false,
+          repetitionLimit: 0,
+          maxDistForRandom: 10,
+          randomFn: () => 0,
+        });
+        expect(result.wordQueue).toHaveLength(1);
+        expect(result.wordQueue[0].form).toBe(TEST_NEXT[form]);
+        expect(result.wordQueue[0].memLevel).toBe(6);
+        expect(result.wordQueue[0].repeatAgain).toEqual(
+          new Date(FROZEN_NOW_MS + 5 * DAY_MS),
+        );
+      }
+    });
+
+    it('a mistake from every form resets to show', () => {
+      for (const form of TEACHING_FORMS) {
+        const word = makeWordMeta({ form, memLevel: 5 });
+        const learning = handleMistake({ wordQueue: [word], wordIdx: 0 }, word, {
+          isLearning: true,
+          isShortenOnly: false,
+        });
+        const review = learning.wordQueue.findLast((item) => item.id === 'w1');
+        expect(review?.form).toBe('show');
+        expect(review?.memLevel).toBe(5);
+        expect(learning.wordQueue[0].form).toBe(form);
+
+        const tested = handleMistake({ wordQueue: [word], wordIdx: 0 }, word, {
+          isLearning: false,
+          isShortenOnly: false,
+        });
+        expect(tested.wordQueue.findLast((item) => item.id === 'w1')?.form).toBe('show');
+        expect(tested.wordQueue.findLast((item) => item.id === 'w1')?.memLevel).toBe(1);
+
+        const softened = handleMistake({ wordQueue: [word], wordIdx: 0 }, word, {
+          isLearning: false,
+          isShortenOnly: true,
+        });
+        const soft = softened.wordQueue.findLast((item) => item.id === 'w1');
+        expect(soft?.form).toBe('show');
+        expect(soft?.memLevel).toBe(Math.min(8, Math.floor(5 * REPEAT_SOONER_FACTOR)));
+      }
+    });
+
+    it('a probe copies the already advanced form and a probe result does not move the form', () => {
+      for (const form of TEACHING_FORMS) {
+        const word = makeWordMeta({ form, repeated: 0, memLevel: 5, word: 'hola' });
+        const after = handleCorrect(queueOf(word), word, {
+          isLearning: false,
+          repetitionLimit: 10,
+          maxDistForRandom: 10,
+          randomFn: () => 0,
+        });
+        const inserted = maybeInsertProbeAfterCorrect(after, 'w1', {
+          picture: [{ id: 'w1', imageId: 'img1' }],
+          previousIds: [],
+        });
+        const probe = inserted.state.wordQueue[inserted.state.wordIdx];
+        expect(probe.form).toBe(TEST_NEXT[form]);
+        expect(probe.probe).toEqual({
+          kind: 'recall_picture',
+          answer: 'hola',
+          imageId: 'img1',
+        });
+
+        const repeatAgain = new Date('2025-07-01T00:00:00Z');
+        const probeCard = makeWordMeta({
+          form,
+          memLevel: 5,
+          repeatAgain,
+          probe: { kind: 'recall_previous', lag: 1, answer: 'hola' },
+        });
+        const hit = handleProbeCorrect({ wordQueue: [probeCard], wordIdx: 0 }, probeCard);
+        expect(hit.wordQueue[0].form).toBe(form);
+        expect(hit.wordQueue[0].repeatAgain).toEqual(repeatAgain);
+        expect(hit.wordQueue[0].memLevel).toBe(increaseMemLevel(5));
+
+        const miss = handleProbeMistake({ wordQueue: [probeCard], wordIdx: 0 });
+        expect(miss.wordQueue[0]).toEqual(probeCard);
       }
     });
   });
