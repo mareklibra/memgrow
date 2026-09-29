@@ -1310,6 +1310,110 @@ describe('iterate-words-logic', () => {
       expect(TEACHING_FORMS as readonly string[]).toContain(saved[0].end.form);
     });
 
+    it('does not put a probe bonus on an unanswered requeue, and still saves it', () => {
+      const word = makeWordMeta({
+        id: 'w1',
+        form: 'show',
+        memLevel: 5,
+        repeated: 0,
+        word: 'hola',
+      });
+      const start = initializeQueue([word]);
+      const afterShow = handleCorrect(start, start.wordQueue[0], {
+        isLearning: false,
+        repetitionLimit: 1,
+        maxDistForRandom: 10,
+        randomFn: () => 0,
+      });
+      const inserted = maybeInsertProbeAfterCorrect(afterShow, 'w1', {
+        picture: [],
+        previousIds: ['w1'],
+      });
+      const probe = inserted.state.wordQueue[inserted.state.wordIdx];
+      const played = handleProbeCorrect(inserted.state, probe);
+      const future = played.wordQueue.findLast((item) => item.id === 'w1')!;
+      const normalLevel = increaseMemLevel(5);
+      const probeLevel = increaseMemLevel(normalLevel);
+
+      expect(future.probe).toBeUndefined();
+      expect(future.memLevel).toBe(normalLevel);
+      expect(future.form).toBe(getNextForm('show', true));
+      expect(future.repeatAgain).toEqual(getRepeatAgainDate(5));
+      expect(future.pendingProbeMemLevel).toBe(probeLevel);
+      expect(played.wordQueue[played.wordIdx - 1].memLevel).toBe(probeLevel);
+
+      const saved = gatherPassedProgress(played.wordQueue, played.wordIdx);
+      expect(saved).toHaveLength(1);
+      expect(saved[0].memLevel).toBe(probeLevel);
+      expect(saved[0].form).toBe(future.form);
+      expect(saved[0].repeatAgain).toEqual(future.repeatAgain);
+      expect(future.memLevel).toBe(normalLevel);
+
+      const atEnd = gatherLastProgress([word], played.wordQueue, played.wordIdx);
+      expect(atEnd[0].end.memLevel).toBe(probeLevel);
+      expect(atEnd[0].end.repeatAgain).toEqual(future.repeatAgain);
+    });
+
+    it('a correct answer on the requeue replaces the pending probe level', () => {
+      const word = makeWordMeta({ id: 'w1', form: 'show', memLevel: 5, repeated: 0 });
+      const start = initializeQueue([word]);
+      const afterShow = handleCorrect(start, start.wordQueue[0], {
+        isLearning: false,
+        repetitionLimit: 1,
+        maxDistForRandom: 10,
+        randomFn: () => 0,
+      });
+      const inserted = maybeInsertProbeAfterCorrect(afterShow, 'w1', {
+        picture: [],
+        previousIds: ['w1'],
+      });
+      const played = handleProbeCorrect(
+        inserted.state,
+        inserted.state.wordQueue[inserted.state.wordIdx],
+      );
+      const future = played.wordQueue[played.wordIdx];
+      const answered = handleCorrect(played, future, {
+        isLearning: false,
+        repetitionLimit: 1,
+        maxDistForRandom: 10,
+        randomFn: () => 0,
+      });
+      const saved = gatherPassedProgress(answered.wordQueue, answered.wordIdx);
+      const last = answered.wordQueue.findLast((item) => item.id === 'w1');
+      expect(saved[0].memLevel).toBe(increaseMemLevel(increaseMemLevel(5)));
+      expect(saved[0].repeatAgain).toEqual(getRepeatAgainDate(increaseMemLevel(5)));
+      expect(last?.pendingProbeMemLevel).toBeUndefined();
+    });
+
+    it('a miss on the requeue keeps the mistake level', () => {
+      const word = makeWordMeta({ id: 'w1', form: 'show', memLevel: 5, repeated: 0 });
+      const start = initializeQueue([word]);
+      const afterShow = handleCorrect(start, start.wordQueue[0], {
+        isLearning: false,
+        repetitionLimit: 1,
+        maxDistForRandom: 10,
+        randomFn: () => 0,
+      });
+      const inserted = maybeInsertProbeAfterCorrect(afterShow, 'w1', {
+        picture: [],
+        previousIds: ['w1'],
+      });
+      const played = handleProbeCorrect(
+        inserted.state,
+        inserted.state.wordQueue[inserted.state.wordIdx],
+      );
+      const future = played.wordQueue[played.wordIdx];
+      const missed = handleMistake(played, future, {
+        isLearning: false,
+        isShortenOnly: false,
+      });
+      const saved = gatherPassedProgress(missed.wordQueue, missed.wordIdx);
+      const last = missed.wordQueue.findLast((item) => item.id === 'w1');
+      expect(saved[0].form).toBe('show');
+      expect(saved[0].memLevel).toBe(1);
+      expect(last?.pendingProbeMemLevel).toBeUndefined();
+    });
+
     it('a probe miss leaves memLevel, form, and repeatAgain and does not enqueue show', () => {
       const repeatAgain = new Date('2025-07-01T00:00:00Z');
       const probe = makeWordMeta({

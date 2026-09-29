@@ -97,6 +97,13 @@ export function maybeInsertProbeAfterCorrect(
   return { state: { wordQueue, wordIdx: state.wordIdx }, plan: nextPlan };
 }
 
+function withoutPendingProbeMem(word: WordWithMeta): WordWithMeta {
+  if (word.pendingProbeMemLevel === undefined) return word;
+  const next = { ...word };
+  delete next.pendingProbeMemLevel;
+  return next;
+}
+
 export function handleProbeCorrect(
   state: IterateState,
   word: WordWithMeta,
@@ -104,9 +111,13 @@ export function handleProbeCorrect(
 ): IterateState {
   const newMemLevel = overrideMemLevel ?? increaseMemLevel(word.memLevel);
   return {
-    wordQueue: state.wordQueue.map((item) =>
-      item.id === word.id ? { ...item, memLevel: newMemLevel } : item,
-    ),
+    wordQueue: state.wordQueue.map((item, index) => {
+      if (item.id !== word.id) return item;
+      if (index > state.wordIdx) {
+        return { ...item, pendingProbeMemLevel: newMemLevel };
+      }
+      return withoutPendingProbeMem({ ...item, memLevel: newMemLevel });
+    }),
     wordIdx: state.wordIdx + 1,
   };
 }
@@ -173,6 +184,7 @@ export function handleCorrect(
     randomFn = Math.random,
   } = options;
   const { wordQueue, wordIdx } = state;
+  const answered = withoutPendingProbeMem(word);
 
   const repeated = word.form === 'show' ? word.repeated : word.repeated + 1;
 
@@ -199,13 +211,13 @@ export function handleCorrect(
   if (isLearning) {
     if (repeated < repetitionLimit && word.form !== 'write_last') {
       newQueue = insertNextAtRandomPosition({
-        ...word,
+        ...answered,
         form: getNextForm(word.form),
         repeated,
       });
     } else {
       newQueue = updateCurrentWord({
-        ...word,
+        ...answered,
         form: getNextForm(word.form, true),
         memLevel: newMemLevel,
         repeatAgain: getRepeatAgainDate(newMemLevel),
@@ -215,7 +227,7 @@ export function handleCorrect(
     // Test mode
     if (repeated < repetitionLimit) {
       newQueue = insertNextAtRandomPosition({
-        ...word,
+        ...answered,
         form: getNextForm(word.form, true),
         memLevel: newMemLevel,
         repeatAgain: getRepeatAgainDate(word.memLevel),
@@ -223,7 +235,7 @@ export function handleCorrect(
       });
     } else {
       newQueue = updateCurrentWord({
-        ...word,
+        ...answered,
         form: getNextForm(word.form, true),
         memLevel: newMemLevel,
         repeatAgain: getRepeatAgainDate(word.memLevel),
@@ -252,7 +264,7 @@ export function handleMistake(
     computeNewMemLevel(word, false, { isLearning, isShortenOnly });
 
   const newWord: WordWithMeta = {
-    ...word,
+    ...withoutPendingProbeMem(word),
     form: newForm,
     memLevel: newMemLevel,
     repeatAgain: getRepeatAgainDate(newMemLevel),
@@ -300,11 +312,36 @@ export type WordProgressPair = {
   end: Word;
 };
 
+/**
+ * Last copy of `id`. While that copy is still ahead of the cursor, a probe hit
+ * contributes its stacked memLevel. Form and repeatAgain stay on the last copy.
+ * Once that copy has been answered, its own memLevel is the snapshot.
+ */
+function snapshotWord(wordQueue: Word[], id: string, wordIdx: number): Word | undefined {
+  let last: Word | undefined;
+  let lastIndex = -1;
+  for (let i = 0; i < wordQueue.length; i++) {
+    if (wordQueue[i].id !== id) continue;
+    last = wordQueue[i];
+    lastIndex = i;
+  }
+  if (!last) return undefined;
+  const pending = (last as WordWithMeta).pendingProbeMemLevel;
+  if (lastIndex >= wordIdx && pending !== undefined && pending > last.memLevel) {
+    return { ...last, memLevel: pending };
+  }
+  return last;
+}
+
 /** Last queue occurrence of every original batch word (including never-reached). */
-export function gatherLastProgress(words: Word[], wordQueue: Word[]): WordProgressPair[] {
+export function gatherLastProgress(
+  words: Word[],
+  wordQueue: Word[],
+  wordIdx: number = wordQueue.length,
+): WordProgressPair[] {
   const progress: WordProgressPair[] = [];
   for (const word of words) {
-    const last = wordQueue.findLast((w) => w.id === word.id);
+    const last = snapshotWord(wordQueue, word.id, wordIdx);
     if (!last) continue;
     progress.push({ start: word, end: last });
   }
@@ -312,9 +349,8 @@ export function gatherLastProgress(words: Word[], wordQueue: Word[]): WordProgre
 }
 
 /**
- * Unique words that already appear before the cursor. For each, the last
- * occurrence in the full queue — the same snapshot end-session would persist
- * for that word.
+ * Unique words that already appear before the cursor. For each, the snapshot
+ * end-session would persist for that word.
  */
 export function gatherPassedProgress(wordQueue: Word[], wordIdx: number): Word[] {
   if (wordIdx <= 0) return [];
@@ -331,7 +367,7 @@ export function gatherPassedProgress(wordQueue: Word[], wordIdx: number): Word[]
   }
 
   return seenIds.flatMap((id) => {
-    const last = wordQueue.findLast((w) => w.id === id);
-    return last ? [last] : [];
+    const saved = snapshotWord(wordQueue, id, wordIdx);
+    return saved ? [saved] : [];
   });
 }

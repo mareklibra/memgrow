@@ -79,6 +79,11 @@ export type SessionProbe = {
 export type WordWithMeta = Word & {
   repeated: number;
   probe?: SessionProbe;
+  /**
+   * Probe-stacked memLevel kept for saving while a later copy of this word
+   * is still unanswered. The later copy's own memLevel is what the user plays.
+   */
+  pendingProbeMemLevel?: number;
 };
 
 export type DbCourse = {

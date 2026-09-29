@@ -19,6 +19,8 @@ import { localeToBcp47 } from '@/app/lib/i18n';
 interface DoneStateProps {
   words: Word[];
   wordQueue: Word[];
+  /** Cursor when the batch ended. Copies at this index and later are still unanswered. */
+  wordIdx: number;
   storeProgress: (words: Word[]) => Promise<UpdateWordsResult>;
   isLearning?: boolean;
 }
@@ -103,6 +105,7 @@ function MemLevelCell({
 export function DoneState({
   words,
   wordQueue,
+  wordIdx,
   storeProgress,
   isLearning,
 }: Readonly<DoneStateProps>) {
@@ -191,7 +194,7 @@ export function DoneState({
 
   useEffect(
     () => {
-      const progress = gatherLastProgress(words, wordQueue);
+      const progress = gatherLastProgress(words, wordQueue, wordIdx);
       const lastWords = progress.map((p) => p.end);
 
       setProgress(progress);
