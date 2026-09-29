@@ -13,7 +13,7 @@
     "prettier:fix": "prettier --write './**/*.{js,jsx,ts,tsx,css,md,json}' --config ./.prettierrc",
     "eslint": "eslint .",
     "eslint:fix": "eslint . --fix",
-    "chores": "pnpm prettier:fix && pnpm eslint:fix && pnpm prettier:fix && pnpm tsc && pnpm test"
+    "chores": "pnpm prettier:fix && pnpm eslint:fix && pnpm prettier:fix && pnpm tsc && pnpm test:local"
   },
   "engines": {
     "node": "24.x"

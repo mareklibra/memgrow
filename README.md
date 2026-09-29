@@ -263,6 +263,7 @@ not point production `AUTH_URL` at a preview URL.
 
    Use the same Resend domain as above; DNS does not change when you leave
    Vercel.
+
 2. `compose.yml` passes `RESEND_API_KEY` and `MAIL_FROM` through. Env-only
    changes do **not** need an image rebuild: `podman compose up -d` or
    restart the app container.
