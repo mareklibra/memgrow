@@ -1,5 +1,7 @@
 export const testWordsCountLimit = 22;
 export const testWordsDeepMemoryCountLimit = 3;
+export const testPictureRecallLimit = 3;
+export const testPreviousRecallLimit = 3;
 export const testWordsCountLimitOffline = 500;
 export const testRepetitionLimit = 1;
 export const testBatchLimit = (testWordsCountLimit + testWordsDeepMemoryCountLimit) * 2.5;

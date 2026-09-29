@@ -168,6 +168,8 @@ export const csMessages = {
     remaining: 'Zbývá',
     due: 'k opakování',
     done: 'hotovo',
+    previousWordPrompt: 'Jaké bylo předchozí slovo, které jste si vybavili?',
+    probeMistakeNoEffect: 'Tato chyba neovlivňuje skóre.',
   },
   edit: {
     chooseCourse: 'Vyberte kurz k úpravě',

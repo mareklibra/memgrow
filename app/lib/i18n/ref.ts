@@ -168,6 +168,8 @@ export const enMessages = {
     remaining: 'Remaining',
     due: 'due',
     done: 'done',
+    previousWordPrompt: 'What was the previous word you have recalled?',
+    probeMistakeNoEffect: 'This mistake does not affect scoring.',
   },
   edit: {
     chooseCourse: 'Choose course to edit',

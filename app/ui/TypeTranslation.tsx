@@ -16,6 +16,8 @@ export interface TypeTranslationProps {
   status: FieldStatus;
   specialKeys: string[];
   guessing?: 'word' | 'definition';
+  /** Hide the headword/definition cue. Hint still completes `word.word` or the definition. */
+  omitPrompt?: boolean;
   onValue: (value: string, oneChanceOnly: boolean) => void;
 }
 
@@ -25,6 +27,7 @@ export function TypeTranslation({
   status,
   specialKeys,
   guessing = 'word',
+  omitPrompt = false,
 }: Readonly<TypeTranslationProps>) {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -71,7 +74,7 @@ export function TypeTranslation({
 
   return (
     <>
-      <WordStatic word={toGuess} />
+      {!omitPrompt && <WordStatic word={toGuess} />}
       <div className="flex">
         <Button
           className="mr-4"

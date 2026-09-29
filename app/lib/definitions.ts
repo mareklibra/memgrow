@@ -54,8 +54,19 @@ export type WordToAdd = Pick<Word, 'word' | 'definition' | 'courseId'> & {
   repeat?: number;
 };
 
+export type SessionProbe = {
+  kind: 'recall_picture' | 'recall_previous';
+  /** Set only for `recall_previous`. Always 1 until a later lag is built. */
+  lag?: number;
+  /** Learning-language headword snapshotted when the card is inserted. */
+  answer: string;
+  /** Oldest stored image. Picture probes only. */
+  imageId?: string;
+};
+
 export type WordWithMeta = Word & {
   repeated: number;
+  probe?: SessionProbe;
 };
 
 export type DbCourse = {

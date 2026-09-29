@@ -693,6 +693,29 @@ type DbWordImage = {
   created_at: string;
 };
 
+/** Oldest image id for each word that has one. Empty input returns {}. */
+export async function fetchOldestImageIds(
+  wordIds: string[],
+): Promise<Record<string, string>> {
+  if (wordIds.length === 0) return {};
+  try {
+    const result = await sql<{ id: string; word_id: string }>`
+      SELECT DISTINCT ON (word_id) id, word_id
+      FROM word_images
+      WHERE word_id = ANY(${wordIds}::uuid[])
+      ORDER BY word_id, created_at ASC
+    `;
+    const imageIdByWordId: Record<string, string> = {};
+    for (const row of result.rows) {
+      imageIdByWordId[row.word_id] = row.id;
+    }
+    return imageIdByWordId;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch word image ids.');
+  }
+}
+
 export async function fetchWordImages(wordId: string): Promise<WordImage[]> {
   try {
     const result = await sql<DbWordImage>`
