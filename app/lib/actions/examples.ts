@@ -2,7 +2,12 @@
 
 import OpenAI from 'openai';
 import { sql } from '@/app/lib/db';
-import { canEditCourse, courseEditDeniedForWord, fetchCourse, fetchExamples } from '../data';
+import {
+  canEditCourse,
+  courseEditDeniedForWord,
+  fetchCourse,
+  fetchExamples,
+} from '../data';
 import {
   DeleteExampleResult,
   GetWordExamplesRawProps,

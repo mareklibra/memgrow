@@ -5,7 +5,13 @@ import { s } from '@/app/ui/styles';
 import { ArrowPathIcon, ChevronDoubleRightIcon } from '@heroicons/react/24/outline';
 import { StarIcon as StarOutlineIcon } from '@heroicons/react/24/outline';
 import { StarIcon } from '@heroicons/react/24/solid';
-import { Input, Switch } from '@/app/lib/material-tailwind-compat';
+import { Switch } from '@/app/lib/material-tailwind-compat';
+import {
+  FilterBar,
+  FilterSearch,
+  FilterSelect,
+  uniqueSorted,
+} from '@/app/ui/CourseFilters';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -162,10 +168,6 @@ const Course = ({
   );
 };
 
-function uniqueLangs(courses: CourseType[], key: 'learningLang' | 'knownLang'): string[] {
-  return [...new Set(courses.map((course) => course[key]).filter(Boolean))].sort();
-}
-
 export const ChooseCourse = ({
   courses,
   pathPrefix,
@@ -238,55 +240,39 @@ export const ChooseCourse = ({
         </div>
       )}
       {showAllSwitch && showAll && (
-        <div className="flex flex-wrap gap-3 mb-4 items-end">
-          <div className="w-40">
-            <Input
-              label={t('course.filterName')}
-              value={nameQuery}
-              onChange={(e) => setNameQuery(e.target.value)}
+        <FilterBar className="mb-4">
+          <FilterSearch
+            label={t('course.filterName')}
+            value={nameQuery}
+            onChange={setNameQuery}
+          />
+          <FilterSelect
+            label={t('course.filterLearning')}
+            value={learningLang}
+            onChange={setLearningLang}
+            emptyLabel={t('course.anyLanguage')}
+            options={uniqueSorted(courses.map((course) => course.learningLang))}
+          />
+          <FilterSelect
+            label={t('course.filterKnown')}
+            value={knownLang}
+            onChange={setKnownLang}
+            emptyLabel={t('course.anyLanguage')}
+            options={uniqueSorted(courses.map((course) => course.knownLang))}
+          />
+          <div className="flex h-[42px] shrink-0 items-center gap-4">
+            <Switch
+              label={t('course.filterMine')}
+              checked={mineOnly}
+              onChange={() => setMineOnly(!mineOnly)}
+            />
+            <Switch
+              label={t('course.filterPublic')}
+              checked={publicOnly}
+              onChange={() => setPublicOnly(!publicOnly)}
             />
           </div>
-          <label className="flex flex-col text-sm text-slate-600">
-            {t('course.filterLearning')}
-            <select
-              className="mt-1 rounded border border-gray-300 px-2 py-2"
-              value={learningLang}
-              onChange={(e) => setLearningLang(e.target.value)}
-            >
-              <option value="">{t('course.anyLanguage')}</option>
-              {uniqueLangs(courses, 'learningLang').map((lang) => (
-                <option key={lang} value={lang}>
-                  {lang}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex flex-col text-sm text-slate-600">
-            {t('course.filterKnown')}
-            <select
-              className="mt-1 rounded border border-gray-300 px-2 py-2"
-              value={knownLang}
-              onChange={(e) => setKnownLang(e.target.value)}
-            >
-              <option value="">{t('course.anyLanguage')}</option>
-              {uniqueLangs(courses, 'knownLang').map((lang) => (
-                <option key={lang} value={lang}>
-                  {lang}
-                </option>
-              ))}
-            </select>
-          </label>
-          <Switch
-            label={t('course.filterMine')}
-            checked={mineOnly}
-            onChange={() => setMineOnly(!mineOnly)}
-          />
-          <Switch
-            label={t('course.filterPublic')}
-            checked={publicOnly}
-            onChange={() => setPublicOnly(!publicOnly)}
-          />
-        </div>
+        </FilterBar>
       )}
       <div className="flex flex-wrap">
         {visibleCourses.map((course) => (

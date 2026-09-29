@@ -1,26 +1,20 @@
 'use client';
 
-import { useMemo, useState, type ReactNode } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { deleteCourse, promoteCourse } from '@/app/lib/actions';
 import type { AdminCourse } from '@/app/lib/definitions';
 import { useTranslation } from '@/app/lib/i18n/useTranslation';
 import ConfirmationDialog from '@/app/ui/ConfirmationDialog';
+import {
+  FilterBar,
+  FilterSearch,
+  FilterSelect,
+  uniqueSorted,
+} from '@/app/ui/CourseFilters';
 import { cn, s } from '@/app/ui/styles';
 
 type PendingAction = { type: 'delete' | 'promote'; course: AdminCourse } | null;
-
-function FilterField({
-  label,
-  children,
-}: Readonly<{ label: string; children: ReactNode }>) {
-  return (
-    <label className="flex min-w-40 flex-col gap-1 text-xs font-medium uppercase text-gray-500">
-      {label}
-      {children}
-    </label>
-  );
-}
 
 export function AdminCourses({ courses }: Readonly<{ courses: AdminCourse[] }>) {
   const { t } = useTranslation();
@@ -44,11 +38,11 @@ export function AdminCourses({ courses }: Readonly<{ courses: AdminCourse[] }>) 
   }, [courses]);
 
   const learningLangs = useMemo(
-    () => [...new Set(courses.map((course) => course.learningLang))].sort(),
+    () => uniqueSorted(courses.map((course) => course.learningLang)),
     [courses],
   );
   const knownLangs = useMemo(
-    () => [...new Set(courses.map((course) => course.knownLang))].sort(),
+    () => uniqueSorted(courses.map((course) => course.knownLang)),
     [courses],
   );
 
@@ -95,58 +89,34 @@ export function AdminCourses({ courses }: Readonly<{ courses: AdminCourse[] }>) 
     <div className="flex flex-col gap-3">
       <h2 className="text-lg font-semibold">{t('settings.allCourses')}</h2>
       {error && <p className={`text-sm ${s.errorText}`}>{error}</p>}
-      <div className="flex flex-wrap items-end gap-3">
-        <FilterField label={t('course.filterName')}>
-          <input
-            type="search"
-            value={nameQuery}
-            onChange={(e) => setNameQuery(e.target.value)}
-            className={s.input}
-          />
-        </FilterField>
-        <FilterField label={t('settings.owner')}>
-          <select
-            className={s.input}
-            value={ownerId}
-            onChange={(e) => setOwnerId(e.target.value)}
-          >
-            <option value="">{t('settings.anyone')}</option>
-            {owners.map(([id, name]) => (
-              <option key={id} value={id}>
-                {name}
-              </option>
-            ))}
-          </select>
-        </FilterField>
-        <FilterField label={t('course.filterLearning')}>
-          <select
-            className={s.input}
-            value={learningLang}
-            onChange={(e) => setLearningLang(e.target.value)}
-          >
-            <option value="">{t('course.anyLanguage')}</option>
-            {learningLangs.map((lang) => (
-              <option key={lang} value={lang}>
-                {lang}
-              </option>
-            ))}
-          </select>
-        </FilterField>
-        <FilterField label={t('course.filterKnown')}>
-          <select
-            className={s.input}
-            value={knownLang}
-            onChange={(e) => setKnownLang(e.target.value)}
-          >
-            <option value="">{t('course.anyLanguage')}</option>
-            {knownLangs.map((lang) => (
-              <option key={lang} value={lang}>
-                {lang}
-              </option>
-            ))}
-          </select>
-        </FilterField>
-      </div>
+      <FilterBar>
+        <FilterSearch
+          label={t('course.filterName')}
+          value={nameQuery}
+          onChange={setNameQuery}
+        />
+        <FilterSelect
+          label={t('settings.owner')}
+          value={ownerId}
+          onChange={setOwnerId}
+          emptyLabel={t('settings.anyone')}
+          options={owners.map(([id, name]) => ({ value: id, label: name }))}
+        />
+        <FilterSelect
+          label={t('course.filterLearning')}
+          value={learningLang}
+          onChange={setLearningLang}
+          emptyLabel={t('course.anyLanguage')}
+          options={learningLangs}
+        />
+        <FilterSelect
+          label={t('course.filterKnown')}
+          value={knownLang}
+          onChange={setKnownLang}
+          emptyLabel={t('course.anyLanguage')}
+          options={knownLangs}
+        />
+      </FilterBar>
       <div className="overflow-x-auto">
         <table className={cn('min-w-full', s.tableDivider)}>
           <thead>
