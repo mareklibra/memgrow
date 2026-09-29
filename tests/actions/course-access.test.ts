@@ -10,6 +10,9 @@ import {
   updateCourse,
   upsertCoursePriority,
   addWord,
+  deleteWord,
+  updateWord,
+  updateWordProgress,
   requestImageGeneration,
   generateWordImage,
   insertPronunciation,
@@ -244,6 +247,78 @@ describe('course access', () => {
     expect(progress.rows).toHaveLength(0);
     expect(images.rows).toHaveLength(0);
     expect(enrollment.rows).toHaveLength(0);
+  });
+
+  it('does not let a private-course owner edit another course by sending their own course id', async () => {
+    await createTestUser({ canChangeSharedDicts: false });
+    const mine = await createTestCourse({
+      name: 'Mine',
+      ownerUserId: mockAuthUser.id,
+      isPublic: false,
+    });
+    const shared = await createTestCourse({ name: 'Shared', isPublic: true });
+    const word = await createTestWord(shared.id, {
+      word: 'public',
+      definition: 'shared',
+    });
+    const forged = {
+      id: word.id,
+      courseId: mine.id,
+      word: 'hijacked',
+      definition: 'changed',
+      memLevel: 1,
+      form: 'show' as const,
+      repeatAgain: new Date(),
+      isPriority: false,
+      isSkipped: false,
+    };
+
+    const updated = await updateWord(forged);
+    expect(updated?.message).toBe(t('errors.cannotEditCourse'));
+    const deleted = await deleteWord(forged);
+    expect(deleted?.message).toBe(t('errors.cannotEditCourse'));
+
+    const row = await sql<{ word: string; definition: string }>`
+      SELECT word, definition FROM words WHERE id = ${word.id}
+    `;
+    expect(row.rows[0]).toEqual({ word: 'public', definition: 'shared' });
+  });
+
+  it('does not write progress for a word outside a course the user can use', async () => {
+    await createTestUser({ canChangeSharedDicts: false });
+    await createTestUser({
+      id: otherUser.id,
+      name: otherUser.name,
+      email: otherUser.email,
+      canChangeSharedDicts: false,
+    });
+    const mine = await createTestCourse({
+      ownerUserId: mockAuthUser.id,
+      isPublic: false,
+    });
+    const secret = await createTestCourse({
+      name: 'Secret',
+      ownerUserId: otherUser.id,
+      isPublic: false,
+    });
+    const word = await createTestWord(secret.id, { word: 'hidden' });
+
+    const result = await updateWordProgress({
+      id: word.id,
+      courseId: mine.id,
+      word: word.word,
+      definition: word.definition,
+      memLevel: 4,
+      form: 'write',
+      repeatAgain: new Date(),
+      isPriority: true,
+      isSkipped: false,
+    });
+    expect(result?.message).toBe(t('errors.courseNotFound', { id: secret.id }));
+    const progress = await sql`
+      SELECT user_id FROM user_progress WHERE word_id = ${word.id}
+    `;
+    expect(progress.rows).toHaveLength(0);
   });
 
   it('denies a learner edits on a public course', async () => {

@@ -18,9 +18,7 @@ import { genericErrorMessage } from '@/app/lib/i18n/action-error';
 import { getI18n } from '@/app/lib/i18n/get-i18n';
 
 export async function updateWordProgress(word: Word): Promise<UpdateWordResult> {
-  const denied = word.courseId
-    ? await courseUseDenied(word.courseId)
-    : await courseUseDeniedForWord(word.id);
+  const denied = await courseUseDeniedForWord(word.id);
   if (denied) return { message: denied, id: word.id };
   const myAuth = await auth();
   try {
@@ -128,9 +126,7 @@ export async function addWordBatch(words: WordToAdd[]): Promise<UpdateWordResult
 }
 
 export async function deleteWord(word: Word): Promise<UpdateWordResult> {
-  const denied = word.courseId
-    ? await courseEditDenied(word.courseId)
-    : await courseEditDeniedForWord(word.id);
+  const denied = await courseEditDeniedForWord(word.id);
   if (denied) return { message: denied, id: word.id };
   try {
     await sql`
@@ -239,9 +235,7 @@ export async function fetchRemainingWordsCount(
 }
 
 export async function updateWord(changed: Word): Promise<UpdateWordResult> {
-  const denied = changed.courseId
-    ? await courseEditDenied(changed.courseId)
-    : await courseEditDeniedForWord(changed.id);
+  const denied = await courseEditDeniedForWord(changed.id);
   if (denied) return { message: denied, id: changed.id };
   try {
     await sql`

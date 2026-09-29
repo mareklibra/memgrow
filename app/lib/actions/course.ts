@@ -70,6 +70,8 @@ export async function createCourse(course: {
       await upsertCoursePriority(newCourseId, 1);
     }
     revalidatePath('/edit');
+    revalidatePath('/learn');
+    revalidatePath('/test');
   } catch (e) {
     return {
       message: await genericErrorMessage(e, 'Failed to create course'),
@@ -150,6 +152,8 @@ export async function promoteCourse(courseId: string) {
   if (!userId) return { message: t('errors.notAuthenticated') };
   if (!(await isUserAdmin(userId))) return { message: t('errors.cannotEditCourse') };
   try {
+    // Keep owner_user_id. After promotion the owner can still edit the course
+    // without can_change_shared_dicts; canEditCourse treats ownership as enough.
     await sql`
       UPDATE courses
       SET is_public = TRUE

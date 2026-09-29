@@ -111,7 +111,10 @@ export async function canUseCourse(courseId: string): Promise<boolean> {
   return result.rows[0]?.ok === true;
 }
 
-/** Edit rule: owner, or a public course and the user may change shared courses. */
+/**
+ * Edit rule: the owner (still true after promoteCourse makes the course public),
+ * or a public course and the user may change shared courses.
+ */
 export async function canEditCourse(courseId: string): Promise<boolean> {
   const userId = await currentUserId();
   if (!userId) return false;
