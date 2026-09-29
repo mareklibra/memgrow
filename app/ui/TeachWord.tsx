@@ -198,7 +198,7 @@ export function TeachWord({
           />
         )}
         <TypeTranslation
-          key={word.id}
+          key={`${word.id}:recall_picture`}
           word={word}
           onValue={onValue}
           status={status}
@@ -215,7 +215,7 @@ export function TeachWord({
       <>
         <p className="mb-4 text-center">{t('test.previousWordPrompt')}</p>
         <TypeTranslation
-          key={word.id}
+          key={`${word.id}:recall_previous`}
           word={word}
           onValue={onValue}
           status={status}
@@ -355,7 +355,7 @@ export function TeachWord({
                   <SpeakerWaveIcon className="w-5" />
                 </Button>
               )}
-              {!isLearning && (
+              {!isProbe && !isLearning && (
                 <Button onClick={() => repeatSooner(word)} type="button">
                   <ArrowPathIcon className="w-5" />
                 </Button>
@@ -376,42 +376,44 @@ export function TeachWord({
           </div>
         )}
 
-        <div className="flex flex-row justify-between">
-          <Button onClick={() => handlePriority(word)} type="button">
-            {word.isPriority ? (
-              <>
-                <BoltSlashIcon className="w-5" />
-                &nbsp;{t('learn.removePriority')}
-              </>
-            ) : (
-              <>
-                <BoltIcon className="w-5" />
-                &nbsp;{t('learn.setPriority')}
-              </>
-            )}
-          </Button>
+        {!isProbe && (
+          <div className="flex flex-row justify-between">
+            <Button onClick={() => handlePriority(word)} type="button">
+              {word.isPriority ? (
+                <>
+                  <BoltSlashIcon className="w-5" />
+                  &nbsp;{t('learn.removePriority')}
+                </>
+              ) : (
+                <>
+                  <BoltIcon className="w-5" />
+                  &nbsp;{t('learn.setPriority')}
+                </>
+              )}
+            </Button>
 
-          {!isProbe && !isSkipped && (
-            <Button
-              onClick={() => {
-                setIsSkipped(true);
-              }}
-              type="button"
-            >
-              {t('learn.skipFromLearning')}
-            </Button>
-          )}
-          {!isProbe && isSkipped && (
-            <Button
-              onClick={() => {
-                setIsSkipped(false);
-              }}
-              type="button"
-            >
-              {t('learn.keepLearning')}
-            </Button>
-          )}
-        </div>
+            {!isSkipped && (
+              <Button
+                onClick={() => {
+                  setIsSkipped(true);
+                }}
+                type="button"
+              >
+                {t('learn.skipFromLearning')}
+              </Button>
+            )}
+            {isSkipped && (
+              <Button
+                onClick={() => {
+                  setIsSkipped(false);
+                }}
+                type="button"
+              >
+                {t('learn.keepLearning')}
+              </Button>
+            )}
+          </div>
+        )}
 
         <hr className={s.separator} />
 
