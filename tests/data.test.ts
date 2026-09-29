@@ -162,17 +162,82 @@ describe('data', () => {
       expect(found?.progressUpdatedAt).toBeUndefined();
     });
 
-    it('excludes words with repeat_again in future', async () => {
+    it('returns the earliest future word when nothing is due', async () => {
       const user = await createTestUser();
       const course = await createTestCourse();
-      const word = await createTestWord(course.id, { word: 'future' });
-      await createTestUserProgress(user.id, word.id, {
+      const later = await createTestWord(course.id, { word: 'later' });
+      const sooner = await createTestWord(course.id, { word: 'sooner' });
+      await createTestUserProgress(user.id, later.id, {
+        memlevel: 5,
+        repeatAgain: new Date(Date.now() + 3 * 86400000),
+      });
+      await createTestUserProgress(user.id, sooner.id, {
         memlevel: 1,
         repeatAgain: new Date(Date.now() + 86400000),
       });
 
-      const words = await fetchWordsToTest(course.id, 10, false, 0);
-      expect(words.every((w) => w.word !== 'future')).toBe(true);
+      const words = await fetchWordsToTest(course.id, 10, false, 3);
+      expect(words.map((w) => w.word)).toEqual(['sooner', 'later']);
+    });
+
+    it('does not fill a short due batch with future words', async () => {
+      const user = await createTestUser();
+      const course = await createTestCourse();
+      const due = await createTestWord(course.id, { word: 'due' });
+      const future = await createTestWord(course.id, { word: 'future' });
+      await createTestUserProgress(user.id, due.id, {
+        memlevel: 1,
+        repeatAgain: new Date(Date.now() - 86400000),
+      });
+      await createTestUserProgress(user.id, future.id, {
+        memlevel: 9,
+        repeatAgain: new Date(Date.now() + 86400000),
+      });
+
+      const words = await fetchWordsToTest(course.id, 10, false, 3);
+      expect(words.map((w) => w.word)).toEqual(['due']);
+    });
+
+    it('limits the look-ahead batch and does not add deep-memory words', async () => {
+      const user = await createTestUser();
+      const course = await createTestCourse();
+      const soon = await createTestWord(course.id, { word: 'soon' });
+      const mid = await createTestWord(course.id, { word: 'mid' });
+      const far = await createTestWord(course.id, { word: 'far' });
+      await createTestUserProgress(user.id, soon.id, {
+        memlevel: 1,
+        repeatAgain: new Date(Date.now() + 86400000),
+      });
+      await createTestUserProgress(user.id, mid.id, {
+        memlevel: 2,
+        repeatAgain: new Date(Date.now() + 2 * 86400000),
+      });
+      await createTestUserProgress(user.id, far.id, {
+        memlevel: 30,
+        repeatAgain: new Date(Date.now() + 10 * 86400000),
+      });
+
+      const words = await fetchWordsToTest(course.id, 2, false, 3);
+      expect(words.map((w) => w.word)).toEqual(['soon', 'mid']);
+    });
+
+    it('does not look ahead when priority is on and nothing is due', async () => {
+      const user = await createTestUser();
+      const course = await createTestCourse();
+      const plain = await createTestWord(course.id, { word: 'plain' });
+      const priority = await createTestWord(course.id, { word: 'priority' });
+      await createTestUserProgress(user.id, plain.id, {
+        memlevel: 1,
+        repeatAgain: new Date(Date.now() + 86400000),
+      });
+      await createTestUserProgress(user.id, priority.id, {
+        memlevel: 1,
+        repeatAgain: new Date(Date.now() + 2 * 86400000),
+        isPriority: true,
+      });
+
+      const words = await fetchWordsToTest(course.id, 10, true, 0);
+      expect(words.map((w) => w.word)).toEqual(['priority']);
     });
 
     it('includes priority words even when repeat_again in future', async () => {
@@ -255,6 +320,48 @@ describe('data', () => {
       expect(c).toBeDefined();
       expect(Number(c?.total)).toBe(1);
       expect(Number(c?.toLearn)).toBe(1);
+      expect(c?.advancedBatchUntil).toBeUndefined();
+    });
+
+    it('sets advancedBatchUntil to the latest of the next 22 future words when nothing is due', async () => {
+      const user = await createTestUser();
+      const course = await createTestCourse({ name: 'Ahead Course' });
+      const base = Date.now() + 86400000;
+      for (let i = 0; i < 23; i++) {
+        const word = await createTestWord(course.id, { word: `w${i}` });
+        await createTestUserProgress(user.id, word.id, {
+          memlevel: 1,
+          repeatAgain: new Date(base + i * 86400000),
+        });
+      }
+
+      const courses = await fetchCourses();
+      const c = courses.find((x) => x.name === 'Ahead Course');
+      expect(Number(c?.toTest)).toBe(0);
+      expect(c?.advancedBatchUntil).toBeDefined();
+      const until = new Date(c!.advancedBatchUntil!).getTime();
+      const expected = new Date(base + 21 * 86400000).getTime();
+      expect(Math.abs(until - expected)).toBeLessThan(2000);
+    });
+
+    it('omits advancedBatchUntil when a word is already due', async () => {
+      const user = await createTestUser();
+      const course = await createTestCourse({ name: 'Due Course' });
+      const due = await createTestWord(course.id, { word: 'due' });
+      const future = await createTestWord(course.id, { word: 'future' });
+      await createTestUserProgress(user.id, due.id, {
+        memlevel: 1,
+        repeatAgain: new Date(Date.now() - 86400000),
+      });
+      await createTestUserProgress(user.id, future.id, {
+        memlevel: 1,
+        repeatAgain: new Date(Date.now() + 5 * 86400000),
+      });
+
+      const courses = await fetchCourses();
+      const c = courses.find((x) => x.name === 'Due Course');
+      expect(Number(c?.toTest)).toBe(1);
+      expect(c?.advancedBatchUntil).toBeUndefined();
     });
   });
 

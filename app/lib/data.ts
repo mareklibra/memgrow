@@ -13,7 +13,7 @@ import {
   WordImage,
 } from '@/app/lib/definitions';
 import { WordImageSummary, WordMediaSummary } from '@/app/lib/types';
-import { STRING_SIMILARITY_SUBSTRING_LENGTH } from '../constants';
+import { STRING_SIMILARITY_SUBSTRING_LENGTH, testWordsCountLimit } from '../constants';
 
 type DbWordProgress = DbWord & {
   memlevel: number;
@@ -294,6 +294,26 @@ export async function fetchWordsToTest(
           ORDER BY user_progress.memlevel
         `;
     const allWords: Word[] = result.rows.map(fromDbWordProgress);
+    if (!priorityFirst && allWords.length === 0) {
+      const ahead = await sql<DbWordProgress>`
+          SELECT words.course_id, words.id, words.word, words.course_id, words.definition,
+                 user_progress.form, user_progress.memlevel, user_progress.repeat_again, user_progress.is_priority, user_progress.is_skipped, user_progress.updated_at
+          FROM words
+          LEFT OUTER JOIN
+            (SELECT * FROM user_progress
+             WHERE user_id = ${myAuth?.user?.id}
+            ) AS user_progress ON words.id = user_progress.word_id
+          WHERE
+            words.course_id = ${courseId}
+            AND (user_progress.memlevel > 0)
+            AND (user_progress.repeat_again >= NOW())
+            AND (user_progress.is_skipped = FALSE OR user_progress.memlevel is NULL)
+          ORDER BY user_progress.repeat_again ASC
+          LIMIT ${limit}
+        `;
+      return ahead.rows.map(fromDbWordProgress);
+    }
+
     const urgentWords = allWords.slice(0, limit);
 
     let deepMemoryWords: Word[] = [];
@@ -488,9 +508,38 @@ export async function fetchCourses(): Promise<Course[]> {
         GROUP BY
           words.course_id
     `,
+
+      // latest repeat_again in the next testWordsCountLimit not-yet-due words
+      sql<{
+        course_id: string;
+        until: string | Date;
+      }>`SELECT course_id, MAX(repeat_again) AS until
+          FROM (
+            SELECT
+              words.course_id,
+              user_progress.repeat_again,
+              ROW_NUMBER() OVER (
+                PARTITION BY words.course_id
+                ORDER BY user_progress.repeat_again ASC
+              ) AS rn
+            FROM words
+            LEFT OUTER JOIN
+              (SELECT *
+               FROM user_progress
+               WHERE user_id = ${myAuth?.user?.id}
+              ) AS user_progress ON words.id = user_progress.word_id
+            WHERE
+              (user_progress.memlevel > 0)
+              AND (user_progress.is_skipped = FALSE OR user_progress.memlevel is NULL)
+              AND user_progress.repeat_again >= NOW()
+          ) AS ranked
+          WHERE rn <= ${testWordsCountLimit}
+          GROUP BY course_id
+    `,
     ]);
 
-    const [result, toLearnStats, toTestStats, withPriorityStats] = fetchResults;
+    const [result, toLearnStats, toTestStats, withPriorityStats, advancedBatchStats] =
+      fetchResults;
     const courses: Course[] = result.rows.map(omDbCourse);
 
     courses.forEach((course) => {
@@ -499,6 +548,17 @@ export async function fetchCourses(): Promise<Course[]> {
       course.toTest = toTestStats.rows.find((s) => s.course_id === course.id)?.total ?? 0;
       course.withPriority =
         withPriorityStats.rows.find((s) => s.course_id === course.id)?.total ?? 0;
+      if (Number(course.toTest) === 0) {
+        const until = advancedBatchStats.rows.find(
+          (s) => s.course_id === course.id,
+        )?.until;
+        if (until) {
+          const date = until instanceof Date ? until : new Date(until);
+          if (!Number.isNaN(date.getTime())) {
+            course.advancedBatchUntil = date.toISOString();
+          }
+        }
+      }
     });
 
     return courses;

@@ -109,6 +109,7 @@ export const csMessages = {
   course: {
     learningFrom: 'Učení {learning} z {known}',
     stats: '{toTest} k opakování, {toLearn} nových k naučení, {total} celkem',
+    advancedBatchTill: 'Hotovo. Pokročilá dávka do {date}',
     flagAlt: 'Vlajka {learning} ({code})',
     priorities: 'Priority ({count})',
     batchMode: 'Dávkový režim',

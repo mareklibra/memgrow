@@ -7,6 +7,8 @@ import { Switch } from '@/app/lib/material-tailwind-compat';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useTranslation } from '@/app/lib/i18n/useTranslation';
+import { localeToBcp47 } from '@/app/lib/i18n';
+import { formatDateToLocal } from '@/app/lib/utils';
 
 const Course = ({
   course,
@@ -26,7 +28,12 @@ const Course = ({
   const [isPriorityFirst, setIsPriorityFirst] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
   const [navigating, setNavigating] = useState(false);
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
+  const showAdvancedBatch =
+    showPriority &&
+    Number(course.toTest) === 0 &&
+    !!course.advancedBatchUntil &&
+    !isPriorityFirst;
 
   let link = `${pathPrefix}/${course.id}`;
   if (showPriority) {
@@ -72,11 +79,18 @@ const Course = ({
         </Link>
 
         <p className="text-slate-600 leading-normal font-light text-xs">
-          {t('course.stats', {
-            toTest: course.toTest,
-            toLearn: course.toLearn,
-            total: course.total,
-          })}
+          {showAdvancedBatch
+            ? t('course.advancedBatchTill', {
+                date: formatDateToLocal(
+                  course.advancedBatchUntil!,
+                  localeToBcp47(locale),
+                ),
+              })
+            : t('course.stats', {
+                toTest: course.toTest,
+                toLearn: course.toLearn,
+                total: course.total,
+              })}
         </p>
 
         <div className="flex justify-between mt-3">
