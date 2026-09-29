@@ -1,7 +1,8 @@
 import { IterateWords } from '@/app/ui/IterateWords';
 import { auth } from '@/auth';
 import {
-  canChangeSharedDicts,
+  canEditCourse,
+  canUseCourse,
   fetchOldestImageIds,
   fetchSimilarWords,
   fetchWordsToTest,
@@ -47,9 +48,8 @@ export default async function Page({
   );
   const { t } = await getI18n();
   const session = await auth();
-  const canEditShared = session?.user?.id
-    ? await canChangeSharedDicts(session.user.id)
-    : false;
+  const canEditThisCourse = session?.user?.id ? await canEditCourse(courseId) : false;
+  const canRequestImage = session?.user?.id ? await canUseCourse(courseId) : false;
 
   return (
     <IterateWords
@@ -63,7 +63,8 @@ export default async function Page({
       queryImages={queryWordImages}
       deleteImage={deleteWordImage}
       requestImageGeneration={requestImageGeneration}
-      canChangeSharedDicts={canEditShared}
+      canEditCourse={canEditThisCourse}
+      canRequestImage={canRequestImage}
       imageIdByWordId={imageIdByWordId}
     />
   );

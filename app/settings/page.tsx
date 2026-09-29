@@ -2,7 +2,7 @@ import { lusitana } from '@/app/ui/fonts';
 import { s } from '@/app/ui/styles';
 import { signOut, auth } from '@/auth';
 import { Suspense } from 'react';
-import { fetchAllUsers, isUserAdmin } from '@/app/lib/data';
+import { fetchAllCoursesForAdmin, fetchAllUsers, isUserAdmin } from '@/app/lib/data';
 import { getI18n } from '@/app/lib/i18n/get-i18n';
 
 import SignoutButton from '../ui/SignoutButton';
@@ -11,6 +11,7 @@ import { AddNewUserCard } from '../ui/AddNewUserCard';
 import { LanguageCard } from '../ui/LanguageCard';
 import { SettingsTabs } from '../ui/SettingsTabs';
 import { UsersTable } from '../ui/UsersTable';
+import { AdminCourses } from '../ui/AdminCourses';
 
 export default async function Page() {
   const myAuth = await auth();
@@ -24,6 +25,7 @@ export default async function Page() {
   };
 
   const users = isAdmin ? await fetchAllUsers() : [];
+  const adminCourses = isAdmin ? await fetchAllCoursesForAdmin() : [];
 
   return (
     <div className="flex flex-col">
@@ -48,6 +50,7 @@ export default async function Page() {
               <div className="flex flex-col gap-6">
                 <AddNewUserCard />
                 <UsersTable users={users} currentUserId={myAuth?.user?.id ?? ''} />
+                <AdminCourses courses={adminCourses} />
               </div>
             ) : undefined
           }

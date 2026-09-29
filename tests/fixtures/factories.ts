@@ -38,14 +38,18 @@ export async function createTestCourse(overrides?: {
   knownLang?: string;
   learningLang?: string;
   courseCode?: string;
+  ownerUserId?: string | null;
+  isPublic?: boolean;
 }) {
   const result = await sql`
-    INSERT INTO courses (name, known_lang, learning_lang, course_code)
+    INSERT INTO courses (name, known_lang, learning_lang, course_code, owner_user_id, is_public)
     VALUES (
       ${overrides?.name ?? 'Test Course'},
       ${overrides?.knownLang ?? 'English'},
       ${overrides?.learningLang ?? 'Spanish'},
-      ${overrides?.courseCode ?? 'es'}
+      ${overrides?.courseCode ?? 'es'},
+      ${overrides?.ownerUserId ?? null},
+      ${overrides?.isPublic ?? true}
     )
     RETURNING id, name, known_lang, learning_lang, course_code
   `;

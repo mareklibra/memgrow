@@ -1,9 +1,4 @@
-import { auth } from '@/auth';
-import {
-  canChangeSharedDicts,
-  fetchCourses,
-  fetchWordMediaSummaries,
-} from '@/app/lib/data';
+import { fetchEditableCourses, fetchWordMediaSummaries } from '@/app/lib/data';
 import {
   requestImageGeneration,
   removeImageRequest,
@@ -19,14 +14,8 @@ import { WordMediaSummary } from '@/app/lib/types';
 import { getI18n } from '@/app/lib/i18n/get-i18n';
 
 export default async function Page() {
-  const session = await auth();
-  const allowed = session?.user?.id ? await canChangeSharedDicts(session.user.id) : false;
   const { t } = await getI18n();
-  if (!allowed) {
-    return <p className="p-6">{t('errors.cannotChangeSharedDicts')}</p>;
-  }
-
-  const courses = await fetchCourses();
+  const courses = await fetchEditableCourses();
 
   const fetchSummaries = async (courseId: string): Promise<WordMediaSummary[]> => {
     'use server';

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import { fetchAllWords, fetchCourse } from '@/app/lib/data';
+import { canEditCourse, fetchAllWords, fetchCourse } from '@/app/lib/data';
 import { lusitana } from '@/app/ui/fonts';
 import { s } from '@/app/ui/styles';
 import { FastEntryForm } from '@/app/ui/FastEntryForm';
@@ -27,6 +27,17 @@ export default async function Page({
           <Link href="/edit">{t('edit.editLink')}</Link>
           {t('edit.goToEditAfterAndEdit')}
         </p>
+      </>
+    );
+  }
+
+  if (!(await canEditCourse(courseId))) {
+    return (
+      <>
+        <h1 className={`${lusitana.className} ${s.pageTitle}`}>
+          {t('edit.missingCourse')}
+        </h1>
+        <p>{t('errors.cannotEditCourse')}</p>
       </>
     );
   }

@@ -41,7 +41,8 @@ interface TeachWordProps {
   deleteImage: WordPicturesProps['deleteImage'];
   requestImageGeneration: (wordId: string) => Promise<RequestImageResult>;
   onPreviewMemLevel: (isCorrect: boolean, isShortenOnly?: boolean) => void;
-  canChangeSharedDicts: boolean;
+  canEditCourse: boolean;
+  canRequestImage: boolean;
 }
 
 const delay = async (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -61,7 +62,8 @@ export function TeachWord({
   requestImageGeneration,
   skipWord,
   onPreviewMemLevel,
-  canChangeSharedDicts,
+  canEditCourse,
+  canRequestImage,
 }: Readonly<TeachWordProps>) {
   const { t } = useTranslation();
   const [status, setStatus] = useState<FieldStatus>('normal');
@@ -75,7 +77,7 @@ export function TeachWord({
   const [imageRequested, setImageRequested] = useState(false);
   const [hasPictures, setHasPictures] = useState<boolean | null>(null);
   const [storedExampleCount, setStoredExampleCount] = useState<number | null>(
-    canChangeSharedDicts ? 0 : null,
+    canEditCourse ? 0 : null,
   );
   const skipMistakeRef = useRef<boolean>(false);
 
@@ -312,7 +314,7 @@ export function TeachWord({
   }, [isProbe, word.id, queryImages]);
 
   useEffect(() => {
-    if (canChangeSharedDicts || isProbe) return;
+    if (canEditCourse || isProbe) return;
     let cancelled = false;
     const loadExamples = async () => {
       const result = await queryExamples(word.id);
@@ -323,7 +325,7 @@ export function TeachWord({
     return () => {
       cancelled = true;
     };
-  }, [canChangeSharedDicts, isProbe, queryExamples, word.id]);
+  }, [canEditCourse, isProbe, queryExamples, word.id]);
 
   const handleRequestImage = () => {
     setImageRequested(true);
@@ -363,13 +365,13 @@ export function TeachWord({
         )}
         {isSkipped && <div className="text-center">{t('learn.skipped')}</div>}
 
-        {!isProbe && (canChangeSharedDicts || (storedExampleCount ?? 0) > 0) && (
+        {!isProbe && (canEditCourse || (storedExampleCount ?? 0) > 0) && (
           <div className="py-5 w-full">
             <WordExamples
               word={word}
               queryExamples={queryExamples}
               deleteExample={deleteExample}
-              allowDelete={canChangeSharedDicts}
+              allowDelete={canEditCourse}
             />
           </div>
         )}
@@ -414,7 +416,7 @@ export function TeachWord({
         <hr className={s.separator} />
 
         <div className="flex justify-between">
-          {canChangeSharedDicts && !isProbe && (
+          {canEditCourse && !isProbe && (
             <Button onClick={editWord} type="button">
               {t('common.edit')}
             </Button>
@@ -435,10 +437,10 @@ export function TeachWord({
             wordId={word.id}
             queryImages={queryImages}
             deleteImage={deleteImage}
-            allowDelete={canChangeSharedDicts}
+            allowDelete={canEditCourse}
           />
         )}
-        {!isProbe && hasPictures === false && canChangeSharedDicts && (
+        {!isProbe && hasPictures === false && canRequestImage && (
           <div className="flex justify-center py-2">
             <Button onClick={handleRequestImage} type="button" disabled={imageRequested}>
               <CameraIcon className="w-5" />

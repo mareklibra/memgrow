@@ -37,6 +37,9 @@ export const SEARCH_DELAY_MS = 500;
 
 export const PASSWORD_MIN_LENGTH = 6;
 
+/** Language codes offered when creating a course. Add a code here to show it in the dropdown. */
+export const COURSE_CODES = ['cz', 'en', 'es', 'de'] as const;
+
 // export const OPENAI_MODEL = 'gpt-5-nano'; // 'gpt-4.1-nano';
 export const OPENAI_MODEL = 'gpt-4.1-nano'; // 'gpt-4.1-nano';
 export const EXAMPLE_AI_REQUEST_COUNT = 'three (3)';
