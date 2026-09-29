@@ -17,10 +17,7 @@ import { rejectShortPassword } from '@/app/lib/password-policy';
 import { hashResetToken } from '@/app/lib/reset-token';
 
 export type PasswordResetRequestStatus =
-  | 'unavailable'
-  | 'rateLimited'
-  | 'invalid'
-  | 'sent';
+  'unavailable' | 'rateLimited' | 'invalid' | 'sent';
 
 export type PasswordResetRequestState = {
   status: PasswordResetRequestStatus;
@@ -44,10 +41,7 @@ function formString(formData: FormData, name: string): string {
   return typeof value === 'string' ? value : '';
 }
 
-async function applyRateLimit(
-  kind: 'email' | 'ip',
-  key: string,
-): Promise<boolean> {
+async function applyRateLimit(kind: 'email' | 'ip', key: string): Promise<boolean> {
   const hourCap = kind === 'email' ? 5 : 20;
   const gapClause =
     kind === 'email'

@@ -34,9 +34,7 @@ async function main() {
 
   const { email, password } = parseArgs(process.argv.slice(2));
   if (password.length < PASSWORD_MIN_LENGTH) {
-    throw new Error(
-      `Password must be at least ${PASSWORD_MIN_LENGTH} characters.`,
-    );
+    throw new Error(`Password must be at least ${PASSWORD_MIN_LENGTH} characters.`);
   }
 
   const { client } = await import('../app/seed/client');

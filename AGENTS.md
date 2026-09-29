@@ -12,16 +12,16 @@ Cursor also loads `.cursor/rules/memgrow-map.mdc` every session. This file is th
 
 ## Routes
 
-| Path | Role |
-| --- | --- |
-| `/` | Public home |
-| `/login`, `/register`, `/forgot-password`, `/reset-password` | Public auth |
-| `/learn`, `/learn/[courseId]`, `/learn/[courseId]/next` | Learn session |
-| `/test`, `/test/[courseId]`, `/test/[courseId]/next`, `/test/simulate/[courseId]` | Test and progress simulation |
-| `/edit`, `/edit/[courseId]`, `/edit/fastentry/[courseId]` | Course and word editing |
-| `/media` | Media manager |
-| `/settings` | Password, locale, admin users |
-| `app/api/image/...`, `app/api/sound/word/...` | Image and pronunciation bytes |
+| Path                                                                              | Role                          |
+| --------------------------------------------------------------------------------- | ----------------------------- |
+| `/`                                                                               | Public home                   |
+| `/login`, `/register`, `/forgot-password`, `/reset-password`                      | Public auth                   |
+| `/learn`, `/learn/[courseId]`, `/learn/[courseId]/next`                           | Learn session                 |
+| `/test`, `/test/[courseId]`, `/test/[courseId]/next`, `/test/simulate/[courseId]` | Test and progress simulation  |
+| `/edit`, `/edit/[courseId]`, `/edit/fastentry/[courseId]`                         | Course and word editing       |
+| `/media`                                                                          | Media manager                 |
+| `/settings`                                                                       | Password, locale, admin users |
+| `app/api/image/...`, `app/api/sound/word/...`                                     | Image and pronunciation bytes |
 
 Auth gate: `proxy.ts` plus `authorized()` in `auth.config.ts`. Public paths are only `/`, `/login`, `/register`, `/forgot-password`, `/reset-password`. Session helpers: `auth.ts`.
 

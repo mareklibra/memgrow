@@ -85,7 +85,10 @@ describe('password reset', () => {
   });
 
   it('returns sent and does not call Resend for an unknown email', async () => {
-    const result = await requestPasswordReset(undefined, form({ email: 'nobody@test.com' }));
+    const result = await requestPasswordReset(
+      undefined,
+      form({ email: 'nobody@test.com' }),
+    );
     expect(result.status).toBe('sent');
     expect(result.message).toBe(t('auth.resetEmailSent'));
     expect(sendPasswordResetEmail).not.toHaveBeenCalled();
@@ -145,9 +148,9 @@ describe('password reset', () => {
     expect(result.status).toBe('unavailable');
     expect(await tokenCount(mockAuthUser.id)).toBe(1);
     expect(sendPasswordResetEmail).not.toHaveBeenCalled();
-    expect(info.mock.calls.some((c) => String(c[1] ?? c[0]).includes('reset-password?token='))).toBe(
-      true,
-    );
+    expect(
+      info.mock.calls.some((c) => String(c[1] ?? c[0]).includes('reset-password?token=')),
+    ).toBe(true);
     info.mockRestore();
   });
 
@@ -231,9 +234,12 @@ describe('password reset', () => {
       form({ token, password: 'another1', confirm: 'another1' }),
     );
     expect(reuse.status).toBe('invalid');
-    expect(await bcrypt.compare('newpass1', (await getUserForAuth(mockAuthUser.email))!.password)).toBe(
-      true,
-    );
+    expect(
+      await bcrypt.compare(
+        'newpass1',
+        (await getUserForAuth(mockAuthUser.email))!.password,
+      ),
+    ).toBe(true);
   });
 
   it('rejects an expired token', async () => {
@@ -250,9 +256,12 @@ describe('password reset', () => {
       form({ token: raw, password: 'newpass1', confirm: 'newpass1' }),
     );
     expect(result.status).toBe('invalid');
-    expect(await bcrypt.compare('oldpass1', (await getUserForAuth(mockAuthUser.email))!.password)).toBe(
-      true,
-    );
+    expect(
+      await bcrypt.compare(
+        'oldpass1',
+        (await getUserForAuth(mockAuthUser.email))!.password,
+      ),
+    ).toBe(true);
   });
 
   it('rejects a confirm mismatch and a short password', async () => {
@@ -269,7 +278,9 @@ describe('password reset', () => {
       form({ token: 'abc', password: '12345', confirm: '12345' }),
     );
     expect(short.status).toBe('tooShort');
-    expect(short.message).toBe(t('errors.passwordTooShort', { min: PASSWORD_MIN_LENGTH }));
+    expect(short.message).toBe(
+      t('errors.passwordTooShort', { min: PASSWORD_MIN_LENGTH }),
+    );
   });
 
   it('does not consume a token until resetPasswordWithToken runs', async () => {
