@@ -79,6 +79,8 @@ export type Course = {
   toTest: number;
   withPriority: number;
   coursePriority?: number;
+  /** ISO time of the latest word in the next due-empty test batch. Set only when `toTest` is 0. */
+  advancedBatchUntil?: string | null;
 };
 
 export type UserProgress = {

@@ -109,6 +109,7 @@ export const enMessages = {
   course: {
     learningFrom: 'Learning {learning} from {known}',
     stats: '{toTest} to refresh, {toLearn} new to learn, {total} total',
+    advancedBatchTill: 'All done. Advanced batch till {date}',
     flagAlt: '{learning} ({code}) flag',
     priorities: 'Priorities ({count})',
     batchMode: 'Batch mode',
