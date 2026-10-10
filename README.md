@@ -333,3 +333,47 @@ and is not subject to the same org policy.
 3. Set `GEMINI_API_KEY` in `.env` to the generated key.
 4. Set `IMAGE_PROVIDER=gemini` in `.env`. Defaults to the
    `gemini-2.5-flash-image` model; override with `LLM_MODEL` if needed.
+
+#### Generating queued images locally with Claude
+
+Instead of a provider above, `pnpm db:generate-images` drains the queued
+image requests (the Media Manager's pending ones) with your local,
+logged-in [Claude Code](https://claude.com/claude-code) CLI. It needs the
+`claude` binary on `PATH`, no API key, and the `POSTGRES_URL` from `.env`.
+
+```bash
+pnpm db:generate-images -- --dry-run            # show batches and the first prompt, no claude call
+pnpm db:generate-images -- --limit 3            # try the first 3 pending words
+pnpm db:generate-images -- --model opus --effort high --abstract-effort max
+```
+
+| Flag                | Default  | Meaning                                                  |
+| ------------------- | -------- | -------------------------------------------------------- |
+| `--model`           | `sonnet` | Model for concrete words                                 |
+| `--effort`          | `medium` | Effort level for concrete words                          |
+| `--abstract-model`  | `opus`   | Model for abstract words                                 |
+| `--abstract-effort` | `high`   | Effort level for abstract words                          |
+| `--count`           | `4`      | Images per word (1-4), each in a different style         |
+| `--batch-size`      | `3`      | Words per `claude` call (fewer = more precise, costlier) |
+| `--limit`           | all      | Only process the first N pending words                   |
+| `--dry-run`         | off      | Print the plan and the first prompt; no calls, no writes |
+
+How it works:
+
+- A cheap Claude call (haiku) first classifies each word as concrete or
+  abstract. Words are then grouped by language pair and kind and sent in
+  batches. Concrete words get cartoon, line art, realistic render and
+  photo-like pictures; abstract ones get a symbolic metaphor, a people
+  situation, a cause-and-effect moment and a visual analogy.
+- Claude has no image output, so it draws SVGs (using gradients and filters
+  for the realistic styles); `sharp` rasterizes them to the same 256x256
+  WebP the app already stores, re-encoding at lower quality to stay under
+  15 KB. Photo-like means "SVG that imitates a photo", not a real photo.
+- SVGs with scripts or external references are rejected before rasterizing.
+- A word's images and the removal of its request are stored in one
+  transaction. Words with no usable image stay queued for a rerun.
+- The run stops after three consecutive failed batches or on an auth error,
+  and ends with a summary of stored images, sizes and Claude usage (calls,
+  tokens, cost).
+- It writes to whichever database `POSTGRES_URL` points at, so check that
+  first.
