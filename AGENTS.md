@@ -54,7 +54,7 @@ Teaching forms, in order: `show`, `choose_4_word`, `choose_4_def`, `write_mid` (
 ## Commands
 
 - Dev: `pnpm dev`. Tests: `pnpm test` (Docker) or `pnpm test:local` (Podman / Testcontainers).
-- DB: `pnpm db:seed`. Password reset CLI: `pnpm db:reset-password`.
+- DB: `pnpm db:seed`. Password reset CLI: `pnpm db:reset-password`. Queued images via local `claude -p`: `pnpm db:generate-images`.
 - Check: `pnpm tsc`, `pnpm eslint`, `pnpm prettier`.
 
 ## Conventions
