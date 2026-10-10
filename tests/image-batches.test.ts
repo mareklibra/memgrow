@@ -20,6 +20,12 @@ const word = (id: string, over: Partial<Pending> = {}): Pending => ({
   ...over,
 });
 
+describe('STYLES', () => {
+  it('has the same number of styles for both kinds (--count applies to both)', () => {
+    expect(STYLES.abstract).toHaveLength(STYLES.concrete.length);
+  });
+});
+
 describe('groupBatches', () => {
   it('splits by language pair and kind, then by batch size', () => {
     const pending = [

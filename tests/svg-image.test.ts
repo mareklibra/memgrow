@@ -15,6 +15,7 @@ describe('svgToWebp', () => {
   it.each([
     ['<image href="file:///etc/passwd"/>'],
     ['<svg:script xmlns:svg="http://www.w3.org/2000/svg">x</svg:script>'],
+    ['<a-b.c:script xmlns:a-b.c="http://www.w3.org/2000/svg">x</a-b.c:script>'],
     ['<svg:image xmlns:svg="http://www.w3.org/2000/svg"/>'],
     ['<script>alert(1)</script>'],
     ['<foreignObject></foreignObject>'],
