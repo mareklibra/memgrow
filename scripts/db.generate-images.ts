@@ -12,32 +12,26 @@
 import { spawn } from 'node:child_process';
 import dotenv from 'dotenv';
 
+import {
+  applyKinds,
+  buildClassifyPrompt,
+  buildPrompt,
+  chunk,
+  groupBatches,
+  Kind,
+  Pending,
+  STYLES,
+} from '../app/lib/image-batches';
 import { svgToWebp } from '../app/lib/svg-image';
 
 dotenv.config({ quiet: true });
 
-const CALL_TIMEOUT_MS = 5 * 60 * 1000;
+// Opus at high effort drawing 12 SVGs can take several minutes.
+const CALL_TIMEOUT_MS = 15 * 60 * 1000;
+const CLASSIFY_CHUNK = 30;
 const MAX_CONSECUTIVE_FAILURES = 3;
 const CLASSIFY_MODEL = 'haiku';
 const CLASSIFY_EFFORT = 'low';
-
-type Kind = 'concrete' | 'abstract';
-
-// Each recipe names the technique, because bare labels collapse into one flat look.
-const STYLES: Record<Kind, string[]> = {
-  concrete: [
-    'cartoon scene: bold dark outlines, cel shading with 2-3 tones per color, expressive and slightly exaggerated, the subject in a small telling context',
-    'line art: uniform stroke width, no fills, a single dark ink color on a light background, hatching for shadow, clean contours',
-    'realistic render: realistic proportions and materials, linear/radial gradients for volume, soft drop shadows, a light source with highlights, depth via overlapping layers and subtle blur (SVG filters like feGaussianBlur, feSpecularLighting, feTurbulence are allowed), looks like a painted or 3D-rendered image',
-    'photo-like: one dominant subject filmed from a natural camera angle, shallow depth of field (sharp subject, blurred background via feGaussianBlur), natural color grading, directional light, fine grain via feTurbulence, no outlines',
-  ],
-  abstract: [
-    'symbolic metaphor: a single object or scene that stands for the meaning, realistic render with gradients and soft lighting',
-    'people situation: one or two simple characters whose posture, gesture and facial expression convey the meaning, cartoon with bold outlines',
-    'cause and effect: ONE frame showing the decisive moment that makes the meaning obvious (what leads to it or follows from it), line art with a single accent color',
-    'visual analogy: familiar everyday objects arranged to mirror the concept (balance, tension, growth, distance...), flat shapes with strong contrast and a limited palette',
-  ],
-};
 
 type Options = {
   model: string;
@@ -48,16 +42,6 @@ type Options = {
   batchSize: number;
   limit: number;
   dryRun: boolean;
-};
-
-type Pending = {
-  wordId: string;
-  word: string;
-  definition: string;
-  courseId: string;
-  learningLang: string;
-  knownLang: string;
-  kind: Kind;
 };
 
 type Usage = {
@@ -126,38 +110,6 @@ function parseArgs(argv: string[]): Options {
     }
   }
   return opts;
-}
-
-function buildPrompt(batch: Pending[], count: number): string {
-  const { learningLang, knownLang, kind } = batch[0];
-  const styles = STYLES[kind]
-    .slice(0, count)
-    .map((s, i) => `  ${i + 1}. ${s}`)
-    .join('\n');
-  const words = batch
-    .map(
-      (w) =>
-        `- id=${w.wordId}: ${learningLang} '${w.word}' = ${knownLang} '${w.definition}'`,
-    )
-    .join('\n');
-  return [
-    `Create mnemonic pictures for vocabulary words (${learningLang} -> ${knownLang}).`,
-    kind === 'abstract'
-      ? `These words are abstract: do not draw the word literally, convey the meaning through the scene.`
-      : `These words are concrete: show the thing or action itself.`,
-    `For EACH word return ${count} images, one per style, in this order:`,
-    styles,
-    `Words in this batch:`,
-    words,
-    ``,
-    `Rules:`,
-    `- Each image shows the word's meaning directly, as ONE coherent scene: no collage, no grid, no panels, no repeated subject.`,
-    `- The ${count} images of a word differ in subject, composition AND rendering technique: follow each style's technique literally, do not drift to a flat icon look.`,
-    `- A student must not confuse the picture with the other words in this batch or with near-synonyms: include the details that distinguish the meaning (e.g. direction of an action, who does what).`,
-    `- No text, letters or numbers inside the image.`,
-    `- First write a one-line "concept" for each image, then the SVG.`,
-    `- SVG: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">, no <image>, <script>, <style>, <foreignObject> or external references. Filters and gradients are allowed inside <defs>. Keep each SVG under 12 KB; the picture is shown at about 256 px, so skip details that vanish at that size.`,
-  ].join('\n');
 }
 
 const REPLY_SCHEMA = JSON.stringify({
@@ -299,30 +251,20 @@ async function classify(pending: Pending[], usage: Usage): Promise<void> {
     byPair.set(key, [...(byPair.get(key) ?? []), p]);
   }
   for (const [pair, words] of byPair) {
-    const prompt = [
-      `Classify vocabulary words (${pair}) for picture mnemonics.`,
-      `"concrete": a thing, creature, place or physical action/state that can be shown directly.`,
-      `"abstract": a concept, emotion, relation, quality or process that has no direct visual form.`,
-      ...words.map((w) => `- id=${w.wordId}: '${w.word}' = '${w.definition}'`),
-    ].join('\n');
-    try {
-      const reply = await callClaude<ClassifyReply>(
-        prompt,
-        CLASSIFY_SCHEMA,
-        CLASSIFY_MODEL,
-        CLASSIFY_EFFORT,
-        usage,
-      );
-      const byId = new Map(words.map((w) => [w.wordId, w]));
-      for (const item of reply.items ?? []) {
-        if (item && item.kind === 'abstract') {
-          const w = byId.get(item.id);
-          if (w) w.kind = 'abstract';
-        }
+    for (const part of chunk(words, CLASSIFY_CHUNK)) {
+      try {
+        const reply = await callClaude<ClassifyReply>(
+          buildClassifyPrompt(pair, part),
+          CLASSIFY_SCHEMA,
+          CLASSIFY_MODEL,
+          CLASSIFY_EFFORT,
+          usage,
+        );
+        applyKinds(part, reply.items);
+      } catch (e) {
+        if (e instanceof FatalError) throw e;
+        console.error(`classification failed (${pair}): ${(e as Error).message}`);
       }
-    } catch (e) {
-      if (e instanceof FatalError) throw e;
-      console.error(`classification failed (${pair}): ${(e as Error).message}`);
     }
   }
 }
@@ -369,27 +311,12 @@ async function main() {
     costUsd: 0,
   };
 
-  // Claude decides per word whether it is concrete or abstract (one cheap call per
-  // language pair); that picks the style set and the model/effort for its batch.
-  if (!opts.dryRun) await classify(pending, usage);
-
-  const groups = new Map<string, Pending[]>();
-  for (const p of pending) {
-    const key = `${p.learningLang}->${p.knownLang}|${p.kind}`;
-    groups.set(key, [...(groups.get(key) ?? []), p]);
-  }
-  const batches: Pending[][] = [];
-  for (const g of groups.values()) {
-    for (let i = 0; i < g.length; i += opts.batchSize) {
-      batches.push(g.slice(i, i + opts.batchSize));
-    }
-  }
-
-  console.info(
-    `${pending.length} pending request(s) in ${batches.length} batch(es); ` +
-      `${skipped.rows[0].n} skipped as in progress.`,
-  );
   if (opts.dryRun) {
+    const batches = groupBatches(pending, opts.batchSize);
+    console.info(
+      `${pending.length} pending request(s) in ${batches.length} batch(es); ` +
+        `${skipped.rows[0].n} skipped as in progress.`,
+    );
     console.info(
       '(dry run: abstract/concrete classification skipped, all treated as concrete)',
     );
@@ -408,7 +335,23 @@ async function main() {
   const sizes: number[] = [];
   let consecutiveFailures = 0;
 
+  // Counts a batch that stored nothing; true once the run should stop.
+  const batchFailed = () => {
+    if (++consecutiveFailures < MAX_CONSECUTIVE_FAILURES) return false;
+    console.error(`Stopping after ${consecutiveFailures} consecutive failed batches.`);
+    return true;
+  };
+
   try {
+    // Claude decides per word whether it is concrete or abstract (cheap calls per
+    // language pair); that picks the style set and the model/effort for its batch.
+    await classify(pending, usage);
+    const batches = groupBatches(pending, opts.batchSize);
+    console.info(
+      `${pending.length} pending request(s) in ${batches.length} batch(es); ` +
+        `${skipped.rows[0].n} skipped as in progress.`,
+    );
+
     for (const [n, batch] of batches.entries()) {
       console.info(
         `batch ${n + 1}/${batches.length} [${batch[0].kind}]: ${batch.map((w) => w.word).join(', ')}`,
@@ -427,15 +370,10 @@ async function main() {
         if (e instanceof FatalError) throw e;
         console.error(`  batch failed: ${(e as Error).message}`);
         failedWords += batch.length;
-        if (++consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
-          console.error(
-            `Stopping after ${consecutiveFailures} consecutive failed batches.`,
-          );
-          break;
-        }
+        if (batchFailed()) break;
         continue;
       }
-      consecutiveFailures = 0;
+      const storedBefore = stored;
 
       const byId = new Map(batch.map((w) => [w.wordId, w]));
       const seen = new Set<string>();
@@ -470,6 +408,8 @@ async function main() {
         console.info(`  ${byId.get(item.id)!.word}: stored ${wordStored} image(s)`);
       }
       failedWords += batch.filter((w) => !seen.has(w.wordId)).length;
+      if (stored > storedBefore) consecutiveFailures = 0;
+      else if (batchFailed()) break;
     }
   } finally {
     // Also reached on a fatal error, so tokens already spent are reported.
