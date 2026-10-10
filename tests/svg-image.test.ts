@@ -14,6 +14,8 @@ describe('svgToWebp', () => {
 
   it.each([
     ['<image href="file:///etc/passwd"/>'],
+    ['<svg:script xmlns:svg="http://www.w3.org/2000/svg">x</svg:script>'],
+    ['<svg:image xmlns:svg="http://www.w3.org/2000/svg"/>'],
     ['<script>alert(1)</script>'],
     ['<foreignObject></foreignObject>'],
     ['<use xlink:href="http://example.com/a.svg#x"/>'],
@@ -21,6 +23,11 @@ describe('svgToWebp', () => {
     ['<rect width="9" height="9" style="fill:url(file:///x)"/>'],
   ])('rejects unsafe content: %s', async (body) => {
     expect(await svgToWebp(svg(body))).toBeUndefined();
+  });
+
+  it('rejects a DOCTYPE', async () => {
+    const doc = `<!DOCTYPE svg [<!ELEMENT svg ANY>]>${svg('<rect width="9" height="9"/>')}`;
+    expect(await svgToWebp(doc)).toBeUndefined();
   });
 
   it('allows fragment references', async () => {

@@ -369,11 +369,13 @@ How it works:
   for the realistic styles); `sharp` rasterizes them to the same 256x256
   WebP the app already stores, re-encoding at lower quality to stay under
   15 KB. Photo-like means "SVG that imitates a photo", not a real photo.
-- SVGs with scripts or external references are rejected before rasterizing.
+- SVGs that are oversized or contain scripts, DOCTYPEs or external references
+  are rejected before rasterizing. Word text is flattened to one line before
+  it goes into a prompt.
 - A word's images and the removal of its request are stored in one
   transaction. Words with no usable image stay queued for a rerun.
-- The run stops after three consecutive failed batches or on an auth error,
-  and ends with a summary of stored images, sizes and Claude usage (calls,
-  tokens, cost).
+- The run stops after three consecutive batches that store no image, or on an
+  auth error. A call times out after 15 minutes. The run ends with a summary
+  of stored images, sizes and Claude usage (calls, tokens, cost).
 - It writes to whichever database `POSTGRES_URL` points at, so check that
   first.

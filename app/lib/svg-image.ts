@@ -8,7 +8,7 @@ const MAX_SVG_BYTES = 64 * 1024;
 const QUALITY_LADDER = [IMAGE_QUALITY, 45, 30];
 // Best-effort sanity filter; prompt rules are advisory and word text is user-authored.
 export const UNSAFE_SVG =
-  /<(image|script|foreignObject)|<!ENTITY|@import|url\(\s*["']?(?!#)|href\s*=\s*["'](?!#)/i;
+  /<(?:\w+:)?(image|script|foreignObject)|<!(ENTITY|DOCTYPE)|@import|url\(\s*["']?(?!#)|href\s*=\s*["'](?!#)/i;
 
 /** SVG string -> small WebP, or undefined if unsafe, unparsable or too big. */
 export async function svgToWebp(svg: unknown): Promise<Buffer | undefined> {
